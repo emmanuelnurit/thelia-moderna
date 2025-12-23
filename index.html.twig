@@ -1,0 +1,672 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ store_name }} - {{ 'Home'|trans }}{% endblock %}
+
+{% block body %}
+{# Fetch data from API #}
+{% set categoriesData = resources('/api/front/categories', {'depth': 1, 'limit': 4}) %}
+
+{# Get featured product #}
+{% set featuredProductData = resources('/api/front/products', {'limit': 1})|first %}
+
+{# Get promo products (excluding featured) #}
+{% set promoProductsData = resources('/api/front/products', {'productSaleElements.promo': true, 'limit': 5}) %}
+{% set excludedIds = [] %}
+{% if featuredProductData %}
+    {% set excludedIds = excludedIds|merge([featuredProductData.id]) %}
+{% endif %}
+{% set promoProductsData = promoProductsData|filter(p => p.id not in excludedIds)|slice(0, 4) %}
+
+{# Build list of already displayed product IDs #}
+{% for product in promoProductsData %}
+    {% set excludedIds = excludedIds|merge([product.id]) %}
+{% endfor %}
+
+{# Get new products (excluding featured and promo) #}
+{% set allNewProducts = resources('/api/front/products', {'limit': 20}) %}
+{% set newProductsData = allNewProducts|filter(p => p.id not in excludedIds)|slice(0, 8) %}
+
+<div class="home">
+    {# Hero Section with Header Highlights - Using custom Twig extension #}
+    {% set highlightsData = headerHighlights('desktop', app.request.locale|default('fr_FR')) %}
+
+    <!-- DEBUG: highlightsData count = {{ highlightsData|length }} -->
+    {% if highlightsData is iterable and highlightsData|length > 0 %}
+    <section class="hero-highlights">
+        <div class="highlights-slider" x-data="highlightsSlider({{ highlightsData|length }})" x-init="init()">
+            <div class="highlights-track" :style="'transform: translateX(-' + (currentSlide * 100) + '%)'">
+                {% for highlight in highlightsData %}
+                <div class="highlight-slide">
+                    <div class="highlight-image">
+                        <img src="{{ highlight.IMAGE_URL }}" alt="{{ highlight.TITLE }}" loading="lazy">
+                    </div>
+                    <div class="highlight-content">
+                        <div class="container">
+                            {% if highlight.CATCHPHRASE %}
+                            <span class="highlight-catchphrase">{{ highlight.CATCHPHRASE }}</span>
+                            {% endif %}
+                            <h1 class="highlight-title">{{ highlight.TITLE }}</h1>
+                            {% if highlight.CTA and highlight.URL %}
+                            <a href="{{ highlight.URL }}" class="btn btn-primary">{{ highlight.CTA }}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {# Navigation dots #}
+            <div class="highlights-dots">
+                {% for highlight in highlightsData %}
+                <button
+                    class="highlight-dot"
+                    :class="{ 'active': currentSlide === {{ loop.index0 }} }"
+                    @click="goToSlide({{ loop.index0 }})"
+                    aria-label="Slide {{ loop.index }}">
+                </button>
+                {% endfor %}
+            </div>
+
+            {# Navigation arrows #}
+            <button class="highlight-arrow highlight-arrow--prev" @click="prevSlide()" aria-label="{{ 'Previous'|trans }}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </button>
+            <button class="highlight-arrow highlight-arrow--next" @click="nextSlide()" aria-label="{{ 'Next'|trans }}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m9 18 6-6-6-6"/>
+                </svg>
+            </button>
+        </div>
+    </section>
+    {% else %}
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">{{ 'Discover Premium Style'|trans }}</h1>
+                <p class="hero-subtitle">{{ 'Curated collections for the modern lifestyle. Quality meets elegance.'|trans }}</p>
+                <div class="hero-actions">
+                    <a href="/?view=category&category_id=1" class="btn btn-primary">{{ 'Shop Now'|trans }}</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# Featured Product - Hero Product #}
+    {% if featuredProductData %}
+    <section class="hero-product">
+        <div class="container">
+            {% include 'components/Home/FeaturedProduct.html.twig' with {
+                featuredProduct: featuredProductData
+            } %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# Featured Categories #}
+    {% if categoriesData is iterable and categoriesData|length > 0 %}
+    <section class="featured-categories">
+        <div class="container">
+            <h2 class="section-title">{{ 'Shop by Category'|trans }}</h2>
+            <div class="categories-grid">
+                {% for category in categoriesData %}
+                    {% set categoryImages = resources('/api/front/category_images', {'category.id': category.id, itemsPerPage: 1}) %}
+                    <a href="{{ category.publicUrl }}" class="category-card">
+                        <div class="category-card-image">
+                            {% if categoryImages|length > 0 %}
+                                <img src="/legacy-image-library/category_image_{{ categoryImages|first.id }}/full/%5E*!300,300/0/default.webp" alt="{{ category.i18ns.title }}" loading="lazy">
+                            {% else %}
+                                <div class="category-card-placeholder">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <path d="m21 15-5-5L5 21"/>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <h3 class="category-card-title">{{ category.i18ns.title }}</h3>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# Promo Products - 4 products on sale #}
+    {% if promoProductsData is iterable and promoProductsData|length > 0 %}
+    <section class="promo-products">
+        <div class="container">
+            {% include 'components/Home/ProductsGrid.html.twig' with {
+                products: promoProductsData,
+                title: 'Special Offers'|trans,
+                viewAllUrl: '/?view=promo'
+            } %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# New Arrivals - Limited to 8 products #}
+    {% if newProductsData is iterable and newProductsData|length > 0 %}
+    <section class="new-arrivals">
+        <div class="container">
+            {% include 'components/Home/ProductsGrid.html.twig' with {
+                products: newProductsData,
+                title: 'New Arrivals'|trans,
+                viewAllUrl: '/?view=category&category_id=1'
+            } %}
+        </div>
+    </section>
+    {% endif %}
+
+    {# Promo Banner #}
+    <section class="promo-banner">
+        <div class="container">
+            <div class="promo-content">
+                <span class="promo-tag">{{ 'Limited Time'|trans }}</span>
+                <h2 class="promo-title">{{ 'Up to 50% Off'|trans }}</h2>
+                <p class="promo-text">{{ 'Shop our exclusive sale collection with amazing discounts on premium items.'|trans }}</p>
+                <a href="/?view=promo" class="btn btn-primary">{{ 'Shop Sale'|trans }}</a>
+            </div>
+        </div>
+    </section>
+
+    {# Newsletter #}
+    <section class="newsletter">
+        <div class="container">
+            <div class="newsletter-content">
+                <h2 class="newsletter-title">{{ 'Join Our Newsletter'|trans }}</h2>
+                <p class="newsletter-text">{{ 'Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.'|trans }}</p>
+                <form class="newsletter-form" method="post">
+                    <input type="email" name="email" placeholder="{{ 'Enter your email'|trans }}" class="newsletter-input" required>
+                    <button type="submit" class="btn btn-primary">{{ 'Subscribe'|trans }}</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+.home {
+    /* Page container */
+}
+
+/* Hero Highlights Slider */
+.hero-highlights {
+    position: relative;
+    overflow: hidden;
+}
+
+.highlights-slider {
+    position: relative;
+}
+
+.highlights-track {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.highlight-slide {
+    position: relative;
+    min-width: 100%;
+    height: 500px;
+}
+
+@media (min-width: 768px) {
+    .highlight-slide {
+        height: 600px;
+    }
+}
+
+.highlight-image {
+    position: absolute;
+    inset: 0;
+}
+
+.highlight-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.highlight-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
+}
+
+.highlight-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    color: var(--color-white);
+}
+
+.highlight-catchphrase {
+    display: inline-block;
+    padding: 6px 16px;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+}
+
+.highlight-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    max-width: 600px;
+}
+
+@media (min-width: 768px) {
+    .highlight-title {
+        font-size: 3.5rem;
+    }
+}
+
+.highlight-content .btn-primary {
+    background-color: var(--color-white);
+    color: var(--color-text);
+}
+
+.highlight-content .btn-primary:hover {
+    background-color: var(--color-surface);
+}
+
+/* Navigation Dots */
+.highlights-dots {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+.highlight-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.highlight-dot:hover,
+.highlight-dot.active {
+    background-color: var(--color-white);
+}
+
+.highlight-dot.active {
+    width: 32px;
+    border-radius: 6px;
+}
+
+/* Navigation Arrows */
+.highlight-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text);
+}
+
+.highlight-arrow:hover {
+    background-color: var(--color-white);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.highlight-arrow--prev {
+    left: 16px;
+}
+
+.highlight-arrow--next {
+    right: 16px;
+}
+
+@media (max-width: 767px) {
+    .highlight-arrow {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Hero */
+.hero {
+    padding: 80px 0;
+    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-white) 100%);
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+    .hero-title {
+        font-size: 4rem;
+    }
+}
+
+.hero-subtitle {
+    font-size: 1.125rem;
+    color: var(--color-text-muted);
+    margin-bottom: 32px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+/* Sections */
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 32px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+/* Featured Categories */
+.featured-categories {
+    padding: 64px 0;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+@media (min-width: 768px) {
+    .categories-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.category-card {
+    display: block;
+    text-decoration: none;
+}
+
+.category-card-image {
+    aspect-ratio: 1;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.category-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+}
+
+.category-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border);
+}
+
+.category-card:hover .category-card-image img {
+    transform: scale(1.05);
+}
+
+.category-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    text-align: center;
+}
+
+/* Product Sections */
+.hero-product {
+    padding: 64px 0;
+    background-color: var(--color-white);
+}
+
+.promo-products {
+    padding: 64px 0;
+    background-color: var(--color-surface);
+}
+
+.new-arrivals {
+    padding: 64px 0;
+    background-color: var(--color-white);
+}
+
+/* Promo Banner */
+.promo-banner {
+    padding: 64px 0;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    text-align: center;
+}
+
+.promo-content {
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.promo-tag {
+    display: inline-block;
+    padding: 6px 16px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+}
+
+.promo-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+@media (min-width: 768px) {
+    .promo-title {
+        font-size: 3rem;
+    }
+}
+
+.promo-text {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 32px;
+}
+
+.promo-banner .btn-primary {
+    background-color: var(--color-white);
+    color: var(--color-primary);
+}
+
+.promo-banner .btn-primary:hover {
+    background-color: var(--color-surface);
+}
+
+/* Newsletter */
+.newsletter {
+    padding: 80px 0;
+    background-color: var(--color-surface);
+    text-align: center;
+}
+
+.newsletter-content {
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.newsletter-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.newsletter-text {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 32px;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 12px;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.newsletter-input {
+    flex: 1;
+    padding: 14px 20px;
+    background-color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+}
+
+.newsletter-input:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+</style>
+
+<script>
+// Highlights Slider Component
+function highlightsSlider() {
+    return {
+        currentSlide: 0,
+        totalSlides: 0,
+        autoplayInterval: null,
+        autoplayDelay: 5000,
+
+        init() {
+            this.totalSlides = this.$el.querySelectorAll('.highlight-slide').length;
+            if (this.totalSlides > 1) {
+                this.startAutoplay();
+            }
+        },
+
+        nextSlide() {
+            this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+            this.resetAutoplay();
+        },
+
+        prevSlide() {
+            this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
+            this.resetAutoplay();
+        },
+
+        goToSlide(index) {
+            this.currentSlide = index;
+            this.resetAutoplay();
+        },
+
+        startAutoplay() {
+            this.autoplayInterval = setInterval(() => {
+                this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+            }, this.autoplayDelay);
+        },
+
+        resetAutoplay() {
+            if (this.autoplayInterval) {
+                clearInterval(this.autoplayInterval);
+                this.startAutoplay();
+            }
+        }
+    };
+}
+
+// Wishlist button component for product cards
+function wishlistButton(config) {
+    return {
+        id: config.id,
+        title: config.title,
+        publicUrl: config.publicUrl,
+        imageId: config.imageId,
+        price: config.price || '',
+        promoPrice: config.promoPrice || '',
+        isPromo: config.isPromo || false,
+        isInWishlist: false,
+
+        init() {
+            // Check immediately
+            this.checkWishlist();
+
+            // Listen for wishlist changes
+            window.addEventListener('wishlist:added', () => this.checkWishlist());
+            window.addEventListener('wishlist:removed', () => this.checkWishlist());
+            window.addEventListener('wishlist:cleared', () => this.checkWishlist());
+        },
+
+        checkWishlist() {
+            // Use Alpine store directly for better reliability
+            if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                this.isInWishlist = window.Alpine.store('wishlist').has(this.id);
+            }
+        },
+
+        toggle() {
+            // Use Alpine store directly
+            if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                const product = {
+                    id: this.id,
+                    title: this.title,
+                    publicUrl: this.publicUrl,
+                    imageId: this.imageId,
+                    price: this.price,
+                    promoPrice: this.promoPrice,
+                    isPromo: this.isPromo
+                };
+                const added = window.Alpine.store('wishlist').toggle(product);
+                this.isInWishlist = added;
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

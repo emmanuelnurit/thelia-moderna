@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="{{ lang_code|default('en') }}" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>{% block title %}{{ store_name }}{% endblock %}</title>
+
+    {% block meta %}
+        <meta name="description" content="{% block meta_description %}{{ store_description|default('') }}{% endblock %}">
+        <meta name="robots" content="index, follow">
+    {% endblock %}
+
+    {# Favicon - Modern.A logo inline #}
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23010101'/%3E%3Ccircle cx='16' cy='18' r='3' fill='%23c9a227'/%3E%3C/svg%3E">
+
+    {# Preconnect for fonts #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    {# Styles #}
+    {{ encore_entry_link_tags('app') }}
+
+    {% block stylesheets %}{% endblock %}
+
+    {# Prevent FOUC #}
+    <script>document.documentElement.classList.remove('no-js');</script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {# Skip to content for accessibility #}
+    <a href="#main-content" class="visually-hidden">{{ 'Skip to content'|trans }}</a>
+
+    {# Header #}
+    {% block header %}
+        {% include 'components/Layout/Header.html.twig' %}
+    {% endblock %}
+
+    {# Mobile Menu Drawer - Disabled (no main navigation menu)
+    {% include 'components/Layout/MobileMenu.html.twig' %}
+    #}
+
+    {# Main Content #}
+    <main id="main-content" class="min-h-screen">
+        {% block breadcrumb %}{% endblock %}
+
+        {% block body %}{% endblock %}
+    </main>
+
+    {# Footer #}
+    {% block footer %}
+        {% include 'components/Layout/Footer.html.twig' %}
+    {% endblock %}
+
+    {# Cart Drawer #}
+    {% include 'components/Layout/CartDrawer.html.twig' %}
+
+    {# Search Modal #}
+    {% include 'components/Layout/SearchModal.html.twig' %}
+
+    {# Toast notifications #}
+    {% include 'components/Cart/Toast.html.twig' %}
+
+    {# Scripts #}
+    {{ encore_entry_script_tags('app') }}
+
+    {# Cart Counter Update Function #}
+    <script>
+    window.updateCartCounter = async function() {
+        try {
+            const response = await fetch('/moderna-api/cart_items');
+            if (!response.ok) return;
+
+            const data = await response.json();
+            const count = data.count || 0;
+
+            // Dispatch event to update counter
+            window.dispatchEvent(new CustomEvent('cart-updated', {
+                detail: { count }
+            }));
+        } catch (error) {
+            console.error('Error updating cart counter:', error);
+        }
+    };
+    </script>
+
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

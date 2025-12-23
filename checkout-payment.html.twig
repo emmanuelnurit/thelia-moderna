@@ -1,0 +1,799 @@
+{% extends 'checkout-base.html.twig' %}
+
+{% block title %}
+    {{ 'Payment'|trans }} - {{ parent() }}
+{% endblock %}
+
+{% set current = 'payment' %}
+
+{% block checkoutContent %}
+    {% set customer = app.session.get('thelia.customer_user') %}
+
+    {% if not customer %}
+        <script>window.location.href = '/?view=login&redirect=checkout-payment';</script>
+        <div class="checkout-loading">
+            <div class="spinner"></div>
+            <p>{{ 'Redirecting to login...'|trans }}</p>
+        </div>
+    {% else %}
+        <div class="checkout-payment" x-data="paymentComponent()" x-init="init()">
+            {# Payment Method Section #}
+            <section class="checkout-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="section-number">1</span>
+                        {{ 'Secure Payment'|trans }}
+                    </h2>
+                </div>
+
+                {# Loading State #}
+                <div x-show="loading" class="section-loading">
+                    <div class="spinner"></div>
+                    <p>{{ 'Loading payment methods...'|trans }}</p>
+                </div>
+
+                {# Payment Methods List #}
+                <div x-show="!loading" class="payment-methods">
+                    <template x-for="method in paymentMethods" :key="method.id">
+                        <label
+                            class="payment-method-card"
+                            :class="{ 'selected': selectedPaymentMethod === method.id }"
+                        >
+                            <input
+                                type="radio"
+                                name="payment_method"
+                                :value="method.id"
+                                x-model="selectedPaymentMethod"
+                                @change="selectPaymentMethod(method)"
+                                class="sr-only"
+                            >
+                            <div class="payment-method-radio">
+                                <div class="radio-dot"></div>
+                            </div>
+
+                            {# If payment method has paymentIcons array (like CAWL), show icons #}
+                            <template x-if="method.paymentIcons && method.paymentIcons.length > 0">
+                                <div class="payment-method-info payment-method-icons">
+                                    <div class="payment-icons-grid">
+                                        <template x-for="icon in method.paymentIcons" :key="icon.url">
+                                            <img :src="icon.url" :alt="icon.alt" class="payment-icon-small">
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {# Otherwise show title and description #}
+                            <template x-if="!method.paymentIcons || method.paymentIcons.length === 0">
+                                <div class="payment-method-info">
+                                    <span class="payment-method-title" x-text="method.title"></span>
+                                    <p class="payment-method-description" x-text="method.description" x-show="method.description"></p>
+                                </div>
+                            </template>
+
+                            {# Show logo if available and no payment icons #}
+                            <template x-if="(!method.paymentIcons || method.paymentIcons.length === 0) && method.logoUrl">
+                                <div class="payment-method-logo">
+                                    <img :src="method.logoUrl" :alt="method.title" loading="lazy">
+                                </div>
+                            </template>
+
+                            {# Show generic icon if no logo and no payment icons #}
+                            <template x-if="(!method.paymentIcons || method.paymentIcons.length === 0) && !method.logoUrl">
+                                <div class="payment-method-icon">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="1" y="4" width="22" height="16" rx="2"/>
+                                        <line x1="1" y1="10" x2="23" y2="10"/>
+                                    </svg>
+                                </div>
+                            </template>
+                        </label>
+                    </template>
+
+                    {# No Payment Methods #}
+                    <div x-show="!loading && paymentMethods.length === 0" class="no-payment-methods">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" x2="12" y1="8" y2="12"/>
+                            <line x1="12" x2="12.01" y1="16" y2="16"/>
+                        </svg>
+                        <p>{{ 'No payment methods available.'|trans }}</p>
+                    </div>
+                </div>
+            </section>
+
+            {# Billing Address Section #}
+            <section class="checkout-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="section-number">2</span>
+                        {{ 'Billing Address'|trans }}
+                    </h2>
+                    <a href="/?view=checkout-delivery" class="section-edit-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                            <path d="m15 5 4 4"/>
+                        </svg>
+                        {{ 'Change'|trans }}
+                    </a>
+                </div>
+
+                {# Current Invoice Address Display Only #}
+                <div x-show="invoiceAddress" class="current-address">
+                    <div class="address-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                            <path d="M3 6h18"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                    </div>
+                    <div class="current-address-content">
+                        <p class="address-name">
+                            <span x-text="invoiceAddress?.titleShort"></span>
+                            <span x-text="invoiceAddress?.firstname + ' ' + invoiceAddress?.lastname"></span>
+                        </p>
+                        <template x-if="invoiceAddress?.company">
+                            <p class="address-company" x-text="invoiceAddress?.company"></p>
+                        </template>
+                        <p x-text="invoiceAddress?.address1"></p>
+                        <template x-if="invoiceAddress?.address2">
+                            <p x-text="invoiceAddress?.address2"></p>
+                        </template>
+                        <p x-text="invoiceAddress?.zipcode + ' ' + invoiceAddress?.city"></p>
+                        <p x-text="invoiceAddress?.country"></p>
+                    </div>
+                </div>
+
+                {# No address selected #}
+                <div x-show="!invoiceAddress" class="no-address-message">
+                    <p>{{ 'No billing address selected. Please go back to the delivery page.'|trans }}</p>
+                </div>
+            </section>
+
+            {# Error Messages #}
+            <div x-show="error" class="checkout-error" x-text="error"></div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block checkoutBackButton %}
+    <a href="/?view=checkout-delivery" class="checkout-back-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m15 18-6-6 6-6"/>
+        </svg>
+        {{ 'Back to Delivery'|trans }}
+    </a>
+{% endblock %}
+
+{% block checkoutSummary %}
+    {% set cartItems = get_cart_items_by_cookie() %}
+    {% set cartDiscount = get_cart_discount_by_cookie() %}
+    {% if cartItems|length > 0 %}
+        {# Order Review - Cart Items #}
+        {% include 'components/Cart/OrderReview.html.twig' with {
+            cartItems: cartItems
+        } %}
+
+        {# Cart Summary #}
+        {% include 'components/Cart/CartSummary.html.twig' with {
+            cartItems: cartItems,
+            discount: cartDiscount.discount,
+            coupons: cartDiscount.coupons,
+            showDelivery: true
+        } %}
+    {% endif %}
+{% endblock %}
+
+{% block checkoutNextButton %}
+    {% set cartItems = get_cart_items_by_cookie() %}
+    {% if cartItems|length > 0 %}
+        <div x-data="{
+            termsAccepted: false,
+            get canProceed() {
+                return !!$store.checkout?.paymentModuleId && this.termsAccepted;
+            }
+        }">
+            <form action="/moderna-api/checkout/pay" method="POST" @submit="
+                if (!$store.checkout?.paymentModuleId) {
+                    $event.preventDefault();
+                    alert('{{ 'Please select a payment method'|trans }}');
+                    return false;
+                }
+                if (!termsAccepted) {
+                    $event.preventDefault();
+                    alert('{{ 'Please accept the terms and conditions'|trans }}');
+                    return false;
+                }
+            ">
+                <input type="hidden" name="_token" value="{{ csrf_token('checkout_pay') }}">
+                <input type="hidden" name="paymentModuleId" :value="$store.checkout?.paymentModuleId || ''">
+
+                {# Terms and Conditions #}
+                <div class="terms-section mb-6">
+                    <label class="terms-checkbox">
+                        <input
+                            type="checkbox"
+                            x-model="termsAccepted"
+                        >
+                        <span class="checkbox-mark"></span>
+                        <span class="checkbox-label">
+                            {{ 'I have read and accept the'|trans }}
+                            <a href="/?view=content&content_id=3" target="_blank">{{ 'terms and conditions'|trans }}</a>
+                        </span>
+                    </label>
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary w-full"
+                    :class="{ 'btn-disabled': !canProceed }"
+                    :disabled="!canProceed"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                        <rect x="1" y="4" width="22" height="16" rx="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    {{ 'Place Order'|trans }}
+                </button>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// Initialize checkout store if not exists
+document.addEventListener('alpine:init', () => {
+    if (!Alpine.store('checkout')) {
+        Alpine.store('checkout', {
+            deliveryAddressId: null,
+            invoiceAddressId: null,
+            deliveryModuleId: null,
+            paymentModuleId: null,
+            postage: 0
+        });
+    }
+});
+
+function paymentComponent() {
+    return {
+        paymentMethods: [],
+        addresses: [],
+        selectedPaymentMethod: null,
+        invoiceAddress: null,
+        acceptedTerms: false,
+        loading: true,
+        error: null,
+
+        async init() {
+            // Load addresses first, then cart state needs them
+            await this.loadAddresses();
+
+            // Load payment methods and cart state in parallel
+            await Promise.all([
+                this.loadPaymentMethods(),
+                this.loadCartState()
+            ]);
+        },
+
+        async loadPaymentMethods() {
+            try {
+                const response = await fetch('/moderna-api/checkout/api/payment-methods');
+                if (response.ok) {
+                    this.paymentMethods = await response.json();
+                }
+            } catch (e) {
+                console.error('Error loading payment methods:', e);
+                this.error = '{{ "Error loading payment methods"|trans }}';
+            }
+            this.loading = false;
+        },
+
+        async loadAddresses() {
+            try {
+                const response = await fetch('/moderna-api/checkout/api/addresses');
+                if (response.ok) {
+                    this.addresses = await response.json();
+                }
+            } catch (e) {
+                console.error('Error loading addresses:', e);
+            }
+        },
+
+        async loadCartState() {
+            try {
+                const response = await fetch('/moderna-api/checkout/api/summary');
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Check if delivery info is set, if not redirect
+                    if (!data.deliveryAddressId || !data.deliveryModuleId) {
+                        window.location.href = '/?view=checkout-delivery';
+                        return;
+                    }
+
+                    // Set payment method if already selected
+                    if (data.paymentModuleId) {
+                        this.selectedPaymentMethod = data.paymentModuleId;
+                        Alpine.store('checkout').paymentModuleId = data.paymentModuleId;
+                    }
+
+                    // Set invoice address (always use what was selected in delivery page)
+                    const invoiceId = data.invoiceAddressId || data.deliveryAddressId;
+
+                    // Find address (handle both string and number IDs)
+                    this.invoiceAddress = this.addresses.find(a => a.id == invoiceId);
+
+                    // Update store
+                    Alpine.store('checkout').deliveryAddressId = data.deliveryAddressId;
+                    Alpine.store('checkout').invoiceAddressId = data.invoiceAddressId;
+                    Alpine.store('checkout').deliveryModuleId = data.deliveryModuleId;
+                    Alpine.store('checkout').postage = parseFloat(data.postage) || 0;
+                }
+            } catch (e) {
+            }
+        },
+
+        async selectPaymentMethod(method) {
+            this.selectedPaymentMethod = method.id;
+            this.error = null;
+
+            // Update store
+            Alpine.store('checkout').paymentModuleId = method.id;
+
+            try {
+                const response = await fetch('/moderna-api/checkout/api/set-payment-module', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ moduleId: method.id })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    this.error = data.error;
+                }
+            } catch (e) {
+                this.error = '{{ "Error selecting payment method"|trans }}';
+            }
+        }
+    }
+}
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.checkout-payment {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.checkout-section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.section-edit-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-primary, #000);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+}
+
+.section-edit-link:hover {
+    opacity: 0.7;
+}
+
+.section-number {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-primary, #000);
+    color: white;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.section-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+/* Payment Methods */
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.payment-method-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-method-card:hover {
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+.payment-method-card.selected {
+    border-color: var(--color-primary, #000);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.payment-method-radio {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.payment-method-card.selected .payment-method-radio {
+    border-color: var(--color-primary, #000);
+}
+
+.radio-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--color-primary, #000);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.payment-method-card.selected .radio-dot {
+    opacity: 1;
+}
+
+.payment-method-info {
+    flex: 1;
+}
+
+.payment-method-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.payment-method-description {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.payment-method-icons {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.payment-icons-grid {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.payment-icon-small {
+    height: 24px;
+    width: auto;
+    max-width: 40px;
+    object-fit: contain;
+    opacity: 0.8;
+}
+
+.payment-method-logo img {
+    max-height: 32px;
+    max-width: 80px;
+    object-fit: contain;
+}
+
+.payment-method-icon {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.payment-method-card.selected .payment-method-icon {
+    color: var(--color-primary, #000);
+}
+
+.no-payment-methods {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 32px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.5);
+    background: #fef3c7;
+    border-radius: 8px;
+}
+
+/* Current Address - Display Only */
+.current-address {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.address-icon {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 12px;
+    color: var(--color-primary, #010101);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.address-icon svg {
+    width: 36px;
+    height: 36px;
+}
+
+.current-address-content {
+    flex: 1;
+    padding-top: 4px;
+}
+
+.current-address-content p {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.7);
+    line-height: 1.5;
+}
+
+.current-address-content p:last-child {
+    margin-bottom: 0;
+}
+
+.current-address .address-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.9);
+    margin-bottom: 8px !important;
+}
+
+.current-address .address-company {
+    font-style: italic;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+/* No Address Message */
+.no-address-message {
+    padding: 24px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.6);
+    background: rgba(255, 193, 7, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.no-address-message p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Order Items */
+.order-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+}
+
+.order-item-image {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    flex-shrink: 0;
+}
+
+.order-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.order-item-info {
+    flex: 1;
+}
+
+.order-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 0 4px 0;
+}
+
+.order-item-price {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0;
+}
+
+/* Terms */
+.terms-section {
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.terms-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.terms-checkbox input {
+    position: absolute;
+    opacity: 0;
+}
+
+.checkbox-mark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.terms-checkbox input:checked + .checkbox-mark {
+    background: var(--color-primary, #000);
+    border-color: var(--color-primary, #000);
+}
+
+.checkbox-mark::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+}
+
+.terms-checkbox input:checked + .checkbox-mark::after {
+    opacity: 1;
+}
+
+.checkbox-label {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.checkbox-label a {
+    color: var(--color-primary, #000);
+    text-decoration: underline;
+}
+
+/* Back Link */
+.checkout-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(0, 0, 0, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    margin-top: 24px;
+    transition: color 0.2s;
+}
+
+.checkout-back-link:hover {
+    color: var(--color-primary, #000);
+}
+
+/* Error */
+.checkout-error {
+    padding: 16px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* Spinner */
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: var(--color-primary, #000);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .checkout-section {
+        padding: 20px 16px;
+    }
+
+    .payment-method-card {
+        padding: 16px;
+    }
+}
+</style>
+{% endblock %}

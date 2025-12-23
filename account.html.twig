@@ -1,0 +1,630 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'My Account'|trans }} - {{ store_name|default('Modern.A') }}{% endblock %}
+
+{# Get customer data from API #}
+{% set customerId = attr('customer', 'id') %}
+
+{% block body %}
+{# Redirect to login if not authenticated #}
+{% if not customerId %}
+    <script>window.location.href = '/?view=login&redirect=' + encodeURIComponent(window.location.href);</script>
+{% else %}
+{% set customer = resources('/api/front/account/customers/' ~ customerId) %}
+<div class="account-page">
+    <div class="container">
+        {# Breadcrumb #}
+        <nav class="account-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ path('index') }}">{{ 'Home'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <span>{{ 'My Account'|trans }}</span>
+        </nav>
+
+        {# Page Header #}
+        <div class="account-header">
+            <div class="account-avatar">
+                <span>{{ customer.firstname|first|upper }}{{ customer.lastname|first|upper }}</span>
+            </div>
+            <div class="account-headerInfo">
+                <h1 class="account-title">{{ 'Welcome back,'|trans }} {{ customer.firstname }}</h1>
+                <p class="account-subtitle">{{ 'Manage your account settings and preferences'|trans }}</p>
+            </div>
+        </div>
+
+        <div class="account-layout">
+            {# Sidebar Navigation #}
+            <aside class="account-sidebar">
+                <nav class="account-nav">
+                    <a href="/?view=account" class="account-navLink account-navLink--active">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="8" r="5"/>
+                            <path d="M20 21a8 8 0 0 0-16 0"/>
+                        </svg>
+                        {{ 'My Profile'|trans }}
+                    </a>
+                    <a href="/?view=account-orders" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                            <path d="M3 6h18"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        {{ 'My Orders'|trans }}
+                    </a>
+                    <a href="/?view=account-addresses" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        {{ 'My Addresses'|trans }}
+                    </a>
+                    <a href="/?view=wishlist" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                        </svg>
+                        {{ 'My Wishlist'|trans }}
+                    </a>
+                    <hr class="account-navDivider">
+                    <button type="button" class="account-navLink account-navLink--logout" @click="window.logout()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16,17 21,12 16,7"/>
+                            <line x1="21" x2="9" y1="12" y2="12"/>
+                        </svg>
+                        {{ 'Logout'|trans }}
+                    </button>
+                </nav>
+            </aside>
+
+            {# Main Content #}
+            <main class="account-main">
+                {# Success Message #}
+                {% if app.request.get('success') == 'profile_updated' %}
+                <div class="account-alert account-alert--success" style="margin-bottom: 24px;">
+                    {{ 'Profile updated successfully'|trans }}
+                </div>
+                {% endif %}
+
+                {# Profile Information Card #}
+                <div class="account-card">
+                    <div class="account-cardHeader">
+                        <h2 class="account-cardTitle">{{ 'Personal Information'|trans }}</h2>
+                        <a href="/?view=account-update" class="account-editBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                <path d="m15 5 4 4"/>
+                            </svg>
+                            {{ 'Edit'|trans }}
+                        </a>
+                    </div>
+                    <div class="account-cardBody">
+                        <div class="account-infoGrid">
+                            <div class="account-infoItem">
+                                <span class="account-infoLabel">{{ 'First Name'|trans }}</span>
+                                <span class="account-infoValue">{{ customer.firstname }}</span>
+                            </div>
+                            <div class="account-infoItem">
+                                <span class="account-infoLabel">{{ 'Last Name'|trans }}</span>
+                                <span class="account-infoValue">{{ customer.lastname }}</span>
+                            </div>
+                            <div class="account-infoItem">
+                                <span class="account-infoLabel">{{ 'Email'|trans }}</span>
+                                <span class="account-infoValue">{{ customer.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Change Password Card #}
+                <div class="account-card" x-data="passwordForm()">
+                    <div class="account-cardHeader">
+                        <h2 class="account-cardTitle">{{ 'Change Password'|trans }}</h2>
+                    </div>
+                    <div class="account-cardBody">
+                        <form @submit.prevent="changePassword" class="account-form">
+                            <div class="account-formGroup">
+                                <label for="current_password" class="account-label">{{ 'Current Password'|trans }}</label>
+                                <input type="password" id="current_password" x-model="form.currentPassword" class="account-input" required>
+                            </div>
+                            <div class="account-formRow">
+                                <div class="account-formGroup">
+                                    <label for="new_password" class="account-label">{{ 'New Password'|trans }}</label>
+                                    <input type="password" id="new_password" x-model="form.newPassword" class="account-input" required minlength="8">
+                                </div>
+                                <div class="account-formGroup">
+                                    <label for="confirm_password" class="account-label">{{ 'Confirm Password'|trans }}</label>
+                                    <input type="password" id="confirm_password" x-model="form.confirmPassword" class="account-input" required>
+                                </div>
+                            </div>
+                            <div class="account-alert account-alert--error" x-show="error" x-text="error" x-cloak></div>
+                            <div class="account-alert account-alert--success" x-show="success" x-text="success" x-cloak></div>
+                            <div class="account-formActions">
+                                <button type="submit" class="account-btnPrimary" :disabled="loading">
+                                    <span x-show="!loading">{{ 'Update Password'|trans }}</span>
+                                    <span x-show="loading">{{ 'Updating...'|trans }}</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {# Quick Links #}
+                <div class="account-quickLinks">
+                    <a href="/?view=account-orders" class="account-quickLink">
+                        <div class="account-quickLinkIcon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                <path d="M3 6h18"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                        </div>
+                        <div class="account-quickLinkContent">
+                            <h3>{{ 'My Orders'|trans }}</h3>
+                            <p>{{ 'View and track your orders'|trans }}</p>
+                        </div>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m9 18 6-6-6-6"/>
+                        </svg>
+                    </a>
+                    <a href="/?view=account-addresses" class="account-quickLink">
+                        <div class="account-quickLinkIcon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <div class="account-quickLinkContent">
+                            <h3>{{ 'My Addresses'|trans }}</h3>
+                            <p>{{ 'Manage your delivery addresses'|trans }}</p>
+                        </div>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m9 18 6-6-6-6"/>
+                        </svg>
+                    </a>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<style>
+.account-page {
+    min-height: 100vh;
+    background-color: var(--color-surface, #f2f0ea);
+    padding: 24px 0 48px;
+}
+
+.account-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--color-text-light, #6b7280);
+    margin-bottom: 24px;
+}
+
+.account-breadcrumb a {
+    color: var(--color-text-light, #6b7280);
+    text-decoration: none;
+}
+
+.account-breadcrumb a:hover {
+    color: var(--color-text, #010101);
+}
+
+.account-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.account-avatar {
+    width: 64px;
+    height: 64px;
+    background-color: var(--color-primary, #010101);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.account-headerInfo {
+    flex: 1;
+}
+
+.account-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 4px;
+}
+
+.account-subtitle {
+    font-size: 0.9375rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0;
+}
+
+.account-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+@media (min-width: 1024px) {
+    .account-layout {
+        grid-template-columns: 280px 1fr;
+    }
+}
+
+/* Sidebar */
+.account-sidebar {
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    padding: 16px;
+    height: fit-content;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.account-navLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    text-decoration: none;
+    border-radius: var(--radius-md, 8px);
+    transition: background-color 0.2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.account-navLink:hover {
+    background-color: var(--color-surface, #f2f0ea);
+}
+
+.account-navLink--active {
+    background-color: var(--color-primary, #010101);
+    color: white;
+}
+
+.account-navLink--active:hover {
+    background-color: var(--color-primary, #010101);
+}
+
+.account-navLink--logout {
+    color: #dc2626;
+}
+
+.account-navLink--logout:hover {
+    background-color: #fef2f2;
+}
+
+.account-navDivider {
+    border: none;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    margin: 8px 0;
+}
+
+/* Main Content */
+.account-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.account-card {
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+}
+
+.account-cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.account-cardTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0;
+}
+
+.account-editBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-light, #6b7280);
+    background: none;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.account-editBtn:hover {
+    border-color: var(--color-primary, #010101);
+    color: var(--color-primary, #010101);
+}
+
+.account-cardBody {
+    padding: 24px;
+}
+
+.account-infoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+}
+
+.account-infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.account-infoLabel {
+    font-size: 0.8125rem;
+    color: var(--color-text-light, #6b7280);
+}
+
+.account-infoValue {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+}
+
+/* Form Styles */
+.account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.account-formRow {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 640px) {
+    .account-formRow {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.account-formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.account-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+}
+
+.account-input {
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.account-input:focus {
+    outline: none;
+    border-color: var(--color-primary, #010101);
+    box-shadow: 0 0 0 3px rgba(1, 1, 1, 0.1);
+}
+
+.account-formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+}
+
+.account-btnPrimary {
+    padding: 12px 24px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: white;
+    background-color: var(--color-primary, #010101);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.account-btnPrimary:hover {
+    background-color: #1a1a1a;
+}
+
+.account-btnPrimary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.account-btnSecondary {
+    padding: 12px 24px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    background-color: transparent;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.account-btnSecondary:hover {
+    border-color: var(--color-primary, #010101);
+}
+
+/* Alerts */
+.account-alert {
+    padding: 12px 16px;
+    border-radius: var(--radius-md, 8px);
+    font-size: 0.875rem;
+}
+
+.account-alert--error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.account-alert--success {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+/* Quick Links */
+.account-quickLinks {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 640px) {
+    .account-quickLinks {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.account-quickLink {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    text-decoration: none;
+    transition: box-shadow 0.2s;
+}
+
+.account-quickLink:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.account-quickLinkIcon {
+    width: 48px;
+    height: 48px;
+    background-color: var(--color-surface, #f2f0ea);
+    border-radius: var(--radius-md, 8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text, #010101);
+}
+
+.account-quickLinkContent {
+    flex: 1;
+}
+
+.account-quickLinkContent h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 4px;
+}
+
+.account-quickLinkContent p {
+    font-size: 0.8125rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0;
+}
+
+.account-quickLink > svg {
+    color: var(--color-text-light, #6b7280);
+}
+
+[x-cloak] {
+    display: none !important;
+}
+</style>
+
+<script>
+function logout() {
+    fetch('/moderna-api/auth/logout', { method: 'POST', credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+            console.log('Logout response:', data);
+            const customerId = data.customer_id;
+            if (window.clearCartDisplay) window.clearCartDisplay();
+            if (window.clearWishlistDisplay) window.clearWishlistDisplay(customerId);
+            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { isLogout: true, customerId } }));
+            // Clear remember me cookie client-side to ensure it's deleted
+            document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            window.location.href = '/';
+        })
+        .catch(() => {
+            // Clear cookie even on error
+            document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            window.location.href = '/';
+        });
+}
+
+function passwordForm() {
+    return {
+        loading: false,
+        error: '',
+        success: '',
+        form: {
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+        },
+        async changePassword() {
+            this.error = '';
+            this.success = '';
+
+            if (this.form.newPassword !== this.form.confirmPassword) {
+                this.error = '{{ "Passwords do not match"|trans }}';
+                return;
+            }
+
+            if (this.form.newPassword.length < 8) {
+                this.error = '{{ "Password must be at least 8 characters"|trans }}';
+                return;
+            }
+
+            this.loading = true;
+            // TODO: Implement password change API
+            setTimeout(() => {
+                this.loading = false;
+                this.success = '{{ "Password updated successfully"|trans }}';
+                this.form = { currentPassword: '', newPassword: '', confirmPassword: '' };
+            }, 1000);
+        }
+    };
+}
+</script>
+{% endif %}
+{% endblock %}

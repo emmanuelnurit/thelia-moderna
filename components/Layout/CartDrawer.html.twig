@@ -1,0 +1,344 @@
+{# Cart Drawer Component #}
+<div
+    class="cart-drawer"
+    x-data="cartDrawer()"
+    x-init="init()"
+    @cart:open.window="open = true; loadItems()"
+    @cart:close.window="open = false"
+    @cart-updated.window="loadItems()"
+    @keydown.escape.window="open = false"
+    x-show="open"
+    x-cloak
+>
+    {# Backdrop #}
+    <div
+        class="cart-drawer-backdrop"
+        x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click="open = false"
+    ></div>
+
+    {# Panel #}
+    <div
+        class="cart-drawer-panel"
+        x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+    >
+        {# Header #}
+        <div class="cart-drawer-header">
+            <h2 class="cart-drawer-title">{{ 'Your Cart'|trans }}</h2>
+            <button
+                type="button"
+                class="cart-drawer-close"
+                @click="open = false"
+                aria-label="{{ 'Close cart'|trans }}"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        {# Cart Content - Will be loaded via LiveComponent #}
+        <div class="cart-drawer-content">
+            {# Empty state #}
+            <div class="cart-drawer-empty" x-show="$store.cart.count === 0">
+                <div class="cart-drawer-emptyIcon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                        <path d="M3 6h18"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                </div>
+                <p class="cart-drawer-emptyText">{{ 'Your cart is empty'|trans }}</p>
+                <a href="{{ path('index') }}" class="btn btn-primary" @click="open = false">
+                    {{ 'Start shopping'|trans }}
+                </a>
+            </div>
+
+            {# Cart items #}
+            <div class="cart-drawer-items" x-show="$store.cart.count > 0">
+                <template x-for="item in $store.cart.items" :key="item.id">
+                    <div class="cart-drawer-item">
+                        <div class="cart-drawer-item-image">
+                            <img :src="'/legacy-image-library/product_image_' + item.imageId + '/full/%5E*!80,80/0/default.webp'"
+                                 :alt="item.title"
+                                 loading="lazy">
+                        </div>
+                        <div class="cart-drawer-item-info">
+                            <p class="cart-drawer-item-title" x-text="item.title"></p>
+                            <p class="cart-drawer-item-qty">{{ 'Qty'|trans }}: <span x-text="item.quantity"></span></p>
+                            <p class="cart-drawer-item-price" x-text="new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(item.promo ? item.taxedPromoPrice : item.taxedPrice)"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        {# Footer #}
+        <div class="cart-drawer-footer" x-show="$store.cart.count > 0">
+            <div class="cart-drawer-subtotal">
+                <span>{{ 'Subtotal'|trans }}</span>
+                <span class="cart-drawer-subtotalPrice" x-text="formatPrice(subtotal)"></span>
+            </div>
+            <p class="cart-drawer-shippingNote">{{ 'Shipping and taxes calculated at checkout'|trans }}</p>
+            <a href="/?view=cart" class="btn btn-primary w-full">
+                {{ 'Checkout'|trans }}
+            </a>
+            <button type="button" class="cart-drawer-continueBtn" @click="open = false">
+                {{ 'Continue shopping'|trans }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.cart-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+}
+
+.cart-drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.cart-drawer-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 420px;
+    background-color: var(--color-white);
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.cart-drawer-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.cart-drawer-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.cart-drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.cart-drawer-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.cart-drawer-emptyIcon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-surface);
+    border-radius: 50%;
+    margin-bottom: 24px;
+    color: var(--color-text-light);
+}
+
+.cart-drawer-emptyText {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 24px;
+}
+
+.cart-drawer-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cart-drawer-item {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border, rgba(0,0,0,0.1));
+}
+
+.cart-drawer-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.cart-drawer-item-image {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.cart-drawer-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-drawer-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cart-drawer-item-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.cart-drawer-item-qty {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted, #666);
+    margin: 0;
+}
+
+.cart-drawer-item-price {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.cart-drawer-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-white);
+}
+
+.cart-drawer-subtotal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.cart-drawer-subtotalPrice {
+    font-size: 1.125rem;
+}
+
+.cart-drawer-shippingNote {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    margin-bottom: 16px;
+}
+
+.cart-drawer-continueBtn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: none;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.cart-drawer-continueBtn:hover {
+    color: var(--color-text);
+}
+
+.w-full {
+    width: 100%;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+</style>
+
+<script>
+function cartDrawer() {
+    return {
+        open: false,
+        loading: false,
+        subtotal: 0,
+
+        init() {
+            // Load items initially if store is empty
+            if (this.$store.cart.items.length === 0) {
+                this.loadItems();
+            }
+        },
+
+        async loadItems() {
+            this.loading = true;
+            try {
+                const response = await fetch('/moderna-api/cart_items');
+                if (response.ok) {
+                    const data = await response.json();
+                    this.$store.cart.items = data.cart_items || [];
+                    this.$store.cart.count = data.count || 0;
+                    this.calculateSubtotal();
+                }
+            } catch (error) {
+                console.error('Error loading cart items:', error);
+            }
+            this.loading = false;
+        },
+
+        calculateSubtotal() {
+            this.subtotal = this.$store.cart.items.reduce((sum, item) => {
+                const price = item.promo ? item.taxedPromoPrice : item.taxedPrice;
+                return sum + (price * item.quantity);
+            }, 0);
+        },
+
+        formatPrice(price) {
+            return new Intl.NumberFormat('fr-FR', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(price);
+        }
+    };
+}
+</script>

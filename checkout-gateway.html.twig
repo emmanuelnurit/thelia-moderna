@@ -1,0 +1,343 @@
+{% extends 'checkout-base.html.twig' %}
+
+{% block title %}
+    {{ 'Processing Payment'|trans }} - {{ parent() }}
+{% endblock %}
+
+{% set current = 'payment' %}
+
+{% block checkoutContent %}
+    <div class="payment-gateway">
+        {# Loading Animation #}
+        <div class="gateway-loading">
+            <div class="loading-spinner">
+                <svg width="80" height="80" viewBox="0 0 50 50">
+                    <circle
+                        cx="25"
+                        cy="25"
+                        r="20"
+                        fill="none"
+                        stroke="#e5e7eb"
+                        stroke-width="4"
+                    />
+                    <circle
+                        cx="25"
+                        cy="25"
+                        r="20"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="4"
+                        stroke-dasharray="125.6"
+                        stroke-dashoffset="31.4"
+                        stroke-linecap="round"
+                        class="spinner-circle"
+                    />
+                </svg>
+                <div class="loading-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        {# Status Message #}
+        <h1 class="gateway-title">{{ 'Processing Your Payment'|trans }}</h1>
+        <p class="gateway-subtitle">{{ 'Please wait while we redirect you to the secure payment gateway...'|trans }}</p>
+
+        {# Security Badge #}
+        <div class="security-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="m9 12 2 2 4-4"/>
+            </svg>
+            <span>{{ 'Secure SSL Encrypted Connection'|trans }}</span>
+        </div>
+
+        {# Instructions #}
+        <div class="gateway-instructions">
+            <p>{{ 'Do not close this window or press the back button.'|trans }}</p>
+            <p>{{ 'You will be automatically redirected to complete your payment.'|trans }}</p>
+        </div>
+
+        {# Progress Indicator #}
+        <div class="gateway-progress">
+            <div class="progress-step completed">
+                <div class="step-dot">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <span>{{ 'Order Created'|trans }}</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step active">
+                <div class="step-dot">
+                    <div class="dot-pulse"></div>
+                </div>
+                <span>{{ 'Redirecting...'|trans }}</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step">
+                <div class="step-dot"></div>
+                <span>{{ 'Payment'|trans }}</span>
+            </div>
+        </div>
+
+        {# Fallback Link (if auto-redirect fails) #}
+        <noscript>
+            <div class="fallback-link">
+                <p>{{ 'If you are not redirected automatically, please click the button below:'|trans }}</p>
+                <a href="#" class="btn btn-primary" id="payment-link">
+                    {{ 'Proceed to Payment'|trans }}
+                </a>
+            </div>
+        </noscript>
+
+        {# Payment Form (will be auto-submitted) #}
+        {% set orderId = app.request.get('order_id') %}
+        {% if orderId %}
+            {# The actual payment form would be rendered here by the payment module #}
+            {# For now, we simulate a redirect after a short delay #}
+            <script>
+                // Simulate payment gateway redirect
+                // In a real implementation, the payment module would render its form here
+                setTimeout(function() {
+                    // Check if there's a payment form to submit
+                    var paymentForm = document.querySelector('form[name="payment"]');
+                    if (paymentForm) {
+                        paymentForm.submit();
+                    } else {
+                        // If no payment form, redirect to confirmation (for testing)
+                        // In production, this would be handled by the payment module
+                        window.location.href = '/?view=checkout-confirm&order_id={{ orderId }}';
+                    }
+                }, 2000);
+            </script>
+        {% else %}
+            {# No order ID, redirect back to payment #}
+            <script>
+                window.location.href = '/?view=checkout-payment&error=missing_order';
+            </script>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block checkoutSummary %}
+    {# No sidebar for gateway page #}
+{% endblock %}
+
+{% block checkoutNextButton %}
+    {# No next button for gateway page #}
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.payment-gateway {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 64px 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.gateway-loading {
+    margin-bottom: 32px;
+}
+
+.loading-spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.loading-spinner svg {
+    color: var(--color-primary, #000);
+}
+
+.spinner-circle {
+    animation: spinner-rotate 1.5s linear infinite;
+    transform-origin: center;
+}
+
+@keyframes spinner-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--color-primary, #000);
+}
+
+.gateway-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--color-primary, #000);
+}
+
+.gateway-subtitle {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0 0 24px;
+    max-width: 400px;
+}
+
+.security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #ecfdf5;
+    border: 1px solid #86efac;
+    border-radius: 24px;
+    color: #16a34a;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 32px;
+}
+
+.gateway-instructions {
+    margin-bottom: 40px;
+}
+
+.gateway-instructions p {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.5);
+    margin: 0 0 8px;
+}
+
+.gateway-instructions p:last-child {
+    margin-bottom: 0;
+}
+
+/* Progress Indicator */
+.gateway-progress {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    max-width: 400px;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    position: relative;
+}
+
+.progress-step.completed .step-dot {
+    background: #16a34a;
+}
+
+.progress-step.active .step-dot {
+    background: var(--color-primary, #000);
+}
+
+.dot-pulse {
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+}
+
+.progress-step span {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+}
+
+.progress-step.completed span,
+.progress-step.active span {
+    color: rgba(0, 0, 0, 0.8);
+    font-weight: 500;
+}
+
+.progress-line {
+    flex: 0 0 40px;
+    height: 2px;
+    background: #e5e7eb;
+    margin-bottom: 28px;
+}
+
+/* Fallback */
+.fallback-link {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.fallback-link p {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0 0 16px;
+}
+
+@media (max-width: 480px) {
+    .payment-gateway {
+        padding: 40px 20px;
+    }
+
+    .gateway-title {
+        font-size: 22px;
+    }
+
+    .gateway-progress {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .progress-step {
+        flex-direction: row;
+        gap: 12px;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .progress-line {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

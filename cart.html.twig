@@ -1,0 +1,129 @@
+{% extends 'base.html.twig' %}
+
+{# Cart Page - Modern.A Template #}
+
+{% block title %}{{ 'Shopping Cart'|trans }} - {{ parent() }}{% endblock %}
+
+{% block body_class %}cart-page{% endblock %}
+
+{% block body %}
+    {# Page Header #}
+    <div class="cart-page-header">
+        <div class="container mx-auto px-4 py-6">
+            {% include 'components/UI/Breadcrumb.html.twig' with {
+                items: [
+                    { label: 'Home'|trans, url: '/' },
+                    { label: 'Shopping Cart'|trans, url: null }
+                ]
+            } only %}
+        </div>
+    </div>
+
+    {# Main Cart Content #}
+    <div class="cart-page-container">
+        <div class="container mx-auto px-4 py-8">
+            {% set cartItems = get_cart_items_by_cookie() %}
+
+            {# Get discount and coupons from cart #}
+            {% set cartDiscount = get_cart_discount_by_cookie() %}
+
+            {% if cartItems|length > 0 %}
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {# Main Content - Cart Items #}
+                    <div class="lg:col-span-7">
+                        {% include 'components/Cart/Cart.html.twig' %}
+                    </div>
+
+                    {# Sidebar - Cart Summary #}
+                    <div class="lg:col-span-5">
+                        <div class="cart-sidebar sticky top-4">
+                            <h2 class="text-2xl font-semibold mb-6">{{ 'Summary'|trans }}</h2>
+
+                            {# Promo Code Section #}
+                            {% include 'components/Cart/PromoCode.html.twig' %}
+
+                            {% include 'components/Cart/CartSummary.html.twig' with {
+                                cartItems: cartItems,
+                                discount: cartDiscount.discount,
+                                coupons: cartDiscount.coupons
+                            } %}
+
+                            {# Checkout Button #}
+                            <a href="/?view=checkout-delivery" class="btn btn-primary w-full mt-6 inline-flex items-center justify-center">
+                                {{ 'Proceed to Checkout'|trans }}
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-2" style="display: inline-block; vertical-align: middle;">
+                                    <path d="M5 12h14m-7-7 7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-cart-fullwidth">
+                    {% include 'components/Cart/Cart.html.twig' %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+    .cart-page {
+        background-color: var(--color-surface, #f5f5f5);
+    }
+
+    .cart-page-header {
+        background-color: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .cart-page-container {
+        min-height: 60vh;
+    }
+
+    .cart-sidebar {
+        background-color: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .empty-cart {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .empty-cart-fullwidth {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .cart-summary-note {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        margin-top: 24px;
+        background-color: #fef3c7;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #78350f;
+    }
+
+    .cart-summary-note svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .cart-summary-note p {
+        margin: 0;
+    }
+
+    @media (max-width: 1024px) {
+        .cart-sidebar {
+            margin-top: 32px;
+        }
+    }
+    </style>
+{% endblock %}

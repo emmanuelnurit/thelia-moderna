@@ -1,0 +1,983 @@
+{% extends 'checkout-base.html.twig' %}
+
+{% block title %}
+    {{ 'Delivery'|trans }} - {{ parent() }}
+{% endblock %}
+
+{% set current = 'delivery' %}
+
+{% block checkoutContent %}
+    {% set customer = app.session.get('thelia.customer_user') %}
+
+    {% if not customer %}
+        {# Redirect to login if not authenticated #}
+        <script>window.location.href = '/?view=login&redirect=checkout-delivery';</script>
+        <div class="checkout-loading">
+            <div class="spinner"></div>
+            <p>{{ 'Redirecting to login...'|trans }}</p>
+        </div>
+    {% else %}
+        <div class="checkout-delivery" x-data="deliveryComponent()" x-init="init()">
+            {# Delivery Address Section #}
+            <section class="checkout-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="section-number">1</span>
+                        {{ 'Delivery Address'|trans }}
+                    </h2>
+                </div>
+
+                {# Address Loading State #}
+                <div x-show="loadingAddresses" class="section-loading">
+                    <div class="spinner"></div>
+                    <p>{{ 'Loading addresses...'|trans }}</p>
+                </div>
+
+                {# Address List #}
+                <div x-show="!loadingAddresses && !showAddressForm" class="address-grid">
+                    <template x-for="address in addresses" :key="address.id">
+                        <div
+                            class="address-card"
+                            :class="{ 'selected': selectedDeliveryAddress == address.id, 'address-card-compact': !address.isDefault }"
+                            @click="selectDeliveryAddress(address.id)"
+                        >
+                            <div class="address-card-header">
+                                <span class="address-label" x-text="address.label || (address.isDefault ? '{{ 'Default Address'|trans }}' : '{{ 'Address'|trans }}')"></span>
+                                <template x-if="address.isDefault">
+                                    <span class="address-badge">{{ 'Default'|trans }}</span>
+                                </template>
+                            </div>
+                            <div class="address-card-body">
+                                {# Full details for default address #}
+                                <template x-if="address.isDefault">
+                                    <div>
+                                        <p class="address-name">
+                                            <span x-text="address.titleShort"></span>
+                                            <span x-text="address.firstname + ' ' + address.lastname"></span>
+                                        </p>
+                                        <template x-if="address.company">
+                                            <p class="address-company" x-text="address.company"></p>
+                                        </template>
+                                        <p x-text="address.address1"></p>
+                                        <template x-if="address.address2">
+                                            <p x-text="address.address2"></p>
+                                        </template>
+                                        <p x-text="address.zipcode + ' ' + address.city"></p>
+                                        <p x-text="address.country"></p>
+                                        <template x-if="address.phone || address.cellphone">
+                                            <p class="address-phone" x-text="address.phone || address.cellphone"></p>
+                                        </template>
+                                    </div>
+                                </template>
+                                {# Compact view for other addresses #}
+                                <template x-if="!address.isDefault">
+                                    <div>
+                                        <p class="address-name">
+                                            <span x-text="address.titleShort"></span>
+                                            <span x-text="address.firstname + ' ' + address.lastname"></span>
+                                        </p>
+                                        <template x-if="address.company">
+                                            <p class="address-company" x-text="address.company"></p>
+                                        </template>
+                                        <p x-text="address.address1"></p>
+                                        <p x-text="address.zipcode + ' ' + address.city"></p>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="address-card-check">
+                                <svg x-show="selectedDeliveryAddress == address.id" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </template>
+
+                    {# Add New Address Button #}
+                    <button
+                        type="button"
+                        class="address-card address-card-add"
+                        @click="showAddressForm = true"
+                    >
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" x2="12" y1="5" y2="19"/>
+                            <line x1="5" x2="19" y1="12" y2="12"/>
+                        </svg>
+                        <span>{{ 'Add New Address'|trans }}</span>
+                    </button>
+                </div>
+
+                {# No Addresses Message #}
+                <div x-show="!loadingAddresses && addresses.length === 0 && !showAddressForm" class="no-addresses">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <p>{{ 'You have no saved addresses.'|trans }}</p>
+                    <button type="button" class="btn btn-primary" @click="showAddressForm = true">
+                        {{ 'Add Your First Address'|trans }}
+                    </button>
+                </div>
+
+                {# Address Form #}
+                <div x-show="showAddressForm" x-transition class="address-form-container"
+                    @cancel-address-form.window="showAddressForm = false"
+                    @address-created.window="onAddressCreated($event.detail.addressId)">
+                    {% include 'components/Checkout/AddressForm.html.twig' %}
+                </div>
+            </section>
+
+            {# Delivery Method Section #}
+            <section class="checkout-section" x-show="selectedDeliveryAddress">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="section-number">2</span>
+                        {{ 'Delivery Method'|trans }}
+                    </h2>
+                </div>
+
+                {# Loading State #}
+                <div x-show="loadingMethods" class="section-loading">
+                    <div class="spinner"></div>
+                    <p>{{ 'Loading delivery options...'|trans }}</p>
+                </div>
+
+                {# Delivery Methods List #}
+                <div x-show="!loadingMethods" class="delivery-methods">
+                    <template x-for="(method, index) in deliveryMethods" :key="'method-' + index">
+                        <label
+                            class="delivery-method-card"
+                            :class="{ 'selected': selectedDeliveryMethod == method.moduleId }"
+                        >
+                            <input
+                                type="radio"
+                                name="delivery_method"
+                                :value="method.moduleId"
+                                x-model="selectedDeliveryMethod"
+                                @change="selectDeliveryMethod(method)"
+                                class="sr-only"
+                            >
+                            <div class="delivery-method-radio">
+                                <div class="radio-dot"></div>
+                            </div>
+                            <div class="delivery-method-info">
+                                <div class="delivery-method-header">
+                                    <span class="delivery-method-title" x-text="method.title"></span>
+                                    <span class="delivery-method-price" x-text="formatPrice(method.postage)"></span>
+                                </div>
+                                <p class="delivery-method-description" x-text="method.description" x-show="method.description"></p>
+                            </div>
+                            <div class="delivery-method-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect width="16" height="13" x="2" y="6" rx="2"/>
+                                    <path d="M22 11V6a2 2 0 0 0-2-2h-3"/>
+                                    <path d="M22 11v5a2 2 0 0 1-2 2h-5"/>
+                                    <circle cx="4" cy="19" r="2"/>
+                                    <circle cx="18" cy="19" r="2"/>
+                                </svg>
+                            </div>
+                        </label>
+                    </template>
+
+                    {# No Methods Available #}
+                    <div x-show="!loadingMethods && deliveryMethods.length === 0" class="no-delivery-methods">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" x2="12" y1="8" y2="12"/>
+                            <line x1="12" x2="12.01" y1="16" y2="16"/>
+                        </svg>
+                        <p>{{ 'No delivery methods available for this address.'|trans }}</p>
+                    </div>
+                </div>
+            </section>
+
+            {# Same Invoice Address Toggle #}
+            <section class="checkout-section invoice-section" x-show="selectedDeliveryAddress && selectedDeliveryMethod">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span class="section-number">3</span>
+                        {{ 'Billing Address'|trans }}
+                    </h2>
+                </div>
+
+                <label class="invoice-toggle">
+                    <input
+                        type="checkbox"
+                        x-model="sameAsDelivery"
+                        @change="toggleInvoiceAddress()"
+                    >
+                    <span class="toggle-checkmark"></span>
+                    <span class="toggle-label">{{ 'Same as delivery address'|trans }}</span>
+                </label>
+
+                {# Invoice Address Selection #}
+                <div x-show="!sameAsDelivery" x-transition class="invoice-address-grid">
+                    <template x-for="address in addresses" :key="'invoice-' + address.id">
+                        <div
+                            class="address-card address-card-small"
+                            :class="{ 'selected': selectedInvoiceAddress == address.id }"
+                            @click="selectInvoiceAddress(address.id)"
+                        >
+                            <div class="address-card-body">
+                                <p class="address-name" x-text="address.firstname + ' ' + address.lastname"></p>
+                                <p x-text="address.address1"></p>
+                                <p x-text="address.zipcode + ' ' + address.city"></p>
+                            </div>
+                            <div class="address-card-check">
+                                <svg x-show="selectedInvoiceAddress == address.id" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </section>
+
+            {# Error Messages #}
+            <div x-show="error" class="checkout-error" x-text="error"></div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block checkoutBackButton %}
+    <a href="/?view=cart" class="checkout-back-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m15 18-6-6 6-6"/>
+        </svg>
+        {{ 'Back to Cart'|trans }}
+    </a>
+{% endblock %}
+
+{% block checkoutSummary %}
+    {% set cartItems = get_cart_items_by_cookie() %}
+    {% set cartDiscount = get_cart_discount_by_cookie() %}
+    {% if cartItems|length > 0 %}
+        {# Order Review - Cart Items #}
+        {% include 'components/Cart/OrderReview.html.twig' with {
+            cartItems: cartItems
+        } %}
+
+        {# Cart Summary #}
+        {% include 'components/Cart/CartSummary.html.twig' with {
+            cartItems: cartItems,
+            discount: cartDiscount.discount,
+            coupons: cartDiscount.coupons,
+            showDelivery: true
+        } %}
+    {% endif %}
+{% endblock %}
+
+{% block checkoutNextButton %}
+    {% set cartItems = get_cart_items_by_cookie() %}
+    {% if cartItems|length > 0 %}
+        <div x-data="{
+            get canProceed() {
+                return this.$store.checkout?.deliveryAddressId && this.$store.checkout?.deliveryModuleId;
+            }
+        }">
+            <a
+                href="/?view=checkout-payment"
+                class="btn btn-primary w-full mt-6"
+                :class="{ 'btn-disabled': !canProceed }"
+                :style="!canProceed ? 'pointer-events: none; opacity: 0.5; cursor: not-allowed;' : ''"
+                @click="if(!canProceed) {
+                    $event.preventDefault();
+                    alert('{{ 'Please select an address and delivery method'|trans }}');
+                }"
+            >
+                {{ 'Continue to Payment'|trans }}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-2">
+                    <path d="M5 12h14m-7-7 7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// Initialize checkout store
+document.addEventListener('alpine:init', () => {
+    Alpine.store('checkout', {
+        deliveryAddressId: null,
+        invoiceAddressId: null,
+        deliveryModuleId: null,
+        paymentModuleId: null,
+        postage: 0
+    });
+});
+
+function deliveryComponent() {
+    return {
+        addresses: [],
+        deliveryMethods: [],
+        selectedDeliveryAddress: null,
+        selectedDeliveryMethod: null,
+        selectedInvoiceAddress: null,
+        sameAsDelivery: true,
+        showAddressForm: false,
+        loadingAddresses: true,
+        loadingMethods: false,
+        error: null,
+
+        async init() {
+            await this.loadAddresses();
+            await this.loadCartState();
+
+            // If no address selected from cart, select default address
+            if (!this.selectedDeliveryAddress && this.addresses.length > 0) {
+                const defaultAddress = this.addresses.find(a => a.isDefault) || this.addresses[0];
+                if (defaultAddress) {
+                    await this.selectDeliveryAddress(defaultAddress.id);
+                }
+            }
+        },
+
+        async loadAddresses() {
+            this.loadingAddresses = true;
+            try {
+                const response = await fetch('/moderna-api/checkout/api/addresses');
+                if (response.ok) {
+                    this.addresses = await response.json();
+                }
+            } catch (e) {
+                console.error('Error loading addresses:', e);
+                this.error = '{{ "Error loading addresses"|trans }}';
+            }
+            this.loadingAddresses = false;
+        },
+
+        async loadCartState() {
+            try {
+                const response = await fetch('/moderna-api/checkout/api/summary');
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Validate that cart's delivery address actually exists for this customer
+                    if (data.deliveryAddressId) {
+                        const addressExists = this.addresses.some(a => a.id === data.deliveryAddressId);
+
+                        if (addressExists) {
+                            // Address is valid, restore it
+                            this.selectedDeliveryAddress = data.deliveryAddressId;
+
+                            // Update store with delivery address
+                            if (typeof Alpine !== 'undefined' && Alpine.store('checkout')) {
+                                Alpine.store('checkout').deliveryAddressId = data.deliveryAddressId;
+                            }
+
+                            await this.loadDeliveryMethods();
+
+                            // Also restore delivery method if exists
+                            if (data.deliveryModuleId) {
+                                this.selectedDeliveryMethod = data.deliveryModuleId;
+                                // Update store with delivery method and postage
+                                if (typeof Alpine !== 'undefined' && Alpine.store('checkout')) {
+                                    Alpine.store('checkout').deliveryModuleId = data.deliveryModuleId;
+                                    Alpine.store('checkout').postage = data.postage || 0;
+                                }
+                            }
+                        } else {
+                            // Address doesn't exist for this customer - cart data is stale
+                            console.warn('Cart has stale address ID:', data.deliveryAddressId, '- resetting to default');
+                        }
+                    }
+
+                    // Validate invoice address
+                    if (data.invoiceAddressId && this.addresses.some(a => a.id === data.invoiceAddressId)) {
+                        this.selectedInvoiceAddress = data.invoiceAddressId;
+                        this.sameAsDelivery = data.invoiceAddressId === data.deliveryAddressId;
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading cart state:', e);
+            }
+        },
+
+        async selectDeliveryAddress(addressId) {
+            this.selectedDeliveryAddress = addressId;
+            this.selectedDeliveryMethod = null;
+            this.error = null;
+
+            // Update store
+            if (Alpine.store('checkout')) {
+                Alpine.store('checkout').deliveryAddressId = addressId;
+                Alpine.store('checkout').deliveryModuleId = null;
+            }
+
+            try {
+                const response = await fetch('/moderna-api/checkout/api/set-delivery-address', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ addressId })
+                });
+
+                if (response.ok) {
+                    await this.loadDeliveryMethods();
+
+                    // Auto-select invoice address if same as delivery
+                    if (this.sameAsDelivery) {
+                        this.selectedInvoiceAddress = addressId;
+                        await this.setInvoiceAddress(addressId);
+                    }
+                } else {
+                    const data = await response.json();
+                    this.error = data.error;
+                }
+            } catch (e) {
+                this.error = '{{ "Error selecting address"|trans }}';
+            }
+        },
+
+        async loadDeliveryMethods() {
+            this.loadingMethods = true;
+            try {
+                const response = await fetch('/moderna-api/checkout/api/delivery-methods');
+                if (response.ok) {
+                    this.deliveryMethods = await response.json();
+                }
+            } catch (e) {
+                console.error('Error loading delivery methods:', e);
+            }
+            this.loadingMethods = false;
+        },
+
+        async selectDeliveryMethod(method) {
+            this.selectedDeliveryMethod = method.moduleId;
+            this.error = null;
+
+            // Update store
+            if (Alpine.store('checkout')) {
+                Alpine.store('checkout').deliveryModuleId = method.moduleId;
+                Alpine.store('checkout').postage = method.postage;
+            }
+
+            try {
+                const response = await fetch('/moderna-api/checkout/api/set-delivery-module', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        moduleId: method.moduleId,
+                        optionCode: method.code
+                    })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    this.error = data.error;
+                }
+            } catch (e) {
+                this.error = '{{ "Error selecting delivery method"|trans }}';
+            }
+        },
+
+        async toggleInvoiceAddress() {
+            if (this.sameAsDelivery) {
+                // Same as delivery - set invoice to null (will use delivery address)
+                this.selectedInvoiceAddress = this.selectedDeliveryAddress;
+                await this.setInvoiceAddress(null);
+            }
+        },
+
+        async selectInvoiceAddress(addressId) {
+            this.selectedInvoiceAddress = addressId;
+            await this.setInvoiceAddress(addressId);
+        },
+
+        async setInvoiceAddress(addressId) {
+            try {
+                await fetch('/moderna-api/checkout/api/set-invoice-address', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ addressId })
+                });
+            } catch (e) {
+                // Silently ignore errors
+            }
+        },
+
+        formatPrice(price) {
+            if (price === 0 || price === '0') {
+                return '{{ "Free"|trans }}';
+            }
+            return new Intl.NumberFormat('{{ app.request.locale|replace({'_': '-'}) }}', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(price);
+        },
+
+        onAddressCreated(addressId) {
+            this.showAddressForm = false;
+            this.loadAddresses().then(() => {
+                this.selectDeliveryAddress(addressId);
+            });
+        }
+    }
+}
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.checkout-delivery {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.checkout-section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.section-number {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-primary, #000);
+    color: white;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.section-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+/* Address Grid - 2 columns: main address left, secondary stacked right */
+.address-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: auto;
+    gap: 12px;
+}
+
+/* Default address spans full height of left column */
+.address-card:not(.address-card-compact):not(.address-card-add) {
+    grid-row: span 2;
+}
+
+.address-card {
+    position: relative;
+    padding: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.address-card:hover {
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+.address-card.selected {
+    border-color: var(--color-primary, #000);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+/* Compact cards for secondary addresses */
+.address-card-compact {
+    padding: 10px 14px;
+    min-height: auto;
+    grid-row: span 1;
+}
+
+.address-card-compact .address-card-header {
+    margin-bottom: 2px;
+}
+
+.address-card-compact .address-card-body {
+    font-size: 12px;
+}
+
+.address-card-compact .address-card-body p {
+    margin: 0;
+    line-height: 1.3;
+}
+
+.address-card-compact .address-label {
+    font-size: 12px;
+}
+
+.address-card-compact .address-card-check svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Add new address button spans full width */
+.address-card-add {
+    grid-column: 1 / -1;
+    grid-row: span 1;
+    padding: 16px 20px !important;
+    min-height: auto !important;
+    flex-direction: row !important;
+}
+
+/* Responsive: single column on mobile */
+@media (max-width: 640px) {
+    .address-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .address-card:not(.address-card-compact):not(.address-card-add) {
+        grid-row: span 1;
+    }
+}
+
+.address-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.address-label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.address-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.address-card-body {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.address-card-body p {
+    margin: 0 0 4px 0;
+}
+
+.address-name {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.9);
+}
+
+.address-company {
+    font-style: italic;
+}
+
+.address-phone {
+    margin-top: 8px;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.address-card-check {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    color: var(--color-primary, #000);
+}
+
+.address-card-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 180px;
+    border-style: dashed;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.address-card-add:hover {
+    color: var(--color-primary, #000);
+    border-color: var(--color-primary, #000);
+}
+
+.address-card-small {
+    padding: 16px;
+}
+
+.address-card-small .address-card-body p {
+    margin: 0 0 2px 0;
+    font-size: 13px;
+}
+
+/* No Addresses */
+.no-addresses {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+/* Delivery Methods */
+.delivery-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.delivery-method-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delivery-method-card:hover {
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+.delivery-method-card.selected {
+    border-color: var(--color-primary, #000);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.delivery-method-radio {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.delivery-method-card.selected .delivery-method-radio {
+    border-color: var(--color-primary, #000);
+}
+
+.radio-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--color-primary, #000);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.delivery-method-card.selected .radio-dot {
+    opacity: 1;
+}
+
+.delivery-method-info {
+    flex: 1;
+}
+
+.delivery-method-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.delivery-method-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.delivery-method-price {
+    font-weight: 600;
+    color: var(--color-primary, #000);
+}
+
+.delivery-method-description {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.delivery-method-icon {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.delivery-method-card.selected .delivery-method-icon {
+    color: var(--color-primary, #000);
+}
+
+.no-delivery-methods {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 32px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.5);
+    background: #fef3c7;
+    border-radius: 8px;
+}
+
+/* Invoice Toggle */
+.invoice-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.invoice-toggle input {
+    position: absolute;
+    opacity: 0;
+}
+
+.toggle-checkmark {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.invoice-toggle input:checked + .toggle-checkmark {
+    background: var(--color-primary, #000);
+    border-color: var(--color-primary, #000);
+}
+
+.toggle-checkmark::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+}
+
+.invoice-toggle input:checked + .toggle-checkmark::after {
+    opacity: 1;
+}
+
+.toggle-label {
+    font-weight: 500;
+}
+
+.invoice-address-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+/* Back Link */
+.checkout-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(0, 0, 0, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    margin-top: 24px;
+    transition: color 0.2s;
+}
+
+.checkout-back-link:hover {
+    color: var(--color-primary, #000);
+}
+
+/* Error */
+.checkout-error {
+    padding: 16px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* Spinner */
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: var(--color-primary, #000);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Screen reader only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Button disabled */
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .checkout-section {
+        padding: 20px 16px;
+    }
+
+    .address-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .delivery-method-card {
+        padding: 16px;
+    }
+
+    .delivery-method-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
+</style>
+{% endblock %}

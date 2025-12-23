@@ -1,0 +1,326 @@
+{% extends 'checkout-base.html.twig' %}
+
+{% block title %}
+    {{ 'Order Confirmed'|trans }} - {{ parent() }}
+{% endblock %}
+
+{% set current = 'confirmation' %}
+
+{% block checkoutSteps %}
+    {# Override to show completed steps #}
+    <div class="checkout-steps checkout-steps-complete">
+        <div class="container mx-auto px-4">
+            <div class="checkout-steps-inner">
+                {% set steps = [
+                    { text: 'Cart'|trans },
+                    { text: 'Delivery'|trans },
+                    { text: 'Payment'|trans },
+                    { text: 'Confirmation'|trans, active: true }
+                ] %}
+
+                {% for step in steps %}
+                    <div class="checkout-step completed{% if step.active %} active{% endif %}">
+                        <div class="checkout-step-link">
+                            <span class="checkout-step-number">
+                                {% if not step.active %}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                {% else %}
+                                    {{ loop.index }}
+                                {% endif %}
+                            </span>
+                            <span class="checkout-step-text">{{ step.text }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block checkoutContent %}
+    <div class="order-confirmation">
+        {# Success Icon #}
+        <div class="confirmation-icon">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10" stroke="#16a34a"/>
+                <path d="m9 12 2 2 4-4" stroke="#16a34a" stroke-width="2"/>
+            </svg>
+        </div>
+
+        {# Confirmation Message #}
+        <h1 class="confirmation-title">{{ 'Thank you for your order!'|trans }}</h1>
+        <p class="confirmation-subtitle">{{ 'Your payment has been confirmed and your order is being processed.'|trans }}</p>
+
+        {# Order Reference #}
+        {% if app.request.get('order_id') %}
+            {% set orderId = app.request.get('order_id') %}
+            <div class="order-reference">
+                <span class="reference-label">{{ 'Order Reference'|trans }}:</span>
+                <span class="reference-number">#{{ orderId }}</span>
+            </div>
+        {% endif %}
+
+        {# Confirmation Email Notice #}
+        <div class="confirmation-notice">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="20" height="16" x="2" y="4" rx="2"/>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+            <p>{{ 'A confirmation email has been sent to your email address with your order details.'|trans }}</p>
+        </div>
+
+        {# What's Next Section #}
+        <div class="whats-next">
+            <h2>{{ "What's next?"| trans }}</h2>
+            <div class="next-steps">
+                <div class="next-step">
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="16" height="13" x="2" y="6" rx="2"/>
+                            <path d="M22 11V6a2 2 0 0 0-2-2h-3"/>
+                            <path d="M22 11v5a2 2 0 0 1-2 2h-5"/>
+                            <circle cx="4" cy="19" r="2"/>
+                            <circle cx="18" cy="19" r="2"/>
+                        </svg>
+                    </div>
+                    <div class="step-content">
+                        <h3>{{ 'Order Processing'|trans }}</h3>
+                        <p>{{ 'We are preparing your order for shipment.'|trans }}</p>
+                    </div>
+                </div>
+                <div class="next-step">
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <div class="step-content">
+                        <h3>{{ 'Shipping'|trans }}</h3>
+                        <p>{{ 'You will receive a tracking number once your order is shipped.'|trans }}</p>
+                    </div>
+                </div>
+                <div class="next-step">
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div class="step-content">
+                        <h3>{{ 'Delivery'|trans }}</h3>
+                        <p>{{ 'Enjoy your purchase!'|trans }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Action Buttons #}
+        <div class="confirmation-actions">
+            <a href="/" class="btn btn-primary">
+                {{ 'Continue Shopping'|trans }}
+            </a>
+            <a href="/?view=account-orders" class="btn btn-secondary">
+                {{ 'View My Orders'|trans }}
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block checkoutSummary %}
+    {# No sidebar for confirmation page #}
+{% endblock %}
+
+{% block checkoutNextButton %}
+    {# No next button for confirmation page #}
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.checkout-steps-complete .checkout-step.completed .checkout-step-number {
+    background-color: #16a34a;
+}
+
+.order-confirmation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 48px 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.confirmation-icon {
+    margin-bottom: 24px;
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.confirmation-icon svg {
+    filter: drop-shadow(0 4px 12px rgba(22, 163, 74, 0.3));
+}
+
+.confirmation-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--color-primary, #000);
+}
+
+.confirmation-subtitle {
+    font-size: 18px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0 0 32px;
+    max-width: 500px;
+}
+
+.order-reference {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: #f9fafb;
+    border-radius: 10px;
+    margin-bottom: 24px;
+}
+
+.reference-label {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.reference-number {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-primary, #000);
+    font-family: monospace;
+}
+
+.confirmation-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #ecfdf5;
+    border: 1px solid #86efac;
+    border-radius: 12px;
+    margin-bottom: 40px;
+    text-align: left;
+}
+
+.confirmation-notice svg {
+    flex-shrink: 0;
+    color: #16a34a;
+}
+
+.confirmation-notice p {
+    margin: 0;
+    font-size: 14px;
+    color: #166534;
+}
+
+.whats-next {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 40px;
+}
+
+.whats-next h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 24px;
+    text-align: center;
+}
+
+.next-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.next-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.step-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 10px;
+    flex-shrink: 0;
+    color: var(--color-primary, #000);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.step-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 4px;
+}
+
+.step-content p {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.confirmation-actions .btn {
+    min-width: 180px;
+}
+
+@media (max-width: 640px) {
+    .order-confirmation {
+        padding: 32px 20px;
+    }
+
+    .confirmation-title {
+        font-size: 24px;
+    }
+
+    .confirmation-subtitle {
+        font-size: 16px;
+    }
+
+    .confirmation-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .confirmation-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,753 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'My Addresses'|trans }} - {{ store_name|default('Modern.A') }}{% endblock %}
+
+{# Get customer ID #}
+{% set customerId = attr('customer', 'id') %}
+
+{% block body %}
+{# Redirect to login if not authenticated #}
+{% if not customerId %}
+    <script>window.location.href = '/?view=login&redirect=' + encodeURIComponent(window.location.href);</script>
+{% else %}
+{# Get addresses from API #}
+{% set addresses = resources('/api/front/account/addresses', {'customer.id': customerId}) %}
+<div class="account-page" x-data="addressList()">
+    <div class="container">
+        {# Breadcrumb #}
+        <nav class="account-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ path('index') }}">{{ 'Home'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <a href="/?view=account">{{ 'My Account'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <span>{{ 'My Addresses'|trans }}</span>
+        </nav>
+
+        {# Page Header #}
+        <div class="account-pageHeader">
+            <div class="account-pageHeaderContent">
+                <h1 class="account-pageTitle">{{ 'My Addresses'|trans }}</h1>
+                <p class="account-pageSubtitle">{{ 'Manage your delivery and billing addresses'|trans }}</p>
+            </div>
+            <a href="/?view=address" class="addresses-addBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14"/>
+                    <path d="M5 12h14"/>
+                </svg>
+                {{ 'Add New Address'|trans }}
+            </a>
+        </div>
+
+        <div class="account-layout">
+            {# Sidebar Navigation #}
+            <aside class="account-sidebar">
+                <nav class="account-nav">
+                    <a href="/?view=account" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="8" r="5"/>
+                            <path d="M20 21a8 8 0 0 0-16 0"/>
+                        </svg>
+                        {{ 'My Profile'|trans }}
+                    </a>
+                    <a href="/?view=account-orders" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                            <path d="M3 6h18"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        {{ 'My Orders'|trans }}
+                    </a>
+                    <a href="/?view=account-addresses" class="account-navLink account-navLink--active">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        {{ 'My Addresses'|trans }}
+                    </a>
+                    <a href="/?view=wishlist" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                        </svg>
+                        {{ 'My Wishlist'|trans }}
+                    </a>
+                    <hr class="account-navDivider">
+                    <button type="button" class="account-navLink account-navLink--logout" @click="window.logout()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16,17 21,12 16,7"/>
+                            <line x1="21" x2="9" y1="12" y2="12"/>
+                        </svg>
+                        {{ 'Logout'|trans }}
+                    </button>
+                </nav>
+            </aside>
+
+            {# Main Content #}
+            <main class="account-main">
+                {% if addresses is iterable and addresses|length > 0 %}
+                    <div class="addresses-grid">
+                        {% for address in addresses %}
+                            <div class="address-card" x-data="{ showDelete: false }">
+                                {% if address.isDefault %}
+                                    <div class="address-badge">{{ 'Default'|trans }}</div>
+                                {% else %}
+                                    <button type="button" class="address-defaultBadge" @click="setAsDefault({{ address.id }})" title="{{ 'Set as Default'|trans }}">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                        </svg>
+                                    </button>
+                                {% endif %}
+                                <div class="address-cardBody">
+                                    {% if address.label %}
+                                        <h3 class="address-label">{{ address.label }}</h3>
+                                    {% endif %}
+                                    <p class="address-name">{{ address.firstname }} {{ address.lastname }}</p>
+                                    <p>{{ address.address1 }}</p>
+                                    {% if address.address2 %}
+                                        <p>{{ address.address2 }}</p>
+                                    {% endif %}
+                                    {% if address.address3 %}
+                                        <p>{{ address.address3 }}</p>
+                                    {% endif %}
+                                    <p>{{ address.zipcode }} {{ address.city }}</p>
+                                    <p x-text="getCountryName({{ address.countryId }})"></p>
+                                    {% if address.phone %}
+                                        <p class="address-phone">{{ address.phone }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="address-cardActions">
+                                    <a href="/?view=address-update&address_id={{ address.id }}" class="address-editBtn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                            <path d="m15 5 4 4"/>
+                                        </svg>
+                                        {{ 'Edit'|trans }}
+                                    </a>
+                                    {% if not address.isDefault %}
+                                    <button type="button" class="address-deleteBtn" @click="showDelete = true" title="{{ 'Delete'|trans }}" aria-label="{{ 'Delete'|trans }}">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"/>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                            <line x1="10" x2="10" y1="11" y2="17"/>
+                                            <line x1="14" x2="14" y1="11" y2="17"/>
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                </div>
+
+                                {% if not address.isDefault %}
+                                {# Delete Confirmation Modal #}
+                                <div class="address-modal" x-show="showDelete" x-cloak @click.self="showDelete = false">
+                                    <div class="address-modalContent" @click.stop>
+                                        <div class="address-modalIcon">
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <line x1="12" x2="12" y1="8" y2="12"/>
+                                                <line x1="12" x2="12.01" y1="16" y2="16"/>
+                                            </svg>
+                                        </div>
+                                        <h3>{{ 'Delete Address'|trans }}</h3>
+                                        <p>{{ 'Are you sure you want to delete this address? This action cannot be undone.'|trans }}</p>
+                                        <div class="address-modalActions">
+                                            <button type="button" class="address-modalCancel" @click="showDelete = false">
+                                                {{ 'Cancel'|trans }}
+                                            </button>
+                                            <form action="/moderna-api/account/address/{{ address.id }}/delete" method="post" style="display: inline;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('address_delete') }}">
+                                                <button type="submit" class="address-modalConfirm">
+                                                    {{ 'Delete'|trans }}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        {# Add New Address Card #}
+                        <a href="/?view=address" class="address-addCard">
+                            <div class="address-addIcon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 5v14"/>
+                                    <path d="M5 12h14"/>
+                                </svg>
+                            </div>
+                            <span>{{ 'Add New Address'|trans }}</span>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="addresses-empty">
+                        <div class="addresses-emptyIcon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <h2>{{ 'No addresses yet'|trans }}</h2>
+                        <p>{{ "You haven't added any addresses yet. Add your first address to speed up checkout."|trans }}</p>
+                        <a href="/?view=address" class="addresses-emptyBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14"/>
+                                <path d="M5 12h14"/>
+                            </svg>
+                            {{ 'Add Your First Address'|trans }}
+                        </a>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</div>
+
+<style>
+.account-page {
+    min-height: 100vh;
+    background-color: var(--color-surface, #f2f0ea);
+    padding: 24px 0 48px;
+}
+
+.account-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--color-text-light, #6b7280);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.account-breadcrumb a {
+    color: var(--color-text-light, #6b7280);
+    text-decoration: none;
+}
+
+.account-breadcrumb a:hover {
+    color: var(--color-text, #010101);
+}
+
+.account-pageHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+@media (min-width: 640px) {
+    .account-pageHeader {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.account-pageTitle {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 8px;
+}
+
+.account-pageSubtitle {
+    font-size: 0.9375rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0;
+}
+
+.addresses-addBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: white;
+    background-color: var(--color-primary, #010101);
+    border-radius: var(--radius-md, 8px);
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.addresses-addBtn:hover {
+    background-color: #1a1a1a;
+}
+
+.account-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+@media (min-width: 1024px) {
+    .account-layout {
+        grid-template-columns: 280px 1fr;
+    }
+}
+
+/* Sidebar */
+.account-sidebar {
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    padding: 16px;
+    height: fit-content;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.account-navLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    text-decoration: none;
+    border-radius: var(--radius-md, 8px);
+    transition: background-color 0.2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.account-navLink:hover {
+    background-color: var(--color-surface, #f2f0ea);
+}
+
+.account-navLink--active {
+    background-color: var(--color-primary, #010101);
+    color: white;
+}
+
+.account-navLink--active:hover {
+    background-color: var(--color-primary, #010101);
+}
+
+.account-navLink--logout {
+    color: #dc2626;
+}
+
+.account-navLink--logout:hover {
+    background-color: #fef2f2;
+}
+
+.account-navDivider {
+    border: none;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    margin: 8px 0;
+}
+
+/* Main Content */
+.account-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Addresses Grid */
+.addresses-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
+@media (min-width: 640px) {
+    .addresses-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .addresses-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.address-card {
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.address-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 10px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #16a34a;
+    background-color: #d1fae5;
+    border-radius: var(--radius-full, 9999px);
+}
+
+.address-defaultBadge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #16a34a;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius-full, 9999px);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.address-defaultBadge:hover {
+    background-color: #dcfce7;
+    border-color: #16a34a;
+    transform: scale(1.05);
+}
+
+.address-cardBody {
+    padding: 20px;
+    flex: 1;
+}
+
+.address-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 12px;
+}
+
+.address-name {
+    font-weight: 600;
+    color: var(--color-text, #010101) !important;
+}
+
+.address-cardBody p {
+    margin: 0 0 4px;
+    font-size: 0.9375rem;
+    color: var(--color-text, #374151);
+}
+
+.address-cardBody p:last-child {
+    margin-bottom: 0;
+}
+
+.address-phone {
+    color: var(--color-text-light, #6b7280) !important;
+    margin-top: 8px !important;
+}
+
+.address-cardActions {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    background-color: var(--color-white, #ffffff);
+    margin-top: auto;
+    flex-wrap: wrap;
+}
+
+.address-editBtn,
+.address-deleteBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.address-editBtn {
+    color: var(--color-text, #010101);
+    background-color: var(--color-white, #ffffff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    text-decoration: none;
+}
+
+.address-editBtn:hover {
+    border-color: var(--color-primary, #010101);
+}
+
+.address-deleteBtn {
+    color: #dc2626;
+    background: none;
+    border: none;
+    width: 36px;
+    padding: 8px;
+    justify-content: center;
+    margin-left: auto;
+}
+
+.address-deleteBtn:hover {
+    background-color: #fef2f2;
+}
+
+/* Add Address Card */
+.address-addCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 200px;
+    background-color: var(--color-white, #ffffff);
+    border: 2px dashed var(--color-border, #e5e7eb);
+    border-radius: var(--radius-lg, 12px);
+    text-decoration: none;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.address-addCard:hover {
+    border-color: var(--color-primary, #010101);
+    background-color: var(--color-surface, #f9fafb);
+}
+
+.address-addIcon {
+    width: 56px;
+    height: 56px;
+    background-color: var(--color-surface, #f2f0ea);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-light, #6b7280);
+}
+
+.address-addCard span {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+}
+
+/* Empty State */
+.addresses-empty {
+    text-align: center;
+    padding: 64px 24px;
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+}
+
+.addresses-emptyIcon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    background-color: var(--color-surface, #f2f0ea);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-light, #9ca3af);
+}
+
+.addresses-empty h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 8px;
+}
+
+.addresses-empty p {
+    font-size: 0.9375rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0 0 24px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.addresses-emptyBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background-color: var(--color-primary, #010101);
+    border-radius: var(--radius-md, 8px);
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.addresses-emptyBtn:hover {
+    background-color: #1a1a1a;
+}
+
+/* Delete Modal */
+.address-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1000;
+}
+
+.address-modalContent {
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    padding: 32px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+.address-modalIcon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    background-color: #fef2f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dc2626;
+}
+
+.address-modalContent h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 8px;
+}
+
+.address-modalContent p {
+    font-size: 0.9375rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0 0 24px;
+}
+
+.address-modalActions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.address-modalCancel,
+.address-modalConfirm {
+    padding: 12px 24px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.address-modalCancel {
+    color: var(--color-text, #010101);
+    background-color: var(--color-surface, #f2f0ea);
+    border: none;
+}
+
+.address-modalCancel:hover {
+    background-color: var(--color-border, #e5e7eb);
+}
+
+.address-modalConfirm {
+    color: white;
+    background-color: #dc2626;
+    border: none;
+}
+
+.address-modalConfirm:hover {
+    background-color: #b91c1c;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+</style>
+
+<script>
+function addressList() {
+    return {
+        countries: {},
+        init() {
+            this.loadCountries();
+        },
+        async loadCountries() {
+            try {
+                const response = await fetch('/moderna-api/data/countries');
+                if (response.ok) {
+                    const data = await response.json();
+                    // Create a map of country ID to name
+                    data.forEach(country => {
+                        this.countries[country.id] = country.title;
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to load countries:', e);
+            }
+        },
+        getCountryName(countryId) {
+            return this.countries[countryId] || '';
+        },
+        async setAsDefault(addressId) {
+            try {
+                const response = await fetch(`/moderna-api/account/address/${addressId}/set-default`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    // Reload page to reflect changes
+                    window.location.reload();
+                } else {
+                    alert('{{ 'Failed to set address as default'|trans }}');
+                }
+            } catch (error) {
+                console.error('Error setting default address:', error);
+                alert('{{ 'An error occurred'|trans }}');
+            }
+        }
+    };
+}
+
+function logout() {
+    fetch('/moderna-api/auth/logout', { method: 'POST', credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+            console.log('Logout response:', data);
+            const customerId = data.customer_id;
+            if (window.clearCartDisplay) window.clearCartDisplay();
+            if (window.clearWishlistDisplay) window.clearWishlistDisplay(customerId);
+            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { isLogout: true, customerId } }));
+            // Clear remember me cookie client-side to ensure it's deleted
+            document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            window.location.href = '/';
+        })
+        .catch(() => {
+            // Clear cookie even on error
+            document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            window.location.href = '/';
+        });
+}
+</script>
+{% endif %}
+{% endblock %}

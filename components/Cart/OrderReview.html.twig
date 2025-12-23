@@ -1,0 +1,173 @@
+{#
+    Order Review Component
+    Displays cart items in checkout sidebar with limit
+
+    Parameters:
+    - cartItems: array of cart items
+    - limit: max items to show (default: 4)
+#}
+
+{% set limit = limit|default(4) %}
+{% set totalItems = cartItems|length %}
+
+<div class="order-review-sidebar mb-6">
+    <h3 class="text-lg font-semibold mb-4">{{ 'Order Review'|trans }}</h3>
+
+    <div class="order-items">
+        {% for item in cartItems|slice(0, limit) %}
+            {% set productIdMatch = item.product|split('/')|last %}
+            {% set product = resources('/api/front/products/' ~ productIdMatch) %}
+            {# Use PSE image if available, otherwise fallback to product image #}
+            {% set imageId = item.imageId|default(null) %}
+            {% if not imageId %}
+                {% set productImages = resources('/api/front/product_images', {'product.id': productIdMatch, itemsPerPage: 1}) %}
+                {% set imageId = productImages|length > 0 ? productImages|first.id : null %}
+            {% endif %}
+
+            <div class="order-item">
+                <div class="order-item-image">
+                    {% if imageId %}
+                        <img src="/legacy-image-library/product_image_{{ imageId }}/full/%5E*!80,80/0/default.webp"
+                             alt="{{ product.i18ns.title|default('Product') }}"
+                             loading="lazy">
+                    {% endif %}
+                </div>
+                <div class="order-item-info">
+                    <p class="order-item-title">{{ product.i18ns.title|default('Product') }}</p>
+
+                    {# Product Attributes (Size, Color, etc.) #}
+                    {% if item.productSaleElements.attributeCombinations is defined and item.productSaleElements.attributeCombinations|length > 0 %}
+                        <div class="order-item-attributes">
+                            {% for attribute in item.productSaleElements.attributeCombinations %}
+                                <span class="order-item-attribute">{{ attribute.title }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <p class="order-item-quantity">{{ 'Quantity'|trans }}: {{ item.quantity }}</p>
+                    {% set hasPromo = item.taxedPromoPrice is defined and item.taxedPromoPrice > 0 and item.taxedPromoPrice < item.taxedPrice %}
+                    {% set itemPrice = hasPromo ? item.taxedPromoPrice : item.taxedPrice %}
+                    <p class="order-item-price">{{ itemPrice|format_currency('EUR') }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Show "view all" link if more than limit #}
+    {% if totalItems > limit %}
+        <div class="order-review-more">
+            <p>
+                {{ 'And %count% more item(s)'|trans({'%count%': totalItems - limit}) }}
+                - <a href="/?view=cart" class="view-cart-link">{{ 'View my cart'|trans }}</a>
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.order-review-sidebar {
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.order-review-sidebar h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.order-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.order-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.order-item-image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.order-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.order-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.order-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.order-item-attributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.order-item-attribute {
+    font-size: 12px;
+    padding: 3px 10px;
+    background-color: rgba(0, 0, 0, 0.06);
+    border-radius: 4px;
+    color: rgba(0, 0, 0, 0.7);
+    font-weight: 500;
+}
+
+.order-item-quantity {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0;
+    text-align: right;
+}
+
+.order-item-price {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    text-align: right;
+}
+
+.order-review-more {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.order-review-more p {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0;
+}
+
+.view-cart-link {
+    color: var(--color-primary, #000);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.view-cart-link:hover {
+    text-decoration: none;
+}
+</style>

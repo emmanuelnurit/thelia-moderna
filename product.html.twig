@@ -1,0 +1,1408 @@
+{% extends 'base.html.twig' %}
+
+{# Get product ID from URL #}
+{% set productId = attr('product', 'id') %}
+
+{# Fetch product data from API #}
+{% set product = resources('/api/front/products/' ~ productId) %}
+{% set productCategory = product.productCategories|filter(c => c.defaultCategory)|first.category %}
+
+{# Get current PSE (either default or from ref parameter) #}
+{% if app.request.get('ref') %}
+    {# Always load from product's PSE list to ensure we have prices #}
+    {% set currentPse = product.productSaleElements|filter(pse => pse.ref == app.request.get('ref'))|first %}
+    {# Fallback to API if not found in product list #}
+    {% if not currentPse %}
+        {% set currentPse = resources('/api/front/product_sale_elements', {ref: app.request.get('ref')})|first %}
+    {% endif %}
+{% else %}
+    {% set currentPse = product.productSaleElements|filter(pse => pse.isDefault)|first %}
+{% endif %}
+
+{% set defaultPrice = currentPse.productPrices|first %}
+
+{# Calculate taxed prices using custom Twig function (no core modification) #}
+{% if defaultPrice %}
+    {% set taxedPrice = get_taxed_price(currentPse.id, defaultPrice.price) %}
+    {% set taxedPromoPrice = get_taxed_promo_price(currentPse.id, defaultPrice.promoPrice) %}
+{% else %}
+    {% set taxedPrice = 0 %}
+    {% set taxedPromoPrice = 0 %}
+{% endif %}
+
+{# Determine initial image ID based on PSE database associations #}
+{% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC'}) %}
+{% set initialImageId = productImages|first.id|default(0) %}
+
+{# Try to get PSE-specific image from database associations #}
+{% set pseImages = currentPse.productSaleElementsProductImages %}
+{% if pseImages is iterable and pseImages|length > 0 %}
+    {# Use the first associated image for this PSE #}
+    {% set initialImageId = pseImages|first.productImage.id|default(initialImageId) %}
+{% else %}
+    {# Fallback: Find PSE index and assign corresponding image via modulo #}
+    {% set pseIndex = 0 %}
+    {% set found = false %}
+    {% for pse in product.productSaleElements %}
+        {% if pse.id == currentPse.id %}
+            {% set found = true %}
+            {% if productImages|length > 0 %}
+                {% set imageIndex = pseIndex % (productImages|length) %}
+                {% set initialImageId = productImages[imageIndex].id %}
+            {% endif %}
+        {% endif %}
+        {% if not found %}
+            {% set pseIndex = pseIndex + 1 %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{% block title %}{{ product.i18ns.title }} - {{ store_name|default('Modern.A') }}{% endblock %}
+
+{% block meta_description %}{{ product.i18ns.chapo|striptags|slice(0, 160) }}{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <div class="container">
+        <ol class="breadcrumb-list">
+            <li class="breadcrumb-item">
+                <a href="{{ path('index') }}">{{ 'Home'|trans }}</a>
+            </li>
+            {% if productCategory %}
+            <li class="breadcrumb-item">
+                <a href="{{ productCategory.publicUrl|default('/?view=category&category_id=' ~ productCategory.id) }}">{{ productCategory.i18ns.title }}</a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item breadcrumb-current" aria-current="page">
+                {{ product.i18ns.title }}
+            </li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block body %}
+<div class="product-page">
+    <div class="container">
+        <div class="product-grid">
+            {# Gallery Section #}
+            {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC'}) %}
+            <section class="product-gallery"
+                x-data="{ currentImageId: {{ initialImageId > 0 ? initialImageId : (productImages|first.id|default(0)) }} }"
+                @change-product-image.window="currentImageId = $event.detail.imageId">
+                <div class="product-gallery-main">
+                    {% if productImages|length > 0 %}
+                        <img
+                            id="product-main-image"
+                            :src="'/legacy-image-library/product_image_' + currentImageId + '/full/%5E*!800,800/0/default.webp'"
+                            alt="{{ product.i18ns.title }}"
+                            class="product-gallery-image"
+                        >
+                    {% else %}
+                        <div class="product-gallery-placeholder">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                <path d="M3 6h18"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+                {# Show one thumbnail per PSE/variant (color) - loaded via JS #}
+                <div class="product-gallery-thumbs"
+                     x-data="pseThumbnails({ productId: {{ product.id }}, currentPseId: {{ currentPse.id }} })"
+                     x-init="loadThumbnails()">
+                    <template x-for="thumb in thumbnails" :key="thumb.pseId">
+                        <button
+                            class="product-gallery-thumb"
+                            :class="{ 'active': thumb.pseId === currentPseId }"
+                            @click="selectVariant(thumb)"
+                        >
+                            <img
+                                :src="'/legacy-image-library/product_image_' + thumb.imageId + '/full/%5E*!100,100/0/default.webp'"
+                                alt="{{ product.i18ns.title }}"
+                            >
+                        </button>
+                    </template>
+                </div>
+            </section>
+
+            {# Info Section #}
+            <section class="product-info">
+                {# Category #}
+                {% if productCategory %}
+                <div class="product-category">
+                    <a href="{{ productCategory.publicUrl|default('/?view=category&category_id=' ~ productCategory.id) }}">{{ productCategory.i18ns.title }}</a>
+                </div>
+                {% endif %}
+
+                {# Title #}
+                <h1 class="product-title">{{ product.i18ns.title }}</h1>
+
+                {# Short description #}
+                {% if product.i18ns.chapo %}
+                <p class="product-chapo">{{ product.i18ns.chapo }}</p>
+                {% endif %}
+
+                {# Price #}
+                <div class="product-price">
+                    {% if currentPse.promo and taxedPromoPrice > 0 %}
+                        <span class="product-pricePromo">{{ taxedPromoPrice|format_currency('EUR') }}</span>
+                        <span class="product-priceOriginal">{{ taxedPrice|format_currency('EUR') }}</span>
+                    {% else %}
+                        <span class="product-priceRegular">{{ taxedPrice|format_currency('EUR') }}</span>
+                    {% endif %}
+                </div>
+
+                {# Product Attributes Selector (Color, Size, etc.) #}
+                <div
+                    class="product-attributes-selector"
+                    x-data="productAttributeSelector({
+                        productId: {{ product.id }},
+                        currentPseId: {{ currentPse.id }}
+                    })"
+                    x-init="await init()"
+                >
+                    <template x-for="attr in availableAttributes" :key="attr.id">
+                        <div class="attribute-selector-group">
+                            <label class="attribute-label" x-text="attr.title"></label>
+                            <div class="attribute-values">
+                                <template x-for="value in attr.values" :key="value.id">
+                                    <button
+                                        type="button"
+                                        class="attribute-value-btn"
+                                        :class="{ 'active': isCurrentValue(attr.id, value.id), 'disabled': !isPseAvailable(attr.id, value.id) }"
+                                        :disabled="!isPseAvailable(attr.id, value.id) || loading"
+                                        @click="handleAttributeChange(attr.id, value.id)"
+                                        x-text="value.title"
+                                    ></button>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                {# Availability with real-time stock display (minus quantity in cart) #}
+                <div
+                    class="product-availability"
+                    x-data="{
+                        totalStock: {{ currentPse.quantity }},
+                        pseId: {{ currentPse.id }},
+                        availableStock: {{ currentPse.quantity }},
+                        quantityInCart: 0,
+
+                        async init() {
+                            await this.calculateAvailableStock();
+                        },
+
+                        async calculateAvailableStock() {
+                            try {
+                                console.log('Calculating available stock for PSE:', this.pseId);
+                                const response = await fetch('/moderna-api/cart_items');
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    const cartItems = data.cart_items || [];
+                                    console.log('Cart items:', cartItems);
+
+                                    // Try to find the item - log each comparison
+                                    let cartItem = null;
+                                    for (const item of cartItems) {
+                                        // The PSE ID is in item.productSaleElements.id
+                                        const itemPseId = item.productSaleElements?.id;
+                                        console.log('Comparing PSE:', {
+                                            itemPseId: itemPseId,
+                                            lookingFor: this.pseId,
+                                            match: itemPseId == this.pseId
+                                        });
+                                        if (itemPseId == this.pseId) {
+                                            cartItem = item;
+                                            break;
+                                        }
+                                    }
+
+                                    this.quantityInCart = cartItem ? parseInt(cartItem.quantity) || 0 : 0;
+                                    this.availableStock = Math.max(0, this.totalStock - this.quantityInCart);
+                                    console.log('Available stock calculated:', {
+                                        totalStock: this.totalStock,
+                                        quantityInCart: this.quantityInCart,
+                                        availableStock: this.availableStock,
+                                        foundCartItem: cartItem
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Error fetching cart:', error);
+                            }
+                        }
+                    }"
+                    @stock-decreased.window="availableStock = Math.max(0, availableStock - $event.detail.quantity)"
+                >
+                    <template x-if="availableStock > 0">
+                        <span class="product-inStock">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span x-text="availableStock + ' {{ 'in stock'|trans }}'"></span>
+                        </span>
+                    </template>
+                    <template x-if="availableStock === 0 && quantityInCart > 0">
+                        <span class="product-inStock" style="color: #f59e0b;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                <path d="M3 6h18"/>
+                            </svg>
+                            {{ 'All available stock is in your cart'|trans }}
+                        </span>
+                    </template>
+                    <template x-if="availableStock === 0 && quantityInCart === 0">
+                        <span class="product-outOfStock">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6 6 18"/>
+                                <path d="m6 6 12 12"/>
+                            </svg>
+                            {{ 'Out of stock'|trans }}
+                        </span>
+                    </template>
+                </div>
+
+                {# Add to Cart Form #}
+                <div
+                    class="product-form"
+                    x-data="addToCartForm({
+                        productId: {{ product.id }},
+                        pseId: {{ currentPse.id }},
+                        title: '{{ product.i18ns.title|e('js') }}',
+                        price: {{ defaultPrice ? defaultPrice.price : 0 }},
+                        promoPrice: {{ defaultPrice ? (defaultPrice.promoPrice|default(0)) : 0 }},
+                        isPromo: {{ currentPse.promo ? 'true' : 'false' }},
+                        imageId: {{ initialImageId }},
+                        maxQuantity: {{ currentPse.quantity }},
+                        totalStock: {{ currentPse.quantity }}
+                    })"
+                    x-init="await initMaxQuantity()"
+                    @stock-decreased.window="maxQuantity = Math.max(0, maxQuantity - $event.detail.quantity); if (maxQuantity === 0) quantity = 0;"
+                >
+                    {# Quantity selector #}
+                    <div class="product-quantity" x-show="maxQuantity > 0">
+                        <label class="product-quantityLabel">{{ 'Quantity'|trans }}</label>
+                        <div class="product-quantitySelector">
+                            <button type="button" class="product-quantityBtn" @click="decreaseQuantity()" :disabled="quantity <= 1">-</button>
+                            <input
+                                type="number"
+                                x-model.number="quantity"
+                                min="1"
+                                :max="maxQuantity"
+                                class="product-quantityInput"
+                                @input="validateQuantity()"
+                                @change="validateQuantity()"
+                            >
+                            <button type="button" class="product-quantityBtn" @click="increaseQuantity()" :disabled="quantity >= maxQuantity">+</button>
+                        </div>
+                    </div>
+
+                    {# Add to cart button / Notify me button #}
+                    <button
+                        type="button"
+                        class="btn btn-primary product-addBtn"
+                        :class="{ 'btn-notify': maxQuantity == 0 }"
+                        :disabled="loading"
+                        @click="maxQuantity == 0 ? addToWishlistForNotification() : addToCart()"
+                    >
+                            <template x-if="maxQuantity == 0">
+                                <span class="product-addBtn-content">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/>
+                                    </svg>
+                                    {{ 'Notify me'|trans }}
+                                </span>
+                            </template>
+                            <template x-if="!loading && !added && maxQuantity > 0">
+                                <span class="product-addBtn-content">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                        <path d="M3 6h18"/>
+                                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                                    </svg>
+                                    {{ 'Add to cart'|trans }}
+                                </span>
+                            </template>
+                            <template x-if="loading">
+                                <span>{{ 'Adding...'|trans }}</span>
+                            </template>
+                            <template x-if="added && !loading && maxQuantity > 0">
+                                <span class="product-addBtn-content">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    {{ 'Added!'|trans }}
+                                </span>
+                            </template>
+                        </button>
+                </div>
+
+                {# Wishlist button #}
+                <button
+                    type="button"
+                    class="product-wishlistBtn"
+                    x-data="wishlistButton({
+                        id: {{ product.id }},
+                        title: '{{ product.i18ns.title|e('js') }}',
+                        publicUrl: '{{ product.publicUrl|e('js') }}',
+                        imageId: {{ initialImageId }},
+                        price: '{{ defaultPrice ? (defaultPrice.price|format_currency('EUR')) : '0,00 €' }}',
+                        promoPrice: {{ (defaultPrice and currentPse.promo and defaultPrice.promoPrice > 0) ? '\'' ~ defaultPrice.promoPrice|format_currency('EUR') ~ '\'' : 'null' }},
+                        isPromo: {{ (defaultPrice and currentPse.promo and defaultPrice.promoPrice > 0) ? 'true' : 'false' }}
+                    })"
+                    @click="toggle()"
+                    @wishlist:added.window="checkWishlist()"
+                    @wishlist:removed.window="checkWishlist()"
+                    @wishlist:cleared.window="isInWishlist = false"
+                    :class="{ 'is-active': isInWishlist }"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" :fill="isInWishlist ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2" :style="isInWishlist ? 'color: #ef4444' : ''">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                    </svg>
+                    <span x-text="isInWishlist ? '{{ 'In wishlist'|trans }}' : '{{ 'Add to wishlist'|trans }}'"></span>
+                </button>
+
+                {# Features #}
+                {% if product.featureProducts is defined and product.featureProducts|length > 0 %}
+                <div class="product-features">
+                    <h3 class="product-featuresTitle">{{ 'Features'|trans }}</h3>
+                    <dl class="product-featuresList">
+                        {% for featureProduct in product.featureProducts %}
+                        <div class="product-feature">
+                            <dt>{{ featureProduct.feature.i18ns.title }}</dt>
+                            <dd>{{ featureProduct.featureAv.i18ns.title }}</dd>
+                        </div>
+                        {% endfor %}
+                    </dl>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+
+        {# Description #}
+        {% if product.i18ns.description %}
+        <section class="product-description">
+            <h2 class="product-sectionTitle">{{ 'Description'|trans }}</h2>
+            <div class="product-descriptionContent">
+                {{ product.i18ns.description|raw }}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.product-page {
+    padding: 32px 0 80px;
+}
+
+.product-grid {
+    display: grid;
+    gap: 48px;
+}
+
+@media (min-width: 1024px) {
+    .product-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 64px;
+    }
+}
+
+/* Gallery */
+.product-gallery-main {
+    aspect-ratio: 1;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.product-gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.product-gallery-main:hover .product-gallery-image {
+    opacity: 0.95;
+}
+
+.product-gallery-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border);
+}
+
+.product-gallery-thumbs {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.product-gallery-thumb {
+    width: 80px;
+    height: 80px;
+    padding: 0;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: pointer;
+    background-color: var(--color-white);
+    transition: all 0.2s ease-in-out;
+    position: relative;
+}
+
+.product-gallery-thumb:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-gallery-thumb.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.product-gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease-in-out;
+}
+
+.product-gallery-thumb:hover img {
+    transform: scale(1.05);
+}
+
+/* Info */
+.product-category {
+    margin-bottom: 8px;
+}
+
+.product-category a {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+
+.product-category a:hover {
+    color: var(--color-text);
+}
+
+.product-title {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+}
+
+.product-chapo {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 24px;
+}
+
+.product-price {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.product-priceRegular,
+.product-pricePromo {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.product-priceOriginal {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    text-decoration: line-through;
+}
+
+.product-attributes-selector {
+    margin-bottom: 24px;
+}
+
+.attribute-selector-group {
+    margin-bottom: 20px;
+}
+
+.attribute-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--color-text);
+}
+
+.attribute-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.attribute-value-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--color-border);
+    background: white;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text);
+}
+
+.attribute-value-btn:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.attribute-value-btn.active {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+}
+
+.attribute-value-btn.disabled,
+.attribute-value-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.product-availability {
+    margin-bottom: 24px;
+}
+
+.product-inStock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #059669;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.product-outOfStock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Form */
+.product-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.product-quantity {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.product-quantityLabel {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.product-quantitySelector {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    width: fit-content;
+}
+
+.product-quantityBtn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--color-text);
+    transition: all 0.2s ease;
+}
+
+.product-quantityBtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    color: var(--color-text-light);
+}
+
+.product-quantityBtn:not(:disabled):hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.product-quantityInput {
+    width: 60px;
+    height: 44px;
+    text-align: center;
+    border: none;
+    font-size: 1rem;
+    font-weight: 500;
+    -moz-appearance: textfield;
+}
+
+.product-quantityInput::-webkit-outer-spin-button,
+.product-quantityInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.product-addBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px 32px;
+}
+
+.product-addBtn-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.product-addBtn.btn-notify {
+    background-color: #f59e0b;
+    border-color: #f59e0b;
+}
+
+.product-addBtn.btn-notify:hover {
+    background-color: #d97706;
+    border-color: #d97706;
+}
+
+.product-wishlistBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 32px;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.product-wishlistBtn:hover {
+    border-color: var(--color-text);
+}
+
+/* Features */
+.product-features {
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid var(--color-border);
+}
+
+.product-featuresTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.product-featuresList {
+    display: grid;
+    gap: 12px;
+}
+
+.product-feature {
+    display: flex;
+    gap: 8px;
+}
+
+.product-feature dt {
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.product-feature dd {
+    margin: 0;
+}
+
+/* Description */
+.product-description {
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 1px solid var(--color-border);
+}
+
+.product-sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+.product-descriptionContent {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--color-text-muted);
+}
+
+.product-descriptionContent p {
+    margin-bottom: 16px;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    padding: 16px 0;
+    background-color: var(--color-surface);
+}
+
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumb-item::after {
+    content: '/';
+    color: var(--color-text-light);
+}
+
+.breadcrumb-item:last-child::after {
+    display: none;
+}
+
+.breadcrumb-item a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--color-text);
+}
+
+.breadcrumb-current {
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* Cart Toast Notification */
+.cart-toast {
+    position: fixed;
+    top: 104px;
+    right: 24px;
+    z-index: 1000;
+    width: 360px;
+    max-width: calc(100vw - 48px);
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: slideInRightFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cart-toast.closing {
+    animation: slideOutRight 0.3s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+@keyframes slideInRightFade {
+    0% {
+        opacity: 0;
+        transform: translateX(100%) scale(0.95);
+    }
+    60% {
+        opacity: 0.6;
+        transform: translateX(0) scale(1.02);
+    }
+    80% {
+        opacity: 0.9;
+        transform: translateX(0) scale(1.01);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.cart-toast-content {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeInContent 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
+}
+
+@keyframes fadeInContent {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cart-toast-image {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 4px;
+    flex-shrink: 0;
+}
+
+.cart-toast-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.cart-toast-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #16a34a;
+    margin: 0 0 4px;
+}
+
+.cart-toast-product {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    margin: 0 0 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cart-toast-qty {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.cart-toast-link {
+    padding: 8px 12px;
+    background: #16a34a;
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+}
+
+.cart-toast-link:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(22, 163, 74, 0.4);
+}
+
+.cart-toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #16a34a;
+    transform-origin: left;
+    animation: progressBar 5s linear forwards;
+}
+
+@keyframes progressBar {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .cart-toast {
+        top: 16px;
+        right: 16px;
+        width: 320px;
+        max-width: calc(100vw - 32px);
+    }
+}
+</style>
+
+<script>
+// PSE Thumbnails component - shows one thumbnail per variant
+function pseThumbnails(config) {
+    return {
+        productId: config.productId,
+        currentPseId: config.currentPseId,
+        thumbnails: [],
+
+        async loadThumbnails() {
+            try {
+                const response = await fetch(`/cart/product-attributes/${this.productId}`);
+                const data = await response.json();
+
+                if (data.success && data.pses) {
+                    this.thumbnails = data.pses.map(pse => ({
+                        pseId: pse.id,
+                        ref: pse.ref,
+                        imageId: pse.images && pse.images.length > 0 ? pse.images[0] : 1
+                    }));
+                }
+            } catch (error) {
+                console.error('Error loading PSE thumbnails:', error);
+            }
+        },
+
+        selectVariant(thumb) {
+            // Update the main image
+            window.dispatchEvent(new CustomEvent('change-product-image', {
+                detail: { imageId: thumb.imageId }
+            }));
+            // Navigate to the variant
+            window.location.href = '?view=product&product_id=' + this.productId + '&ref=' + thumb.ref;
+        }
+    };
+}
+
+// Product Attribute Selector component
+function productAttributeSelector(config) {
+    return {
+        productId: config.productId,
+        currentPseId: config.currentPseId,
+        availableAttributes: [],
+        allPses: [],
+        currentCombination: {},
+        loading: false,
+
+        async init() {
+            try {
+                const response = await fetch(`/cart/product-attributes/${this.productId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    this.availableAttributes = data.attributes;
+                    this.allPses = data.pses;
+
+                    // Find current PSE combination
+                    const currentPse = this.allPses.find(pse => pse.id === this.currentPseId);
+                    if (currentPse) {
+                        this.currentCombination = currentPse.combination;
+                    }
+
+                    console.log('Product attributes loaded:', {
+                        attributes: this.availableAttributes,
+                        pses: this.allPses,
+                        current: this.currentCombination
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading product attributes:', error);
+            }
+        },
+
+        isCurrentValue(attributeId, attributeAvId) {
+            return this.currentCombination[attributeId] === attributeAvId;
+        },
+
+        isPseAvailable(attributeId, attributeAvId) {
+            // Check if there's a PSE with this attribute value combination
+            const testCombination = { ...this.currentCombination };
+            testCombination[attributeId] = attributeAvId;
+
+            return this.allPses.some(pse => {
+                for (const [attrId, attrAvId] of Object.entries(testCombination)) {
+                    if (pse.combination[attrId] !== attrAvId) {
+                        return false;
+                    }
+                }
+                // Check that PSE has no extra attributes
+                return Object.keys(pse.combination).length === Object.keys(testCombination).length;
+            });
+        },
+
+        handleAttributeChange(attributeId, attributeAvId) {
+            if (this.loading) return;
+
+            // If it's already selected, do nothing
+            if (this.currentCombination[attributeId] === attributeAvId) {
+                return;
+            }
+
+            this.loading = true;
+
+            // Update combination
+            const newCombination = { ...this.currentCombination };
+            newCombination[attributeId] = attributeAvId;
+
+            // Find matching PSE
+            const matchingPse = this.allPses.find(pse => {
+                for (const [attrId, attrAvId] of Object.entries(newCombination)) {
+                    if (pse.combination[attrId] !== attrAvId) {
+                        return false;
+                    }
+                }
+                return Object.keys(pse.combination).length === Object.keys(newCombination).length;
+            });
+
+            if (!matchingPse) {
+                alert('Cette combinaison n\'est pas disponible');
+                this.loading = false;
+                return;
+            }
+
+            // Update current combination
+            this.currentCombination = newCombination;
+            this.currentPseId = matchingPse.id;
+
+            // Change the main image to the first image of the PSE
+            if (matchingPse.images && matchingPse.images.length > 0) {
+                console.log('Changing image to:', matchingPse.images[0]);
+
+                // Dispatch event to change the gallery image
+                window.dispatchEvent(new CustomEvent('change-product-image', {
+                    detail: { imageId: matchingPse.images[0] }
+                }));
+
+                // Wait longer for the image to change before redirecting
+                setTimeout(() => {
+                    window.location.href = '?view=product&product_id=' + this.productId + '&ref=' + matchingPse.ref;
+                }, 800);
+            } else {
+                // No images, redirect immediately
+                window.location.href = '?view=product&product_id=' + this.productId + '&ref=' + matchingPse.ref;
+            }
+        }
+    };
+}
+
+// Wishlist button component
+function wishlistButton(config) {
+    return {
+        id: config.id,
+        title: config.title,
+        publicUrl: config.publicUrl,
+        imageId: config.imageId,
+        price: config.price,
+        promoPrice: config.promoPrice,
+        isPromo: config.isPromo,
+        isInWishlist: false,
+
+        init() {
+            // Wait a bit to ensure Alpine store is fully initialized
+            setTimeout(() => {
+                this.checkWishlist();
+            }, 50);
+        },
+
+        checkWishlist() {
+            if (window.Moderna && window.Moderna.wishlist) {
+                this.isInWishlist = window.Moderna.wishlist.has(this.id.toString());
+            }
+        },
+
+        toggle() {
+            if (window.Moderna && window.Moderna.wishlist) {
+                const imageUrl = this.imageId ? `/legacy-image-library/product_image_${this.imageId}/full/%5E*!400,400/0/default.webp` : '';
+
+                const added = window.Moderna.wishlist.toggle({
+                    id: this.id.toString(),
+                    title: this.title,
+                    price: this.price,
+                    promoPrice: this.promoPrice,
+                    isPromo: this.isPromo,
+                    image: imageUrl,
+                    url: this.publicUrl
+                });
+
+                this.isInWishlist = added;
+            }
+        }
+    };
+}
+
+function addToCartForm(config) {
+    return {
+        quantity: 1,
+        loading: false,
+        added: false,
+        productId: config.productId,
+        pseId: config.pseId,
+        title: config.title,
+        price: config.price,
+        promoPrice: config.promoPrice,
+        isPromo: config.isPromo,
+        imageId: config.imageId,
+        maxQuantity: config.maxQuantity,
+        totalStock: config.totalStock,
+
+        async initMaxQuantity() {
+            try {
+                console.log('Initializing max quantity for PSE:', this.pseId);
+                const response = await fetch('/moderna-api/cart_items');
+                if (response.ok) {
+                    const data = await response.json();
+                    const cartItems = data.cart_items || [];
+                    console.log('Cart items for max quantity:', cartItems);
+                    // The PSE ID is in item.productSaleElements.id
+                    const cartItem = cartItems.find(item => item.productSaleElements?.id === this.pseId) || null;
+                    const quantityInCart = cartItem ? parseInt(cartItem.quantity) || 0 : 0;
+                    this.maxQuantity = Math.max(0, this.totalStock - quantityInCart);
+
+                    console.log('Max quantity calculated:', {
+                        totalStock: this.totalStock,
+                        quantityInCart: quantityInCart,
+                        maxQuantity: this.maxQuantity
+                    });
+
+                    // If no stock available, reset quantity to 0
+                    if (this.maxQuantity === 0) {
+                        this.quantity = 0;
+                    } else if (this.quantity > this.maxQuantity) {
+                        this.quantity = this.maxQuantity;
+                    }
+                }
+            } catch (error) {
+                console.error('Error initializing max quantity:', error);
+            }
+        },
+
+        decreaseQuantity() {
+            if (this.quantity > 1) this.quantity--;
+        },
+
+        increaseQuantity() {
+            if (this.quantity < this.maxQuantity) this.quantity++;
+        },
+
+        validateQuantity() {
+            // Ensure quantity is a valid number
+            if (isNaN(this.quantity) || this.quantity === null || this.quantity === '') {
+                this.quantity = 1;
+                return;
+            }
+
+            // Convert to integer
+            this.quantity = parseInt(this.quantity);
+
+            // Ensure within bounds
+            if (this.quantity < 1) {
+                this.quantity = 1;
+            } else if (this.quantity > this.maxQuantity) {
+                this.quantity = this.maxQuantity;
+            }
+        },
+
+        async addToCart() {
+            this.loading = true;
+
+            try {
+                // Add item to cart via Moderna CartController
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        pseId: this.pseId,
+                        quantity: this.quantity,
+                        append: true,
+                        newness: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                // Success
+                this.loading = false;
+                this.added = true;
+
+                // Fetch cart to get updated count using our API
+                const cartResponse = await fetch('/moderna-api/cart_items');
+                if (cartResponse.ok) {
+                    const cartData = await cartResponse.json();
+                    const totalCount = cartData.count || 0;
+
+                    window.dispatchEvent(new CustomEvent('cart-updated', {
+                        detail: { count: totalCount }
+                    }));
+
+                    console.log('Cart updated, dispatching stock-decreased event');
+
+                    // Dispatch event to decrease available stock
+                    window.dispatchEvent(new CustomEvent('stock-decreased', {
+                        detail: { quantity: this.quantity }
+                    }));
+                }
+
+                // Show popup
+                this.showAddedPopup();
+
+                // Reset added state
+                setTimeout(() => {
+                    this.added = false;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                this.loading = false;
+                alert('{{ 'Error adding item to cart. Please try again.'|trans }}');
+            }
+        },
+
+        async addToWishlistForNotification() {
+            try {
+                // Add to wishlist using Alpine store
+                const product = {
+                    id: this.productId,
+                    title: this.title,
+                    publicUrl: window.location.pathname,
+                    imageId: this.imageId,
+                    price: this.isPromo && this.promoPrice ? this.promoPrice : this.price,
+                    promoPrice: this.isPromo ? this.promoPrice : null,
+                    isPromo: this.isPromo,
+                    notifyMe: true,
+                    addedAt: Date.now()
+                };
+
+                // Use Alpine store to add/update
+                if (window.Alpine && window.Alpine.store('wishlist')) {
+                    const store = window.Alpine.store('wishlist');
+
+                    // Check if already exists
+                    const existingIndex = store.items.findIndex(item => item.id === this.productId);
+
+                    if (existingIndex === -1) {
+                        // Add new item
+                        store.add(product);
+                    } else {
+                        // Update existing item to set notifyMe flag
+                        store.items[existingIndex].notifyMe = true;
+                    }
+                }
+
+                // Show notification
+                this.showNotifyMePopup();
+            } catch (error) {
+                console.error('Error adding to wishlist for notification:', error);
+                alert('{{ 'Error adding to notification list. Please try again.'|trans }}');
+            }
+        },
+
+        showNotifyMePopup() {
+            // Remove existing toast
+            const existing = document.querySelector('.cart-toast');
+            if (existing) existing.remove();
+
+            // Create toast
+            const toast = document.createElement('div');
+            toast.className = 'cart-toast';
+            toast.innerHTML = `
+                <div class="cart-toast-content">
+                    ${this.imageId ? `<img src="/legacy-image-library/product_image_${this.imageId}/full/%5E*!80,80/0/default.webp" alt="${this.title}" class="cart-toast-image">` : ''}
+                    <div class="cart-toast-info">
+                        <p class="cart-toast-title">{{ 'Notification set!'|trans }}</p>
+                        <p class="cart-toast-product">${this.title}</p>
+                        <p class="cart-toast-qty">{{ 'You will be notified when this product is back in stock'|trans }}</p>
+                    </div>
+                    <a href="/?view=wishlist" class="cart-toast-link">{{ 'View Wishlist'|trans }}</a>
+                    <button class="cart-toast-close" onclick="this.parentElement.parentElement.remove()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6 6 18"/>
+                            <path d="m6 6 12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(toast);
+
+            // Auto-close after 5 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('closing');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        },
+
+        showAddedPopup() {
+            // Remove existing toast
+            const existing = document.querySelector('.cart-toast');
+            if (existing) existing.remove();
+
+            // Create toast
+            const toast = document.createElement('div');
+            toast.className = 'cart-toast';
+            toast.innerHTML = `
+                <div class="cart-toast-content">
+                    ${this.imageId ? `<img src="/legacy-image-library/product_image_${this.imageId}/full/%5E*!80,80/0/default.webp" alt="${this.title}" class="cart-toast-image">` : ''}
+                    <div class="cart-toast-info">
+                        <p class="cart-toast-title">{{ 'Added to cart!'|trans }}</p>
+                        <p class="cart-toast-product">${this.title}</p>
+                        <p class="cart-toast-qty">{{ 'Quantity'|trans }}: ${this.quantity}</p>
+                    </div>
+                    <a href="/?view=cart" class="cart-toast-link">{{ 'View Cart'|trans }}</a>
+                </div>
+                <div class="cart-toast-progress"></div>
+            `;
+            document.body.appendChild(toast);
+
+            // Auto-close after 5 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('closing');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        }
+    };
+}
+</script>
+{% endblock %}

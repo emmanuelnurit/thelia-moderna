@@ -1,0 +1,300 @@
+{# Products Grid Component - Reusable product grid #}
+{% set products = products|default([]) %}
+{% set title = title|default('Products') %}
+{% set viewAllUrl = viewAllUrl|default(null) %}
+
+{% if products is iterable and products|length > 0 %}
+<section class="products-section">
+    <div class="products-section-header">
+        <h2 class="products-section-title">{{ title }}</h2>
+        {% if viewAllUrl %}
+            <a href="{{ viewAllUrl }}" class="products-section-link">
+                {{ 'View All'|trans }}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14m-7-7 7 7-7 7"/>
+                </svg>
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="products-section-grid">
+        {% for product in products %}
+            {% set defaultPse = product.productSaleElements|filter(pse => pse.isDefault)|first %}
+            {% set price = defaultPse.productPrices|first %}
+            {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
+
+            <article class="product-card">
+                <div class="product-card-image">
+                    <a href="{{ product.publicUrl }}" class="product-card-imageLink">
+                        {% if productImages|length > 0 %}
+                            <img src="/legacy-image-library/product_image_{{ productImages|first.id }}/full/%5E*!400,400/0/default.webp"
+                                 alt="{{ product.i18ns.title }}"
+                                 loading="lazy">
+                        {% else %}
+                            <div class="product-card-placeholder">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                    <path d="M3 6h18"/>
+                                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </a>
+
+                    {# Promo Badge #}
+                    {% if defaultPse.promo and price.promoPrice > 0 %}
+                        <span class="product-card-badge">
+                            -{{ (((price.price - price.promoPrice) / price.price) * 100)|round }}%
+                        </span>
+                    {% endif %}
+
+                    {# Wishlist Button #}
+                    <button
+                        type="button"
+                        class="product-card-wishlistBtn"
+                        x-data="wishlistButton({
+                            id: {{ product.id }},
+                            title: '{{ product.i18ns.title|e('js') }}',
+                            publicUrl: '{{ product.publicUrl|e('js') }}',
+                            imageId: {{ productImages|first.id|default(0) }},
+                            price: '{{ price.price|format_currency('EUR') }}',
+                            promoPrice: '{{ defaultPse.promo and price.promoPrice > 0 ? price.promoPrice|format_currency('EUR') : '' }}',
+                            isPromo: {{ defaultPse.promo and price.promoPrice > 0 ? 'true' : 'false' }}
+                        })"
+                        @click.prevent="toggle()"
+                        :class="{ 'is-active': isInWishlist }"
+                        :title="isInWishlist ? '{{ 'Remove from wishlist'|trans }}' : '{{ 'Add to wishlist'|trans }}'"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" :fill="isInWishlist ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="product-card-content">
+                    <h3 class="product-card-title">
+                        <a href="{{ product.publicUrl }}">{{ product.i18ns.title }}</a>
+                    </h3>
+                    <div class="product-card-price">
+                        {% if defaultPse.promo and price.promoPrice > 0 %}
+                            <span class="product-card-pricePromo">{{ price.promoPrice|format_currency('EUR') }}</span>
+                            <span class="product-card-priceOriginal">{{ price.price|format_currency('EUR') }}</span>
+                        {% else %}
+                            <span class="product-card-priceRegular">{{ price.price|format_currency('EUR') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<style>
+.products-section {
+    /* Section container */
+}
+
+.products-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.products-section-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.products-section-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition: gap var(--transition-base);
+}
+
+.products-section-link:hover {
+    gap: 10px;
+}
+
+.products-section-link svg {
+    transition: transform var(--transition-base);
+}
+
+.products-section-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+@media (min-width: 768px) {
+    .products-section-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .products-section-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Product Card */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.product-card:hover {
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.product-card-image {
+    position: relative;
+    aspect-ratio: 1;
+    background-color: var(--color-white);
+    overflow: hidden;
+}
+
+.product-card-imageLink {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.product-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+}
+
+.product-card:hover .product-card-image img {
+    transform: scale(1.08);
+}
+
+.product-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border);
+}
+
+.product-card-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 6px 12px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    z-index: 10;
+}
+
+/* Wishlist Button */
+.product-card-wishlistBtn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.product-card:hover .product-card-wishlistBtn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.product-card-wishlistBtn:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-card-wishlistBtn.is-active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.product-card-wishlistBtn svg {
+    transition: transform 0.2s ease;
+}
+
+.product-card-wishlistBtn:hover svg {
+    transform: scale(1.1);
+}
+
+.product-card-wishlistBtn.is-active svg {
+    stroke: #ef4444;
+}
+
+.product-card-content {
+    padding: 16px;
+}
+
+.product-card-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0 0 8px;
+}
+
+.product-card-title a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition-base);
+}
+
+.product-card-title a:hover {
+    color: var(--color-primary);
+}
+
+.product-card-price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.product-card-priceRegular,
+.product-card-pricePromo {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.product-card-pricePromo {
+    color: #ef4444;
+}
+
+.product-card-priceOriginal {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    text-decoration: line-through;
+}
+</style>

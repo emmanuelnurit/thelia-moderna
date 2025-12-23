@@ -1,0 +1,28 @@
+# Compiled assets (rebuild with npm run build)
+dist/*
+!dist/.gitkeep
+
+# npm dependencies
+node_modules
+package-lock.json
+
+# System files
+.DS_Store
+.idea
+.vscode
+Thumbs.db
+
+# Claude Code config
+.claude
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage reports
+coverage
+.coverage
+
+# Temporary files
+*.tmp
+*.temp

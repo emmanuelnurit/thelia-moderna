@@ -1,0 +1,693 @@
+{% extends 'base.html.twig' %}
+
+{% set customerId = attr('customer', 'id') %}
+
+{% block title %}{{ 'Add Address'|trans }} - {{ store_name|default('Modern.A') }}{% endblock %}
+
+{% block body %}
+{# Redirect to login if not authenticated #}
+{% if not customerId %}
+    <script>window.location.href = '/?view=login&redirect=' + encodeURIComponent(window.location.href);</script>
+{% else %}
+<div class="address-page" x-data="addressForm()">
+    <div class="container">
+        {# Breadcrumb #}
+        <nav class="address-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ path('index') }}">{{ 'Home'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            <a href="/?view=account">{{ 'My Account'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            <a href="/?view=account-addresses">{{ 'My Addresses'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            <span>{{ 'Add Address'|trans }}</span>
+        </nav>
+
+        <div class="address-layout">
+            {# Left Column - Form #}
+            <div class="address-formSection">
+                {# Back Button #}
+                <a href="/?view=account-addresses" class="address-backBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                    {{ 'Back to addresses'|trans }}
+                </a>
+
+                {# Page Header #}
+                <div class="address-header">
+                    <div class="address-headerIcon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="address-title">{{ 'Add New Address'|trans }}</h1>
+                        <p class="address-subtitle">{{ 'Fill in your delivery details'|trans }}</p>
+                    </div>
+                </div>
+
+                {# Form Card #}
+                <form action="/moderna-api/account/address/new" method="post" class="address-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('address_form') }}">
+
+                    {# Section: Address Label #}
+                    <div class="form-section">
+                        <div class="form-sectionHeader">
+                            <div class="form-sectionIcon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2 2 7l10 5 10-5-10-5Z"/>
+                                    <path d="m2 17 10 5 10-5"/>
+                                    <path d="m2 12 10 5 10-5"/>
+                                </svg>
+                            </div>
+                            <span>{{ 'Address Name'|trans }}</span>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="label" name="label" class="form-input form-input--lg" placeholder="{{ 'e.g. Home, Work, Parents...'|trans }}">
+                            <p class="form-hint">{{ 'Give this address a name for easy identification'|trans }}</p>
+                        </div>
+                    </div>
+
+                    {# Section: Personal Info #}
+                    <div class="form-section">
+                        <div class="form-sectionHeader">
+                            <div class="form-sectionIcon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="8" r="5"/>
+                                    <path d="M20 21a8 8 0 0 0-16 0"/>
+                                </svg>
+                            </div>
+                            <span>{{ 'Recipient'|trans }}</span>
+                        </div>
+                        <div class="form-row form-row--three">
+                            <div class="form-group form-group--auto">
+                                <label for="title" class="form-label">{{ 'Title'|trans }}</label>
+                                <select id="title" name="title" class="form-select" required x-model="selectedTitle">
+                                    <template x-for="title in titles" :key="title.id">
+                                        <option :value="title.id" x-text="title.short" :selected="title.byDefault"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="firstname" class="form-label">{{ 'First Name'|trans }} <span class="form-required">*</span></label>
+                                <input type="text" id="firstname" name="firstname" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastname" class="form-label">{{ 'Last Name'|trans }} <span class="form-required">*</span></label>
+                                <input type="text" id="lastname" name="lastname" class="form-input" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="company" class="form-label">{{ 'Company'|trans }} <span class="form-optional">({{ 'optional'|trans }})</span></label>
+                            <input type="text" id="company" name="company" class="form-input" placeholder="{{ 'Company name'|trans }}">
+                        </div>
+                    </div>
+
+                    {# Section: Address #}
+                    <div class="form-section">
+                        <div class="form-sectionHeader">
+                            <div class="form-sectionIcon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                    <polyline points="9,22 9,12 15,12 15,22"/>
+                                </svg>
+                            </div>
+                            <span>{{ 'Address'|trans }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="address1" class="form-label">{{ 'Street Address'|trans }} <span class="form-required">*</span></label>
+                            <input type="text" id="address1" name="address1" class="form-input" required placeholder="{{ 'Number and street name'|trans }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="address2" class="form-label">{{ 'Additional Info'|trans }} <span class="form-optional">({{ 'optional'|trans }})</span></label>
+                            <input type="text" id="address2" name="address2" class="form-input" placeholder="{{ 'Apartment, suite, floor, building...'|trans }}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group form-group--sm">
+                                <label for="zipcode" class="form-label">{{ 'Postal Code'|trans }} <span class="form-required">*</span></label>
+                                <input type="text" id="zipcode" name="zipcode" class="form-input" required>
+                            </div>
+                            <div class="form-group form-group--lg">
+                                <label for="city" class="form-label">{{ 'City'|trans }} <span class="form-required">*</span></label>
+                                <input type="text" id="city" name="city" class="form-input" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="country" class="form-label">{{ 'Country'|trans }} <span class="form-required">*</span></label>
+                            <select id="country" name="country" class="form-select" required x-model="selectedCountry">
+                                <option value="">{{ 'Select a country'|trans }}</option>
+                                <template x-for="country in countries" :key="country.id">
+                                    <option :value="country.id" x-text="country.title"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+
+                    {# Section: Contact #}
+                    <div class="form-section">
+                        <div class="form-sectionHeader">
+                            <div class="form-sectionIcon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                            </div>
+                            <span>{{ 'Contact'|trans }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone" class="form-label">{{ 'Phone Number'|trans }} <span class="form-optional">({{ 'optional'|trans }})</span></label>
+                            <input type="tel" id="phone" name="phone" class="form-input" placeholder="{{ '+33 6 12 34 56 78'|trans }}">
+                            <p class="form-hint">{{ 'For delivery notifications'|trans }}</p>
+                        </div>
+                    </div>
+
+                    {# Default Address Toggle #}
+                    <div class="form-toggle">
+                        <label class="toggle">
+                            <input type="checkbox" name="is_default" value="1">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="toggle-content">
+                            <span class="toggle-label">{{ 'Set as default address'|trans }}</span>
+                            <span class="toggle-desc">{{ 'This address will be pre-selected at checkout'|trans }}</span>
+                        </div>
+                    </div>
+
+                    {# Form Actions #}
+                    <div class="form-actions">
+                        <a href="/?view=account-addresses" class="btn btn--secondary">
+                            {{ 'Cancel'|trans }}
+                        </a>
+                        <button type="submit" class="btn btn--primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14"/>
+                                <path d="M5 12h14"/>
+                            </svg>
+                            {{ 'Add Address'|trans }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {# Right Column - Visual #}
+            <div class="address-visualSection">
+                <div class="address-visual">
+                    <div class="address-visualIcon">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <h3>{{ 'Your delivery address'|trans }}</h3>
+                    <p>{{ 'Add your address to enjoy fast and secure delivery to your doorstep.'|trans }}</p>
+
+                    <div class="address-features">
+                        <div class="address-feature">
+                            <div class="address-featureIcon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <path d="m9 12 2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <span>{{ 'Secure & encrypted'|trans }}</span>
+                        </div>
+                        <div class="address-feature">
+                            <div class="address-featureIcon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="1" y="3" width="15" height="13" rx="2"/>
+                                    <path d="m16 8 5 3-5 3V8Z"/>
+                                </svg>
+                            </div>
+                            <span>{{ 'Fast checkout'|trans }}</span>
+                        </div>
+                        <div class="address-feature">
+                            <div class="address-featureIcon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 18a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2"/>
+                                    <rect x="7" y="14" width="10" height="8" rx="1"/>
+                                </svg>
+                            </div>
+                            <span>{{ 'Multiple addresses'|trans }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.address-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8f7f4 0%, #f2f0ea 100%);
+    padding: 24px 0 64px;
+}
+
+.address-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    color: var(--color-text-light, #6b7280);
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.address-breadcrumb a {
+    color: var(--color-text-light, #6b7280);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.address-breadcrumb a:hover {
+    color: var(--color-text, #010101);
+}
+
+.address-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+}
+
+@media (min-width: 1024px) {
+    .address-layout {
+        grid-template-columns: 1fr 380px;
+        gap: 48px;
+    }
+}
+
+/* Form Section */
+.address-formSection {
+    max-width: 640px;
+}
+
+.address-backBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-light, #6b7280);
+    text-decoration: none;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+}
+
+.address-backBtn:hover {
+    color: var(--color-text, #010101);
+}
+
+.address-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.address-headerIcon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #010101 0%, #2a2a2a 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.address-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text, #010101);
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+}
+
+.address-subtitle {
+    font-size: 0.9375rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0;
+}
+
+/* Form Styles */
+.address-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.form-sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+}
+
+.form-sectionIcon {
+    width: 36px;
+    height: 36px;
+    background: var(--color-surface, #f2f0ea);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text, #010101);
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .form-row--three {
+        grid-template-columns: auto 1fr 1fr;
+    }
+
+    .form-group--auto {
+        width: auto;
+        min-width: 90px;
+    }
+
+    .form-group--sm {
+        max-width: 140px;
+    }
+
+    .form-group--lg {
+        flex: 1;
+    }
+}
+
+.form-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    margin-bottom: 6px;
+}
+
+.form-required {
+    color: #dc2626;
+}
+
+.form-optional {
+    font-weight: 400;
+    color: var(--color-text-light, #9ca3af);
+}
+
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+    border: 1.5px solid var(--color-border, #e5e7eb);
+    border-radius: 10px;
+    background-color: white;
+    transition: all 0.2s;
+}
+
+.form-input--lg {
+    padding: 16px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #010101);
+    box-shadow: 0 0 0 4px rgba(1, 1, 1, 0.08);
+}
+
+.form-input::placeholder {
+    color: var(--color-text-light, #9ca3af);
+}
+
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 44px;
+    cursor: pointer;
+}
+
+.form-hint {
+    font-size: 0.75rem;
+    color: var(--color-text-light, #9ca3af);
+    margin: 8px 0 0;
+}
+
+/* Toggle Switch */
+.form-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.toggle {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e5e7eb;
+    border-radius: 28px;
+    transition: 0.3s;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle input:checked + .toggle-slider {
+    background-color: #010101;
+}
+
+.toggle input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.toggle-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.toggle-label {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+}
+
+.toggle-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-light, #6b7280);
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 24px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn--primary {
+    color: white;
+    background: linear-gradient(135deg, #010101 0%, #1a1a1a 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn--primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn--secondary {
+    color: var(--color-text, #010101);
+    background: white;
+    border: 1.5px solid var(--color-border, #e5e7eb);
+}
+
+.btn--secondary:hover {
+    border-color: var(--color-primary, #010101);
+    background: var(--color-surface, #f9fafb);
+}
+
+/* Visual Section */
+.address-visualSection {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .address-visualSection {
+        display: block;
+        position: sticky;
+        top: 24px;
+        height: fit-content;
+    }
+}
+
+.address-visual {
+    background: linear-gradient(135deg, #010101 0%, #1a1a1a 100%);
+    border-radius: 24px;
+    padding: 48px 32px;
+    text-align: center;
+    color: white;
+}
+
+.address-visualIcon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.address-visual h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+}
+
+.address-visual p {
+    font-size: 0.9375rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 32px;
+    line-height: 1.6;
+}
+
+.address-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+}
+
+.address-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.address-featureIcon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+</style>
+
+<script>
+function addressForm() {
+    return {
+        countries: [],
+        titles: [],
+        selectedCountry: '',
+        selectedTitle: '1',
+        loading: true,
+        init() {
+            this.loadData();
+        },
+        async loadData() {
+            try {
+                const [countriesRes, titlesRes] = await Promise.all([
+                    fetch('/moderna-api/data/countries'),
+                    fetch('/moderna-api/data/titles')
+                ]);
+                if (countriesRes.ok) {
+                    this.countries = await countriesRes.json();
+                }
+                if (titlesRes.ok) {
+                    this.titles = await titlesRes.json();
+                    const defaultTitle = this.titles.find(t => t.byDefault);
+                    if (defaultTitle) {
+                        this.selectedTitle = String(defaultTitle.id);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load form data:', e);
+            } finally {
+                this.loading = false;
+            }
+        }
+    };
+}
+</script>
+{% endif %}
+{% endblock %}

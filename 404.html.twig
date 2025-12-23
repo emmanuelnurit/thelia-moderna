@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ '404 - Page Not Found'|trans }} - {{ store_name }}{% endblock %}
+
+{% block body %}
+<div class="error-page">
+    <div class="container">
+        <div class="error-content">
+            <h1 class="error-code">404</h1>
+            <h2 class="error-title">{{ 'Page Not Found'|trans }}</h2>
+            <p class="error-text">{{ 'Sorry, the page you are looking for does not exist or has been moved.'|trans }}</p>
+            <a href="/" class="btn btn-primary">{{ 'Back to Home'|trans }}</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    padding: 120px 0;
+    text-align: center;
+}
+
+.error-content {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.error-code {
+    font-size: 8rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--color-primary);
+    margin-bottom: 16px;
+}
+
+.error-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.error-text {
+    color: var(--color-text-muted);
+    margin-bottom: 32px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,1001 @@
+{# Header Component - Modern.A #}
+{% set categoriesNav = resources('/api/front/categories', {'depth': 1, 'limit': 6}) %}
+
+<header class="header" x-data="{ scrolled: false }" @scroll.window="scrolled = window.scrollY > 20">
+    <div class="header-main" :class="{ 'header-scrolled': scrolled }">
+        <div class="container">
+            <div class="header-inner">
+                {# Mobile Menu Button - Hidden (no main navigation menu)
+                <button
+                    type="button"
+                    class="header-menuBtn lg:hidden"
+                    @click="$store.mobileMenu.toggle()"
+                    aria-label="{{ 'Open menu'|trans }}"
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" x2="20" y1="12" y2="12"/>
+                        <line x1="4" x2="20" y1="6" y2="6"/>
+                        <line x1="4" x2="20" y1="18" y2="18"/>
+                    </svg>
+                </button>
+                #}
+
+                {# Logo #}
+                <a href="{{ path('index') }}" class="header-logo" aria-label="{{ store_name|default('Modern.A') }}">
+                    {% include 'components/UI/Logo.html.twig' %}
+                </a>
+
+                {# Desktop Navigation #}
+                <nav class="header-nav hidden lg:flex" aria-label="{{ 'Main navigation'|trans }}">
+                    {% if categoriesNav is iterable %}
+                        {% for category in categoriesNav %}
+                            <a href="{{ category.publicUrl }}" class="header-navLink">
+                                {{ category.i18ns.title }}
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+                </nav>
+
+                {# Search Bar (Desktop) #}
+                <div class="header-search hidden md:flex">
+                    <button
+                        type="button"
+                        class="header-searchBtn"
+                        @click="$store.search.toggle()"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <span>{{ 'Search'|trans }}</span>
+                    </button>
+                </div>
+
+                {# Header Actions #}
+                <div class="header-actions">
+                    {# Language Selector - Dynamic component #}
+                    {{ component('Flexy:LangSelect') }}
+
+                    {# Search (Mobile) #}
+                    <button
+                        type="button"
+                        class="header-actionBtn md:hidden"
+                        @click="$store.search.toggle()"
+                        aria-label="{{ 'Search'|trans }}"
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+
+                    {# Cart #}
+                    <a
+                        href="/?view=cart"
+                        class="header-actionBtn header-cartBtn"
+                        aria-label="{{ 'Cart'|trans }}"
+                        x-data="cartCounter({{ get_cart_count_by_cookie() }})"
+                        @cart-updated.window="onCartUpdated($event.detail)"
+                    >
+                        <span class="header-cartIcon" :class="{ 'animate-cart-bounce': isAnimating }">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                <path d="M3 6h18"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                            <span class="header-cartBadge" x-show="count > 0" x-text="count" x-cloak></span>
+                        </span>
+                        <span class="header-actionLabel hidden sm:block">{{ 'Cart'|trans }}</span>
+                    </a>
+
+                    {# Wishlist / Favorites #}
+                    <a
+                        href="/?view=wishlist"
+                        class="header-actionBtn header-wishlistBtn"
+                        aria-label="{{ 'Favorites'|trans }}"
+                        x-data="wishlistCounter()"
+                        @wishlist:added.window="onWishlistAdded($event.detail)"
+                        @wishlist:removed.window="onWishlistRemoved()"
+                        @wishlist:cleared.window="onWishlistCleared()"
+                        @wishlist:synced.window="onWishlistSynced()"
+                    >
+                        <span class="header-wishlistIcon"
+                            :class="{
+                                'animate-heart-bounce': isAnimating,
+                                'animate-heart-implode': isImploding,
+                                'animate-heart-burst': isBursting,
+                                'animate-heart-shrink': isShrinking
+                            }">
+                            <svg width="24" height="24" viewBox="0 0 24 24" :fill="count > 0 ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2" :style="count > 0 ? 'color: #ef4444' : ''">
+                                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                            </svg>
+                            {# Add burst particles (hearts/sparkles) #}
+                            <span class="header-addBurst" x-show="isAddBursting" x-cloak>
+                                <span class="add-particle add-particle-1">❤</span>
+                                <span class="add-particle add-particle-2">✨</span>
+                                <span class="add-particle add-particle-3">❤</span>
+                                <span class="add-particle add-particle-4">✨</span>
+                                <span class="add-particle add-particle-5">❤</span>
+                                <span class="add-particle add-particle-6">✨</span>
+                            </span>
+                            {# Clear burst particles #}
+                            <span class="header-wishlistBurst" x-show="isBursting" x-cloak>
+                                <span class="burst-particle burst-particle-1"></span>
+                                <span class="burst-particle burst-particle-2"></span>
+                                <span class="burst-particle burst-particle-3"></span>
+                                <span class="burst-particle burst-particle-4"></span>
+                                <span class="burst-particle burst-particle-5"></span>
+                                <span class="burst-particle burst-particle-6"></span>
+                                <span class="burst-particle burst-particle-7"></span>
+                                <span class="burst-particle burst-particle-8"></span>
+                            </span>
+                            <span class="header-wishlistBadge" x-show="count > 0" x-text="count" x-cloak></span>
+                        </span>
+                        <span class="header-actionLabel hidden sm:block">{{ 'Favorites'|trans }}</span>
+                    </a>
+
+                    {# Account & Logout #}
+                    <div class="header-accountWrapper" x-data="accountStatus()">
+                        <a
+                            :href="isLoggedIn ? '/?view=account' : '/?view=login'"
+                            class="header-actionBtn header-accountBtn"
+                            :class="{ 'header-accountBtn--loggedIn': isLoggedIn }"
+                            aria-label="{{ 'Account'|trans }}"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="8" r="5"/>
+                                <path d="M20 21a8 8 0 0 0-16 0"/>
+                            </svg>
+                            <span class="header-actionLabel header-actionLabel--responsive" x-show="!isLoggedIn">{{ 'Sign In'|trans }}</span>
+                            <span class="header-actionLabel header-actionLabel--responsive" x-show="isLoggedIn" x-text="customerName" x-cloak></span>
+                        </a>
+                        <button
+                            type="button"
+                            class="header-logoutBtn"
+                            x-show="isLoggedIn"
+                            x-cloak
+                            @click="logout()"
+                            title="{{ 'Logout'|trans }}"
+                            aria-label="{{ 'Logout'|trans }}"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16,17 21,12 16,7"/>
+                                <line x1="21" x2="9" y1="12" y2="12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<style>
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-main {
+    background-color: var(--color-white);
+    transition: box-shadow var(--transition-base);
+}
+
+.header-scrolled {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: var(--header-height);
+}
+
+.header-menuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-left: 48px;
+}
+
+.header-navLink {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.header-navLink:hover {
+    color: var(--color-text-muted);
+}
+
+.header-search {
+    flex: 1;
+    max-width: 320px;
+    margin: 0 24px;
+}
+
+.header-searchBtn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 16px;
+    background-color: var(--color-surface);
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.header-searchBtn:hover {
+    background-color: var(--color-surface-dark);
+}
+
+.header-searchBtn svg {
+    color: var(--color-text-muted);
+}
+
+.header-langSelector {
+    position: relative;
+    display: none;
+    margin-right: 12px;
+}
+
+@media (min-width: 768px) {
+    .header-langSelector {
+        display: block;
+    }
+}
+
+.header-langBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: none;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-full, 24px);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.header-langBtn:hover {
+    background-color: var(--color-surface);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+.header-langCode {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.header-langChevron {
+    transition: transform 0.2s ease;
+}
+
+.header-langChevron.rotate-180 {
+    transform: rotate(180deg);
+}
+
+.header-langDropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.header-langOption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    text-align: left;
+    background: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    font-size: 0.875rem;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.header-langOption:hover {
+    background-color: var(--color-surface);
+}
+
+.header-langOption--active {
+    background-color: var(--color-surface);
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-actionBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px;
+    background: none;
+    border: none;
+    color: var(--color-text);
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    transition: color var(--transition-fast);
+}
+
+.header-actionBtn:hover {
+    color: var(--color-text-muted);
+}
+
+.header-actionBtn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.header-actionLabel {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.header-cartBtn {
+    position: relative;
+}
+
+.header-cartIcon {
+    position: relative;
+    display: inline-flex;
+}
+
+.header-cartBadge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 9px;
+}
+
+@keyframes cartBounce {
+    0% {
+        transform: scale(1);
+    }
+    20% {
+        transform: scale(1.3);
+    }
+    40% {
+        transform: scale(0.9);
+    }
+    60% {
+        transform: scale(1.15);
+    }
+    80% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-cart-bounce {
+    animation: cartBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.header-wishlistBtn {
+    position: relative;
+}
+
+.header-wishlistIcon {
+    position: relative;
+    display: inline-flex;
+}
+
+.header-wishlistBadge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background-color: rgba(229, 231, 235, 0.75);
+    color: #1f2937;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 9px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes heartBounce {
+    0% {
+        transform: scale(1);
+    }
+    15% {
+        transform: scale(1.4);
+    }
+    30% {
+        transform: scale(0.95);
+    }
+    45% {
+        transform: scale(1.25);
+    }
+    60% {
+        transform: scale(0.98);
+    }
+    75% {
+        transform: scale(1.15);
+    }
+    90% {
+        transform: scale(0.99);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-heart-bounce {
+    animation: heartBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes heartImplode {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    20% {
+        transform: scale(1.15);
+    }
+    40% {
+        transform: scale(0.6);
+    }
+    60% {
+        transform: scale(0.85);
+    }
+    80% {
+        transform: scale(0.7);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-heart-implode {
+    animation: heartImplode 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.header-wishlistBurst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.burst-particle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    background: #ef4444;
+    border-radius: 50%;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes burstParticle {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(var(--x), var(--y)) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--x), var(--y)) scale(0);
+    }
+}
+
+.animate-heart-burst .burst-particle {
+    animation: burstParticle 0.6s ease-out forwards;
+}
+
+.burst-particle-1 {
+    --x: 0px;
+    --y: -30px;
+    animation-delay: 0s;
+}
+
+.burst-particle-2 {
+    --x: 21px;
+    --y: -21px;
+    animation-delay: 0.05s;
+}
+
+.burst-particle-3 {
+    --x: 30px;
+    --y: 0px;
+    animation-delay: 0.1s;
+}
+
+.burst-particle-4 {
+    --x: 21px;
+    --y: 21px;
+    animation-delay: 0.15s;
+}
+
+.burst-particle-5 {
+    --x: 0px;
+    --y: 30px;
+    animation-delay: 0.2s;
+}
+
+.burst-particle-6 {
+    --x: -21px;
+    --y: 21px;
+    animation-delay: 0.25s;
+}
+
+.burst-particle-7 {
+    --x: -30px;
+    --y: 0px;
+    animation-delay: 0.3s;
+}
+
+.burst-particle-8 {
+    --x: -21px;
+    --y: -21px;
+    animation-delay: 0.35s;
+}
+
+/* Add burst particles (hearts & sparkles) */
+.header-addBurst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80px;
+    height: 80px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.add-particle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 14px;
+    color: #ef4444;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+    animation: addParticleBurst 0.7s ease-out forwards;
+}
+
+@keyframes addParticleBurst {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    30% {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--x) * 0.5), calc(-50% + var(--y) * 0.5)) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0);
+    }
+}
+
+.add-particle-1 {
+    --x: 0px;
+    --y: -35px;
+    animation-delay: 0s;
+}
+
+.add-particle-2 {
+    --x: 30px;
+    --y: -18px;
+    animation-delay: 0.05s;
+}
+
+.add-particle-3 {
+    --x: 30px;
+    --y: 18px;
+    animation-delay: 0.1s;
+}
+
+.add-particle-4 {
+    --x: 0px;
+    --y: 35px;
+    animation-delay: 0.15s;
+}
+
+.add-particle-5 {
+    --x: -30px;
+    --y: 18px;
+    animation-delay: 0.2s;
+}
+
+.add-particle-6 {
+    --x: -30px;
+    --y: -18px;
+    animation-delay: 0.25s;
+}
+
+@keyframes heartShrink {
+    0% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(0.85);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    75% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-heart-shrink {
+    animation: heartShrink 0.4s ease-in-out;
+}
+
+/* Account wrapper - contains account button and logout button */
+.header-accountWrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Account button */
+.header-accountBtn {
+    flex-direction: row;
+    gap: 6px;
+}
+
+/* Account button - logged in state */
+.header-accountBtn--loggedIn {
+    color: #16a34a;
+}
+
+.header-accountBtn--loggedIn:hover {
+    color: #15803d;
+}
+
+/* Logout button */
+.header-logoutBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    color: #dc2626;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.header-logoutBtn:hover {
+    background-color: #fef2f2;
+    color: #b91c1c;
+}
+
+/* Responsive label - hidden on mobile, visible on sm+ */
+.header-actionLabel--responsive {
+    display: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+@media (min-width: 640px) {
+    .header-actionLabel--responsive {
+        display: block;
+    }
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+@media (min-width: 1024px) {
+    .lg\:hidden {
+        display: none !important;
+    }
+    .lg\:flex {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .md\:hidden {
+        display: none !important;
+    }
+    .md\:flex {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 640px) {
+    .sm\:block {
+        display: block !important;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+</style>
+
+<script>
+function cartCounter(initialCount = 0) {
+    return {
+        count: initialCount,
+        isAnimating: false,
+        init() {
+            // Load initial count (only if not already set from server)
+            if (this.count === 0) {
+                this.loadCount();
+            }
+
+            // Listen for cart updates
+            window.addEventListener('cart-updated', (e) => {
+                this.onCartUpdated(e.detail);
+            });
+        },
+        async loadCount() {
+            try {
+                const response = await fetch('/moderna-api/cart_items');
+                if (!response.ok) return;
+
+                const data = await response.json();
+                // Our API returns {cart_items: [...], count: X}
+                this.count = data.count || 0;
+            } catch (e) {
+                this.count = 0;
+            }
+        },
+        onCartUpdated(data) {
+            if (data && typeof data.count !== 'undefined') {
+                const newCount = parseInt(data.count) || 0;
+
+                // Only animate if count actually changed
+                if (newCount !== this.count) {
+                    this.count = newCount;
+
+                    // Trigger animation
+                    this.isAnimating = true;
+                    setTimeout(() => {
+                        this.isAnimating = false;
+                    }, 600);
+                }
+            }
+        }
+    };
+}
+
+function wishlistCounter() {
+    return {
+        count: 0,
+        isAnimating: false,
+        isImploding: false,
+        isBursting: false,
+        isShrinking: false,
+        isAddBursting: false,
+        init() {
+            // Wait for Alpine store to be initialized
+            setTimeout(() => {
+                this.updateCount();
+            }, 50);
+        },
+        updateCount() {
+            if (window.Alpine && window.Alpine.store('wishlist')) {
+                this.count = window.Alpine.store('wishlist').count;
+            }
+        },
+        onWishlistAdded(product) {
+            this.updateCount();
+            // Trigger bounce animation
+            this.isAnimating = true;
+            // Trigger add burst particles
+            this.isAddBursting = true;
+            setTimeout(() => {
+                this.isAnimating = false;
+            }, 800);
+            setTimeout(() => {
+                this.isAddBursting = false;
+            }, 700);
+        },
+        onWishlistRemoved() {
+            const previousCount = this.count;
+            this.updateCount();
+
+            // If count goes to 0, trigger burst/implode animation like clear all
+            if (previousCount === 1 && this.count === 0) {
+                this.isBursting = true;
+                this.isImploding = true;
+                setTimeout(() => {
+                    this.isBursting = false;
+                }, 600);
+                setTimeout(() => {
+                    this.isImploding = false;
+                }, 800);
+            } else {
+                // Trigger shrink animation
+                this.isShrinking = true;
+                setTimeout(() => {
+                    this.isShrinking = false;
+                }, 400);
+            }
+        },
+        onWishlistCleared() {
+            this.updateCount();
+            // Trigger burst and implode animation
+            this.isBursting = true;
+            this.isImploding = true;
+            setTimeout(() => {
+                this.isBursting = false;
+            }, 600);
+            setTimeout(() => {
+                this.isImploding = false;
+            }, 800);
+        },
+        onWishlistSynced() {
+            // Called after sync with server (login)
+            this.updateCount();
+        }
+    };
+}
+
+function accountStatus() {
+    return {
+        isLoggedIn: false,
+        customerName: '',
+        customerId: null,
+        init() {
+            this.checkAuthStatus();
+            // Listen for auth changes (login/logout)
+            window.addEventListener('auth-changed', () => {
+                this.checkAuthStatus();
+            });
+        },
+        async checkAuthStatus() {
+            try {
+                const response = await fetch('/moderna-api/auth/check');
+                if (!response.ok) {
+                    this.isLoggedIn = false;
+                    this.customerId = null;
+                    return;
+                }
+                const data = await response.json();
+                this.isLoggedIn = data.authenticated === true;
+                if (this.isLoggedIn && data.customer) {
+                    this.customerName = data.customer.firstname || '{{ "Account"|trans }}';
+                    this.customerId = data.customer.id;
+                } else {
+                    this.customerId = null;
+                }
+            } catch (e) {
+                this.isLoggedIn = false;
+                this.customerId = null;
+            }
+        },
+        async logout() {
+            // Save customerId before logout
+            const logoutCustomerId = this.customerId;
+
+            try {
+                const response = await fetch('/moderna-api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                console.log('Logout response:', data);
+
+                if (response.ok && data.success) {
+                    // Update state
+                    this.isLoggedIn = false;
+                    this.customerName = '';
+                    this.customerId = null;
+
+                    // Clear cart display
+                    if (window.clearCartDisplay) {
+                        window.clearCartDisplay();
+                    }
+
+                    // Clear wishlist display (save for customer first)
+                    if (window.clearWishlistDisplay) {
+                        window.clearWishlistDisplay(logoutCustomerId);
+                    }
+
+                    // Dispatch event for other components (with logout flag)
+                    window.dispatchEvent(new CustomEvent('auth-changed', {
+                        detail: { isLogout: true, customerId: logoutCustomerId }
+                    }));
+
+                    // Clear remember me cookie client-side to ensure it's deleted
+                    document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+
+                    // Redirect to home
+                    window.location.href = '/';
+                } else {
+                    console.error('Logout failed:', data);
+                    // Clear cookie even on API failure to prevent re-auth
+                    document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+                }
+            } catch (e) {
+                console.error('Logout error:', e);
+                // Clear cookie even on error
+                document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            }
+        }
+    };
+}
+
+</script>

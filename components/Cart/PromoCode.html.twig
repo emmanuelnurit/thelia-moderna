@@ -1,0 +1,354 @@
+{# Promo Code Component - Modern.A Template #}
+
+{% set appliedCoupons = app.session.get('thelia.consumed_coupons', [])|default([]) %}
+
+<div class="promo-code">
+    {# Applied Coupons - Inside Alpine scope #}
+    <div x-data="promoCode()" x-init="console.log('Alpine.js PromoCode initialized', $data)">
+        {% if appliedCoupons|length > 0 %}
+            <div class="promo-applied-list">
+                {% for couponCode in appliedCoupons %}
+                    <div class="promo-applied">
+                        <div class="promo-applied-content">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            <span class="promo-applied-code">{{ couponCode }}</span>
+                        </div>
+                        <button
+                            @click.prevent="console.log('Button clicked!'); removeCode('{{ couponCode }}')"
+                            class="promo-remove"
+                            title="{{ 'Remove code'|trans }}"
+                            :disabled="removing"
+                            type="button"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    {# Promo Code Toggle Button #}
+    <div x-show="!showInput">
+        <button
+            @click="showInput = true"
+            class="promo-toggle"
+            type="button"
+        >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+            </svg>
+            {{ 'Have a promo code?'|trans }}
+        </button>
+    </div>
+
+    {# Promo Code Input Form #}
+    <div x-show="showInput" x-transition class="promo-form">
+        <form @submit.prevent="applyCode()">
+            <div class="promo-input-group">
+                <input
+                    type="text"
+                    x-model="code"
+                    placeholder="{{ 'Enter promo code'|trans }}"
+                    class="promo-input"
+                    :disabled="applying"
+                    autocomplete="off"
+                    name="promo_code_{{ random() }}"
+                >
+                <button
+                    type="submit"
+                    class="promo-submit"
+                    :disabled="!code || applying"
+                >
+                    <template x-if="!applying">
+                        <span>{{ 'Apply'|trans }}</span>
+                    </template>
+                    <template x-if="applying">
+                        <svg class="promo-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                    </template>
+                </button>
+            </div>
+
+            {# Error Message #}
+            <p x-show="error" x-text="error" class="promo-error"></p>
+
+            {# Success Message #}
+            <p x-show="success" class="promo-success">{{ 'Promo code applied! Reloading...'|trans }}</p>
+
+            {# Cancel Link #}
+            <button
+                type="button"
+                @click="showInput = false; code = ''; error = ''"
+                class="promo-cancel"
+            >
+                {{ 'Cancel'|trans }}
+            </button>
+        </form>
+    </div>
+    </div>
+</div>
+
+<style>
+.promo-code {
+    margin-bottom: 16px;
+}
+
+/* Applied Coupons List */
+.promo-applied-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* Applied Promo Code */
+.promo-applied {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background-color: #dcfce7;
+    border: 1px solid #86efac;
+    border-radius: var(--radius-md);
+}
+
+.promo-applied-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #16a34a;
+}
+
+.promo-applied-code {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.promo-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #16a34a;
+    cursor: pointer;
+    padding: 4px;
+    transition: opacity var(--transition-fast);
+}
+
+.promo-remove:hover {
+    opacity: 0.7;
+}
+
+.promo-remove:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Toggle Button */
+.promo-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.promo-toggle:hover {
+    text-decoration: underline;
+}
+
+/* Input Form */
+.promo-form {
+    margin-top: 12px;
+}
+
+.promo-input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.promo-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    transition: border-color var(--transition-fast);
+}
+
+.promo-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.promo-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.promo-submit {
+    padding: 10px 20px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity var(--transition-fast);
+    min-width: 80px;
+}
+
+.promo-submit:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.promo-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.promo-spinner {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.promo-error {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    color: #dc2626;
+}
+
+.promo-success {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    color: #16a34a;
+}
+
+.promo-cancel {
+    margin-top: 8px;
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+.promo-cancel:hover {
+    color: var(--color-text);
+}
+</style>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('promoCode', () => ({
+        code: '',
+        showInput: false,
+        applying: false,
+        removing: false,
+        error: '',
+        success: false,
+
+        async applyCode() {
+            if (!this.code.trim()) return;
+
+            console.log('=== APPLY COUPON START ===');
+            console.log('Code:', this.code.trim().toUpperCase());
+
+            this.applying = true;
+            this.error = '';
+            this.success = false;
+
+            try {
+                const response = await fetch('/cart/coupon', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        coupon: this.code.trim().toUpperCase()
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (response.ok && data.success) {
+                    console.log('=== COUPON APPLIED SUCCESSFULLY ===');
+                    this.success = true;
+                    // Reload page to show applied discount
+                    setTimeout(() => {
+                        console.log('Reloading page...');
+                        location.reload();
+                    }, 1000);
+                } else {
+                    console.log('Coupon error:', data.message);
+                    this.error = data.message || '{{ "Invalid promo code"|trans }}';
+                }
+            } catch (error) {
+                console.error('Apply promo error:', error);
+                this.error = '{{ "Error applying promo code"|trans }}';
+            } finally {
+                this.applying = false;
+            }
+        },
+
+        async removeCode(couponCode) {
+            if (this.removing) return;
+
+            console.log('=== REMOVE COUPON START ===');
+            console.log('Code to remove:', couponCode);
+
+            this.removing = true;
+
+            try {
+                const response = await fetch(`/cart/coupon/clear?code=${encodeURIComponent(couponCode)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('Remove response status:', response.status);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Remove response data:', data);
+                    console.log('=== COUPON REMOVED - RELOADING ===');
+                    location.reload();
+                } else {
+                    const errorData = await response.json();
+                    console.error('Remove error data:', errorData);
+                }
+            } catch (error) {
+                console.error('Remove promo error:', error);
+            } finally {
+                this.removing = false;
+            }
+        }
+    }));
+});
+</script>

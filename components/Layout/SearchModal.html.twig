@@ -1,0 +1,240 @@
+{# Search Modal Component #}
+<div
+    class="search-modal"
+    x-show="$store.search.open"
+    x-cloak
+    @keydown.escape.window="$store.search.close()"
+>
+    {# Backdrop #}
+    <div
+        class="search-modal-backdrop"
+        x-show="$store.search.open"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click="$store.search.close()"
+    ></div>
+
+    {# Modal Content #}
+    <div
+        class="search-modal-content"
+        x-show="$store.search.open"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 -translate-y-4"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-4"
+    >
+        <div class="search-modal-inner">
+            {# Search Form #}
+            <form action="/" method="get" class="search-modal-form">
+                <input type="hidden" name="view" value="search">
+                <div class="search-modal-inputWrapper">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input
+                        type="search"
+                        name="q"
+                        placeholder="{{ 'Search for products...'|trans }}"
+                        class="search-modal-input"
+                        data-search-input
+                        x-model="$store.search.query"
+                        autocomplete="off"
+                    >
+                    <button
+                        type="button"
+                        class="search-modal-clearBtn"
+                        x-show="$store.search.query.length > 0"
+                        @click="$store.search.query = ''"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <button
+                    type="button"
+                    class="search-modal-closeBtn"
+                    @click="$store.search.close()"
+                >
+                    {{ 'Cancel'|trans }}
+                </button>
+            </form>
+
+            {# Quick Links #}
+            <div class="search-modal-suggestions" x-show="$store.search.query.length === 0">
+                <p class="search-modal-suggestionsTitle">{{ 'Popular searches'|trans }}</p>
+                <div class="search-modal-suggestionsList">
+                    <a href="/?view=search&q=chairs" class="search-modal-suggestion">Chairs</a>
+                    <a href="/?view=search&q=sofas" class="search-modal-suggestion">Sofas</a>
+                    <a href="/?view=search&q=armchairs" class="search-modal-suggestion">Armchairs</a>
+                    <a href="/?view=category&category_id=1" class="search-modal-suggestion search-modal-suggestion--sale">Sale</a>
+                </div>
+            </div>
+
+            {# Search Results Placeholder #}
+            <div class="search-modal-results" x-show="$store.search.query.length > 2">
+                <p class="search-modal-resultsHint">{{ 'Press Enter to see all results'|trans }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    display: flex;
+    flex-direction: column;
+}
+
+.search-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.search-modal-content {
+    position: relative;
+    background-color: var(--color-white);
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.search-modal-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 16px 24px 24px;
+}
+
+.search-modal-form {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.search-modal-inputWrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+}
+
+.search-modal-inputWrapper svg {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+}
+
+.search-modal-input {
+    flex: 1;
+    background: none;
+    border: none;
+    font-size: 1.125rem;
+    color: var(--color-text);
+    outline: none;
+}
+
+.search-modal-input::placeholder {
+    color: var(--color-text-light);
+}
+
+.search-modal-clearBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background-color: var(--color-border);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--color-text-muted);
+}
+
+.search-modal-clearBtn:hover {
+    background-color: var(--color-text-light);
+    color: var(--color-white);
+}
+
+.search-modal-closeBtn {
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.search-modal-closeBtn:hover {
+    color: var(--color-text);
+}
+
+.search-modal-suggestions {
+    margin-top: 24px;
+}
+
+.search-modal-suggestionsTitle {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-light);
+    margin-bottom: 12px;
+}
+
+.search-modal-suggestionsList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search-modal-suggestion {
+    padding: 8px 16px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+}
+
+.search-modal-suggestion:hover {
+    background-color: var(--color-surface-dark);
+}
+
+.search-modal-suggestion--sale {
+    background-color: #c9a227;
+    color: white;
+}
+
+.search-modal-suggestion--sale:hover {
+    background-color: #b8922a;
+}
+
+.search-modal-results {
+    margin-top: 24px;
+}
+
+.search-modal-resultsHint {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+[x-cloak] {
+    display: none !important;
+}
+</style>

@@ -1,0 +1,7 @@
+twig:
+  file_name_pattern: "*.twig"
+  paths:
+    "%kernel.project_dir%/templates/frontOffice/%thelia_front_template%/components": components
+    "%kernel.project_dir%/templates/frontOffice/%thelia_front_template%/src/UiComponents": UiComponents
+    "%kernel.project_dir%/templates/frontOffice/%thelia_front_template%/assets": assets
+    "%kernel.project_dir%/templates/frontOffice/%thelia_front_template%/form": formTwig

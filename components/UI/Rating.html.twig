@@ -1,0 +1,60 @@
+{#
+  Rating Stars Component
+  Usage: {% include 'components/UI/Rating.html.twig' with { rating: 4.5, max: 5 } %}
+#}
+{% set ratingValue = rating|default(0) %}
+{% set maxStars = max|default(5) %}
+{% set fullStars = ratingValue|round(0, 'floor') %}
+{% set hasHalfStar = (ratingValue - fullStars) >= 0.5 %}
+{% set emptyStars = maxStars - fullStars - (hasHalfStar ? 1 : 0) %}
+
+<div class="rating" role="img" aria-label="{{ 'Rating: %rating% out of %max%'|trans({'%rating%': ratingValue, '%max%': maxStars}) }}">
+    {# Full stars #}
+    {% for i in 1..fullStars %}
+        <svg class="rating-star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+    {% endfor %}
+
+    {# Half star #}
+    {% if hasHalfStar %}
+        <svg class="rating-star" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+                <linearGradient id="half-star-{{ ratingValue|replace({'.': '-'}) }}">
+                    <stop offset="50%" stop-color="currentColor"/>
+                    <stop offset="50%" stop-color="transparent"/>
+                </linearGradient>
+            </defs>
+            <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                fill="url(#half-star-{{ ratingValue|replace({'.': '-'}) }})"
+                stroke="currentColor"
+                stroke-width="1"
+            />
+        </svg>
+    {% endif %}
+
+    {# Empty stars #}
+    {% for i in 1..emptyStars %}
+        <svg class="rating-star rating-star--empty" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+    {% endfor %}
+</div>
+
+<style>
+.rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: #fbbf24;
+}
+
+.rating-star {
+    flex-shrink: 0;
+}
+
+.rating-star--empty {
+    color: var(--color-border);
+}
+</style>

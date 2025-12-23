@@ -1,0 +1,68 @@
+{#
+    Mini Cart Template - Modern.A
+    This template is returned by AJAX when adding/updating cart items
+#}
+{% set cart = resources('/api/front/cart') %}
+{% set cartItems = get_cart_items_by_cookie() %}
+
+<div class="mini-cart" data-cart-count="{{ cartItems|length }}">
+    {% if cartItems|length > 0 %}
+        <div class="mini-cart-items">
+            {% for item in cartItems|slice(0, 3) %}
+                {% set product = resources('/api/front/products/' ~ item.productId) %}
+                {# Use PSE image if available, otherwise fallback to product image #}
+                {% set imageId = item.imageId|default(null) %}
+                {% if not imageId %}
+                    {% set productImages = resources('/api/front/product_images', {'product.id': item.productId, itemsPerPage: 1}) %}
+                    {% set imageId = productImages|length > 0 ? productImages|first.id : null %}
+                {% endif %}
+                <div class="mini-cart-item">
+                    <div class="mini-cart-item-image">
+                        {% if imageId %}
+                            <img src="/legacy-image-library/product_image_{{ imageId }}/full/%5E*!60,60/0/default.webp" alt="{{ product.i18ns.title|default('') }}">
+                        {% endif %}
+                    </div>
+                    <div class="mini-cart-item-info">
+                        <span class="mini-cart-item-title">{{ product.i18ns.title|default('Product') }}</span>
+                        <span class="mini-cart-item-qty">{{ 'Qty'|trans }}: {{ item.quantity }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+            {% if cartItems|length > 3 %}
+                <p class="mini-cart-more">{{ 'And %count% more items'|trans({'%count%': cartItems|length - 3}) }}</p>
+            {% endif %}
+        </div>
+        <div class="mini-cart-footer">
+            <div class="mini-cart-total">
+                <span>{{ 'Total'|trans }}:</span>
+                <strong>{{ cart.total|default(0)|format_currency('EUR') }}</strong>
+            </div>
+            <a href="/?view=cart" class="btn btn-primary btn-sm">{{ 'View Cart'|trans }}</a>
+        </div>
+    {% else %}
+        <p class="mini-cart-empty">{{ 'Your cart is empty'|trans }}</p>
+    {% endif %}
+</div>
+
+<script>
+    // Dispatch cart-updated event for header badge
+    (function() {
+        var cartCount = {{ cartItems|length }};
+        var totalQuantity = 0;
+        {% for item in cartItems %}
+        totalQuantity += {{ item.quantity }};
+        {% endfor %}
+
+        window.dispatchEvent(new CustomEvent('cart-updated', {
+            detail: {
+                cart: {
+                    items: [
+                        {% for item in cartItems %}
+                        { quantity: {{ item.quantity }} }{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }
+            }
+        }));
+    })();
+</script>

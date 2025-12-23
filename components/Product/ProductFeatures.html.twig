@@ -1,0 +1,68 @@
+{#
+  Product Features Component
+  Displays product specifications/characteristics
+#}
+{% set productFeatures = features|default([]) %}
+
+<div class="product-features">
+    {% if productFeatures|length > 0 %}
+        <dl class="product-features-list">
+            {% for feature in productFeatures %}
+                <div class="product-features-item">
+                    <dt class="product-features-label">{{ feature.i18ns.title }}</dt>
+                    <dd class="product-features-value">
+                        {% for value in feature.featureValues %}
+                            {{ value.i18ns.title }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </dd>
+                </div>
+            {% endfor %}
+        </dl>
+    {% else %}
+        <p class="product-features-empty">{{ 'No specifications available.'|trans }}</p>
+    {% endif %}
+</div>
+
+<style>
+.product-features {
+    /* Container */
+}
+
+.product-features-list {
+    margin: 0;
+}
+
+.product-features-item {
+    display: flex;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--color-border);
+
+    &:first-child {
+        padding-top: 0;
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.product-features-label {
+    flex: 0 0 40%;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.product-features-value {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.product-features-empty {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+</style>

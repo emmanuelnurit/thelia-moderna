@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="{{ lang_code|default('fr') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Invoice'|trans }} - {{ order.ref|default('') }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #1f2937;
+            background: #f3f4f6;
+            padding: 24px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .invoice {
+                box-shadow: none !important;
+                max-width: none !important;
+            }
+        }
+
+        .invoice {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Print Button */
+        .print-actions {
+            max-width: 800px;
+            margin: 0 auto 16px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .print-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            background: #010101;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .print-btn:hover {
+            background: #1a1a1a;
+        }
+
+        .print-btn--secondary {
+            background: white;
+            color: #010101;
+            border: 1px solid #e5e7eb;
+        }
+
+        .print-btn--secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        /* Header */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .invoice-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .invoice-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #010101;
+            letter-spacing: -0.02em;
+        }
+
+        .invoice-company {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .invoice-company p {
+            margin: 0;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-title h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #010101;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .invoice-ref {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .invoice-ref strong {
+            color: #1f2937;
+        }
+
+        /* Info Section */
+        .invoice-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 640px) {
+            .invoice-info {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+        }
+
+        .invoice-infoBlock h3 {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .invoice-infoBlock p {
+            margin: 0 0 4px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .invoice-infoBlock p:first-of-type {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Status Badge */
+        .invoice-status {
+            display: inline-block;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .invoice-status--paid {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .invoice-status--pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .invoice-status--processing {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        /* Items Table */
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 32px;
+        }
+
+        .invoice-table th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 0;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .invoice-table th:last-child {
+            text-align: right;
+        }
+
+        .invoice-table td {
+            padding: 16px 0;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+
+        .invoice-table td:last-child {
+            text-align: right;
+        }
+
+        .invoice-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .item-ref {
+            font-size: 12px;
+            color: #9ca3af;
+            font-family: ui-monospace, monospace;
+        }
+
+        .item-qty {
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .item-price {
+            color: #6b7280;
+        }
+
+        .item-total {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Totals */
+        .invoice-totals {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 48px;
+        }
+
+        .invoice-totalsBox {
+            width: 280px;
+        }
+
+        .invoice-totalLine {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+
+        .invoice-totalLine span:first-child {
+            color: #6b7280;
+        }
+
+        .invoice-totalLine span:last-child {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .invoice-totalLine--discount span:last-child {
+            color: #059669;
+        }
+
+        .invoice-totalLine--final {
+            border-top: 2px solid #e5e7eb;
+            margin-top: 8px;
+            padding-top: 16px;
+        }
+
+        .invoice-totalLine--final span:first-child {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .invoice-totalLine--final span:last-child {
+            font-size: 20px;
+            font-weight: 700;
+            color: #010101;
+        }
+
+        /* Footer */
+        .invoice-footer {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 32px;
+            text-align: center;
+        }
+
+        .invoice-footer p {
+            font-size: 13px;
+            color: #9ca3af;
+            margin: 0 0 4px;
+        }
+
+        .invoice-footer a {
+            color: #6b7280;
+            text-decoration: none;
+        }
+
+        .invoice-legal {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #f3f4f6;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        /* Not Found */
+        .invoice-notFound {
+            text-align: center;
+            padding: 80px 24px;
+        }
+
+        .invoice-notFound h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .invoice-notFound p {
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+{% set customerId = attr('customer', 'id') %}
+{% set orderId = app.request.get('order_id') %}
+
+{% if not customerId %}
+    <script>window.location.href = '/?view=login&redirect=' + encodeURIComponent(window.location.href);</script>
+{% else %}
+{% set order = resources('/api/front/account/orders/' ~ orderId) %}
+
+{% if order %}
+    {# Print Actions #}
+    <div class="print-actions no-print">
+        <a href="/?view=account-order&order_id={{ order.id }}" class="print-btn print-btn--secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m15 18-6-6 6-6"/>
+            </svg>
+            {{ 'Back to order'|trans }}
+        </a>
+        <button onclick="window.print()" class="print-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect width="12" height="8" x="6" y="14"/>
+            </svg>
+            {{ 'Print Invoice'|trans }}
+        </button>
+    </div>
+
+    <div class="invoice">
+        {# Header #}
+        <header class="invoice-header">
+            <div class="invoice-brand">
+                <div class="invoice-logo">{{ store_name|default('Modern.A') }}</div>
+                <div class="invoice-company">
+                    <p>{{ store_address|default('123 Commerce Street') }}</p>
+                    <p>{{ store_zipcode|default('75001') }} {{ store_city|default('Paris') }}</p>
+                    <p>{{ store_country|default('France') }}</p>
+                    {% if store_phone is defined and store_phone %}
+                        <p>{{ store_phone }}</p>
+                    {% endif %}
+                    {% if store_email is defined and store_email %}
+                        <p>{{ store_email }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="invoice-title">
+                <h1>{{ 'Invoice'|trans }}</h1>
+                <p class="invoice-ref">
+                    <strong>{{ order.ref }}</strong><br>
+                    {{ order.createdAt|date('d/m/Y') }}
+                </p>
+            </div>
+        </header>
+
+        {# Info Section #}
+        <div class="invoice-info">
+            {# Billing Address #}
+            <div class="invoice-infoBlock">
+                <h3>{{ 'Bill To'|trans }}</h3>
+                {% set invoiceAddress = order.invoiceOrderAddress %}
+                {% if invoiceAddress %}
+                    <p>{{ invoiceAddress.firstname }} {{ invoiceAddress.lastname }}</p>
+                    {% if invoiceAddress.company %}
+                        <p>{{ invoiceAddress.company }}</p>
+                    {% endif %}
+                    <p>{{ invoiceAddress.address1 }}</p>
+                    {% if invoiceAddress.address2 %}
+                        <p>{{ invoiceAddress.address2 }}</p>
+                    {% endif %}
+                    <p>{{ invoiceAddress.zipcode }} {{ invoiceAddress.city }}</p>
+                    {% if invoiceAddress.countryTitle %}
+                        <p>{{ invoiceAddress.countryTitle }}</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            {# Shipping Address #}
+            <div class="invoice-infoBlock">
+                <h3>{{ 'Ship To'|trans }}</h3>
+                {% set deliveryAddress = order.deliveryOrderAddress %}
+                {% if deliveryAddress %}
+                    <p>{{ deliveryAddress.firstname }} {{ deliveryAddress.lastname }}</p>
+                    {% if deliveryAddress.company %}
+                        <p>{{ deliveryAddress.company }}</p>
+                    {% endif %}
+                    <p>{{ deliveryAddress.address1 }}</p>
+                    {% if deliveryAddress.address2 %}
+                        <p>{{ deliveryAddress.address2 }}</p>
+                    {% endif %}
+                    <p>{{ deliveryAddress.zipcode }} {{ deliveryAddress.city }}</p>
+                    {% if deliveryAddress.countryTitle %}
+                        <p>{{ deliveryAddress.countryTitle }}</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            {# Order Details #}
+            <div class="invoice-infoBlock">
+                <h3>{{ 'Order Details'|trans }}</h3>
+                <p>{{ 'Order'|trans }}: {{ order.ref }}</p>
+                <p>{{ 'Date'|trans }}: {{ order.createdAt|date('d/m/Y H:i') }}</p>
+                <p>{{ 'Payment'|trans }}: {{ order.paymentModule.i18ns.title|default(order.paymentModule.code|default('N/A')) }}</p>
+                <p>{{ 'Delivery'|trans }}: {{ order.deliveryModule.i18ns.title|default(order.deliveryModule.code|default('N/A')) }}</p>
+                {% set statusCode = order.orderStatus.code|default('pending') %}
+                {% if statusCode in ['paid', 'processing', 'sent', 'delivered'] %}
+                    <span class="invoice-status invoice-status--paid">{{ 'Paid'|trans }}</span>
+                {% elseif statusCode in ['pending', 'not_paid'] %}
+                    <span class="invoice-status invoice-status--pending">{{ 'Pending'|trans }}</span>
+                {% else %}
+                    <span class="invoice-status invoice-status--processing">{{ order.orderStatus.i18ns.title|default('Processing') }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Items Table #}
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th style="width: 50%">{{ 'Description'|trans }}</th>
+                    <th style="width: 15%; text-align: center;">{{ 'Qty'|trans }}</th>
+                    <th style="width: 15%; text-align: right;">{{ 'Unit Price'|trans }}</th>
+                    <th style="width: 20%">{{ 'Amount'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in order.orderProducts %}
+                    {# Calculate unit price with tax from available fields #}
+                    {% set basePrice = product.wasInPromo ? product.promoPrice : product.price %}
+                    {% set taxAmount = 0 %}
+                    {% for tax in product.orderProductTaxes|default([]) %}
+                        {% set taxAmount = taxAmount + (product.wasInPromo ? (tax.promoAmount|default(0)) : (tax.amount|default(0))) %}
+                    {% endfor %}
+                    {% set unitPrice = basePrice + taxAmount %}
+                    {% set lineTotal = unitPrice * product.quantity %}
+                    <tr>
+                        <td>
+                            <div class="item-name">{{ product.title|default('Product') }}</div>
+                            {% if product.productRef %}
+                                <div class="item-ref">{{ product.productRef }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="item-qty">{{ product.quantity }}</td>
+                        <td class="item-price">{{ unitPrice|format_currency('EUR', locale: lang_code) }}</td>
+                        <td class="item-total">{{ lineTotal|format_currency('EUR', locale: lang_code) }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #9ca3af; padding: 32px;">
+                            {{ 'No items'|trans }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {# Totals #}
+        <div class="invoice-totals">
+            <div class="invoice-totalsBox">
+                <div class="invoice-totalLine">
+                    <span>{{ 'Subtotal HT'|trans }}</span>
+                    <span>{{ order.totalAmountWithoutTaxes|format_currency('EUR', locale: lang_code) }}</span>
+                </div>
+                <div class="invoice-totalLine">
+                    <span>{{ 'Shipping'|trans }}</span>
+                    <span>{{ order.totalShippingWithTaxes|format_currency('EUR', locale: lang_code) }}</span>
+                </div>
+                {% if order.amountDiscountWithTaxes is defined and order.amountDiscountWithTaxes > 0 %}
+                <div class="invoice-totalLine invoice-totalLine--discount">
+                    <span>{{ 'Discount'|trans }}</span>
+                    <span>-{{ order.amountDiscountWithTaxes|format_currency('EUR', locale: lang_code) }}</span>
+                </div>
+                {% endif %}
+                <div class="invoice-totalLine invoice-totalLine--final">
+                    <span>{{ 'Total TTC'|trans }}</span>
+                    <span>{{ order.totalAmount|format_currency('EUR', locale: lang_code) }}</span>
+                </div>
+            </div>
+        </div>
+
+        {# Footer #}
+        <footer class="invoice-footer">
+            <p>{{ 'Thank you for your purchase!'|trans }}</p>
+            <p>
+                <a href="{{ url('index') }}">{{ store_url|default('www.moderna.com') }}</a>
+                {% if store_email is defined and store_email %}
+                    | <a href="mailto:{{ store_email }}">{{ store_email }}</a>
+                {% endif %}
+            </p>
+            <div class="invoice-legal">
+                <p>{{ store_name|default('Modern.A') }} - {{ store_legal|default('SIRET: XXX XXX XXX XXXXX - TVA: FRXXXXXXXXXX') }}</p>
+            </div>
+        </footer>
+    </div>
+{% else %}
+    <div class="invoice">
+        <div class="invoice-notFound">
+            <h1>{{ 'Invoice not found'|trans }}</h1>
+            <p>{{ 'This order does not exist or you do not have access to it.'|trans }}</p>
+            <a href="/?view=account-orders" class="print-btn">
+                {{ 'Back to my orders'|trans }}
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endif %}
+</body>
+</html>

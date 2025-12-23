@@ -1,0 +1,1050 @@
+{% extends 'base.html.twig' %}
+
+{% set customerId = attr('customer', 'id') %}
+{% set orderId = app.request.get('order_id') %}
+
+{% block title %}{{ 'Order Details'|trans }} - {{ store_name|default('Modern.A') }}{% endblock %}
+
+{% block body %}
+{# Redirect to login if not authenticated #}
+{% if not customerId %}
+    <script>window.location.href = '/?view=login&redirect=' + encodeURIComponent(window.location.href);</script>
+{% else %}
+{% set order = resources('/api/front/account/orders/' ~ orderId) %}
+
+{% if order %}
+<div class="account-page">
+    <div class="container">
+        {# Breadcrumb #}
+        <nav class="account-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ path('index') }}">{{ 'Home'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <a href="/?view=account">{{ 'My Account'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <a href="/?view=account-orders">{{ 'My Orders'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <span>{{ order.ref }}</span>
+        </nav>
+
+        {# Back Button #}
+        <a href="/?view=account-orders" class="order-backBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m15 18-6-6 6-6"/>
+            </svg>
+            {{ 'Back to orders'|trans }}
+        </a>
+
+        {# Order Header Card #}
+        <div class="order-headerCard">
+            <div class="order-headerMain">
+                <div class="order-headerIcon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                        <path d="M3 6h18"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                </div>
+                <div class="order-headerInfo">
+                    <h1 class="order-title">{{ order.ref }}</h1>
+                    <p class="order-date">
+                        {{ 'Placed on'|trans }} {{ order.createdAt|date('d F Y') }} {{ 'at'|trans }} {{ order.createdAt|date('H:i') }}
+                    </p>
+                </div>
+            </div>
+            {% set statusCode = order.orderStatus.code|default('pending') %}
+            <div class="order-status order-status--{{ statusCode }}">
+                <span class="order-statusDot"></span>
+                {{ order.orderStatus.i18ns.title|default('Pending') }}
+            </div>
+        </div>
+
+        <div class="order-layout">
+            {# Main Content #}
+            <main class="order-main">
+                {# Products Card #}
+                <div class="order-card">
+                    <div class="order-cardHeader">
+                        <h2 class="order-cardTitle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m7.5 4.27 9 5.15"/>
+                                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                                <path d="m3.3 7 8.7 5 8.7-5"/>
+                                <path d="M12 22V12"/>
+                            </svg>
+                            {{ 'Items'|trans }}
+                            <span class="order-cardCount">({{ order.orderProducts|length }})</span>
+                        </h2>
+                    </div>
+                    <div class="order-cardBody">
+                        <div class="order-items">
+                            {% for product in order.orderProducts %}
+                                {# Get product image #}
+                                {% set productId = product.productId|default(null) %}
+                                {% set productImage = null %}
+                                {% if productId %}
+                                    {% set productImages = resources('/api/front/product_images', {'product.id': productId, 'itemsPerPage': 1}) %}
+                                    {% if productImages|length > 0 %}
+                                        {% set productImage = productImages|first %}
+                                    {% endif %}
+                                {% endif %}
+
+                                <div class="order-item">
+                                    <div class="order-itemImage">
+                                        {% if productImage %}
+                                            <img src="/legacy-image-library/product_image_{{ productImage.id }}/full/%5E*!120,120/0/default.webp"
+                                                 alt="{{ product.title|default('Product') }}"
+                                                 loading="lazy">
+                                        {% else %}
+                                            <div class="order-itemPlaceholder">
+                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                                                    <circle cx="9" cy="9" r="2"/>
+                                                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="order-itemInfo">
+                                        <h3 class="order-itemTitle">{{ product.title|default('Product') }}</h3>
+                                        {% if product.chapo %}
+                                            <p class="order-itemDesc">{{ product.chapo }}</p>
+                                        {% endif %}
+                                        <div class="order-itemMeta">
+                                            {% if product.productRef %}
+                                                <span class="order-itemRef">{{ 'Ref'|trans }}: {{ product.productRef }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="order-itemQty">
+                                        <span class="order-itemQtyLabel">{{ 'Qty'|trans }}</span>
+                                        <span class="order-itemQtyValue">{{ product.quantity }}</span>
+                                    </div>
+                                    <div class="order-itemPrice">
+                                        {# Calculate unit price with tax from available fields #}
+                                        {% set basePrice = product.wasInPromo ? product.promoPrice : product.price %}
+                                        {% set taxAmount = 0 %}
+                                        {% for tax in product.orderProductTaxes|default([]) %}
+                                            {% set taxAmount = taxAmount + (product.wasInPromo ? (tax.promoAmount|default(0)) : (tax.amount|default(0))) %}
+                                        {% endfor %}
+                                        {% set itemUnitPrice = basePrice + taxAmount %}
+                                        {% set itemTotal = itemUnitPrice * product.quantity %}
+                                        <span class="order-itemUnitPrice">{{ itemUnitPrice|format_currency('EUR', locale: lang_code) }} {{ 'each'|trans }}</span>
+                                        <span class="order-itemPriceValue">{{ itemTotal|format_currency('EUR', locale: lang_code) }}</span>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="order-noItems">
+                                    <p>{{ 'No items in this order'|trans }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Order Timeline #}
+                <div class="order-card">
+                    <div class="order-cardHeader">
+                        <h2 class="order-cardTitle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            {{ 'Order Timeline'|trans }}
+                        </h2>
+                    </div>
+                    <div class="order-cardBody">
+                        {% set statusCode = order.orderStatus.code|default('pending') %}
+                        <div class="order-timeline">
+                            {# Order Placed - Always completed #}
+                            <div class="order-timelineItem order-timelineItem--completed">
+                                <div class="order-timelineIcon">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <path d="M20 6 9 17l-5-5"/>
+                                    </svg>
+                                </div>
+                                <div class="order-timelineContent">
+                                    <span class="order-timelineTitle">{{ 'Order placed'|trans }}</span>
+                                    <span class="order-timelineDate">{{ order.createdAt|date('d/m/Y H:i') }}</span>
+                                </div>
+                            </div>
+
+                            {# Payment Confirmed #}
+                            {% set paymentCompleted = statusCode in ['paid', 'processing', 'sent', 'delivered'] %}
+                            <div class="order-timelineItem {{ paymentCompleted ? 'order-timelineItem--completed' : '' }}">
+                                <div class="order-timelineIcon">
+                                    {% if paymentCompleted %}
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <path d="M20 6 9 17l-5-5"/>
+                                        </svg>
+                                    {% else %}
+                                        <span class="order-timelineNumber">2</span>
+                                    {% endif %}
+                                </div>
+                                <div class="order-timelineContent">
+                                    <span class="order-timelineTitle">{{ 'Payment confirmed'|trans }}</span>
+                                </div>
+                            </div>
+
+                            {# Shipped #}
+                            {% set shippedCompleted = statusCode in ['sent', 'delivered'] %}
+                            <div class="order-timelineItem {{ shippedCompleted ? 'order-timelineItem--completed' : '' }}">
+                                <div class="order-timelineIcon">
+                                    {% if shippedCompleted %}
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <path d="M20 6 9 17l-5-5"/>
+                                        </svg>
+                                    {% else %}
+                                        <span class="order-timelineNumber">3</span>
+                                    {% endif %}
+                                </div>
+                                <div class="order-timelineContent">
+                                    <span class="order-timelineTitle">{{ 'Shipped'|trans }}</span>
+                                </div>
+                            </div>
+
+                            {# Delivered #}
+                            {% set deliveredCompleted = statusCode == 'delivered' %}
+                            <div class="order-timelineItem {{ deliveredCompleted ? 'order-timelineItem--completed' : '' }}">
+                                <div class="order-timelineIcon">
+                                    {% if deliveredCompleted %}
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <path d="M20 6 9 17l-5-5"/>
+                                        </svg>
+                                    {% else %}
+                                        <span class="order-timelineNumber">4</span>
+                                    {% endif %}
+                                </div>
+                                <div class="order-timelineContent">
+                                    <span class="order-timelineTitle">{{ 'Delivered'|trans }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            {# Sidebar #}
+            <aside class="order-sidebar">
+                {# Order Summary #}
+                <div class="order-card order-card--summary">
+                    <div class="order-cardHeader">
+                        <h2 class="order-cardTitle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" x2="8" y1="13" y2="13"/>
+                                <line x1="16" x2="8" y1="17" y2="17"/>
+                                <polyline points="10,9 9,9 8,9"/>
+                            </svg>
+                            {{ 'Order Summary'|trans }}
+                        </h2>
+                    </div>
+                    <div class="order-cardBody">
+                        <div class="order-summaryLines">
+                            <div class="order-summaryLine">
+                                <span>{{ 'Subtotal'|trans }}</span>
+                                <span>{{ order.totalAmountWithTaxBeforeDiscount|format_currency('EUR', locale: lang_code) }}</span>
+                            </div>
+                            <div class="order-summaryLine">
+                                <span>{{ 'Shipping'|trans }}</span>
+                                <span>{{ order.totalShippingWithTaxes|format_currency('EUR', locale: lang_code) }}</span>
+                            </div>
+                            {% if order.amountDiscountWithTaxes is defined and order.amountDiscountWithTaxes > 0 %}
+                            <div class="order-summaryLine order-summaryLine--discount">
+                                <span>{{ 'Discount'|trans }}</span>
+                                <span>-{{ order.amountDiscountWithTaxes|format_currency('EUR', locale: lang_code) }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="order-summaryTotal">
+                            <span>{{ 'Total'|trans }}</span>
+                            <span>{{ order.totalAmount|format_currency('EUR', locale: lang_code) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Delivery Address #}
+                <div class="order-card">
+                    <div class="order-cardHeader">
+                        <h2 class="order-cardTitle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            {{ 'Delivery Address'|trans }}
+                        </h2>
+                    </div>
+                    <div class="order-cardBody">
+                        {% set deliveryAddress = order.deliveryOrderAddress %}
+                        {% if deliveryAddress %}
+                        <div class="order-address">
+                            <p class="order-addressName">{{ deliveryAddress.firstname }} {{ deliveryAddress.lastname }}</p>
+                            {% if deliveryAddress.company %}
+                                <p class="order-addressCompany">{{ deliveryAddress.company }}</p>
+                            {% endif %}
+                            <p>{{ deliveryAddress.address1 }}</p>
+                            {% if deliveryAddress.address2 %}
+                                <p>{{ deliveryAddress.address2 }}</p>
+                            {% endif %}
+                            {% if deliveryAddress.address3 %}
+                                <p>{{ deliveryAddress.address3 }}</p>
+                            {% endif %}
+                            <p>{{ deliveryAddress.zipcode }} {{ deliveryAddress.city }}</p>
+                            {% if deliveryAddress.countryTitle %}
+                                <p>{{ deliveryAddress.countryTitle }}</p>
+                            {% endif %}
+                            {% if deliveryAddress.phone %}
+                                <p class="order-addressPhone">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                    </svg>
+                                    {{ deliveryAddress.phone }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                            <p class="order-noAddress">{{ 'No delivery address'|trans }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Billing Address #}
+                <div class="order-card">
+                    <div class="order-cardHeader">
+                        <h2 class="order-cardTitle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                <line x1="2" x2="22" y1="10" y2="10"/>
+                            </svg>
+                            {{ 'Billing Address'|trans }}
+                        </h2>
+                    </div>
+                    <div class="order-cardBody">
+                        {% set invoiceAddress = order.invoiceOrderAddress %}
+                        {% if invoiceAddress %}
+                        <div class="order-address">
+                            <p class="order-addressName">{{ invoiceAddress.firstname }} {{ invoiceAddress.lastname }}</p>
+                            {% if invoiceAddress.company %}
+                                <p class="order-addressCompany">{{ invoiceAddress.company }}</p>
+                            {% endif %}
+                            <p>{{ invoiceAddress.address1 }}</p>
+                            {% if invoiceAddress.address2 %}
+                                <p>{{ invoiceAddress.address2 }}</p>
+                            {% endif %}
+                            {% if invoiceAddress.address3 %}
+                                <p>{{ invoiceAddress.address3 }}</p>
+                            {% endif %}
+                            <p>{{ invoiceAddress.zipcode }} {{ invoiceAddress.city }}</p>
+                            {% if invoiceAddress.countryTitle %}
+                                <p>{{ invoiceAddress.countryTitle }}</p>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                            <p class="order-noAddress">{{ 'No billing address'|trans }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Payment & Delivery Methods #}
+                <div class="order-card">
+                    <div class="order-cardHeader">
+                        <h2 class="order-cardTitle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 16v-4"/>
+                                <path d="M12 8h.01"/>
+                            </svg>
+                            {{ 'Details'|trans }}
+                        </h2>
+                    </div>
+                    <div class="order-cardBody">
+                        <div class="order-detailsGrid">
+                            <div class="order-detailItem">
+                                <span class="order-detailLabel">{{ 'Payment'|trans }}</span>
+                                <span class="order-detailValue">{{ order.paymentModule.i18ns.title|default(order.paymentModule.code|default('N/A')) }}</span>
+                            </div>
+                            <div class="order-detailItem">
+                                <span class="order-detailLabel">{{ 'Delivery'|trans }}</span>
+                                <span class="order-detailValue">{{ order.deliveryModule.i18ns.title|default(order.deliveryModule.code|default('N/A')) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Actions #}
+                <div class="order-actions">
+                    <a href="/?view=account-order-invoice&order_id={{ order.id }}" class="order-actionBtn order-actionBtn--primary" target="_blank">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" x2="12" y1="15" y2="3"/>
+                        </svg>
+                        {{ 'Download Invoice'|trans }}
+                    </a>
+                    <a href="mailto:{{ store_email|default('contact@example.com') }}?subject={{ ('Question about order ' ~ order.ref)|url_encode }}" class="order-actionBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <path d="M12 17h.01"/>
+                        </svg>
+                        {{ 'Need Help?'|trans }}
+                    </a>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+{% else %}
+{# Order not found #}
+<div class="account-page">
+    <div class="container">
+        <div class="order-notFound">
+            <div class="order-notFoundIcon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M16 16s-1.5-2-4-2-4 2-4 2"/>
+                    <line x1="9" x2="9.01" y1="9" y2="9"/>
+                    <line x1="15" x2="15.01" y1="9" y2="9"/>
+                </svg>
+            </div>
+            <h1 class="order-notFoundTitle">{{ 'Order not found'|trans }}</h1>
+            <p class="order-notFoundText">{{ 'This order does not exist or you do not have access to it.'|trans }}</p>
+            <a href="/?view=account-orders" class="order-notFoundBtn">
+                {{ 'Back to my orders'|trans }}
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+/* Page Layout */
+.account-page {
+    min-height: 100vh;
+    background-color: var(--color-surface, #f2f0ea);
+    padding: 24px 0 64px;
+}
+
+.account-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    color: var(--color-text-light, #6b7280);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.account-breadcrumb a {
+    color: var(--color-text-light, #6b7280);
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.account-breadcrumb a:hover {
+    color: var(--color-text, #010101);
+}
+
+.account-breadcrumb svg {
+    flex-shrink: 0;
+    opacity: 0.5;
+}
+
+/* Back Button */
+.order-backBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-light, #6b7280);
+    text-decoration: none;
+    margin-bottom: 24px;
+    transition: color 0.15s;
+}
+
+.order-backBtn:hover {
+    color: var(--color-text, #010101);
+}
+
+/* Header Card */
+.order-headerCard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: linear-gradient(135deg, #010101 0%, #1a1a1a 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    color: white;
+}
+
+@media (min-width: 640px) {
+    .order-headerCard {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 28px 32px;
+    }
+}
+
+.order-headerMain {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.order-headerIcon {
+    width: 52px;
+    height: 52px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.order-headerIcon svg {
+    color: rgba(255,255,255,0.9);
+}
+
+.order-headerInfo {
+    min-width: 0;
+}
+
+.order-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+}
+
+.order-date {
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.7);
+    margin: 0;
+}
+
+/* Status Badge */
+.order-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    width: fit-content;
+}
+
+.order-statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.order-status--paid,
+.order-status--processing {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.order-status--sent,
+.order-status--delivered {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+
+.order-status--canceled,
+.order-status--refunded {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.order-status--pending,
+.order-status--not_paid {
+    background: rgba(234, 179, 8, 0.2);
+    color: #fde047;
+}
+
+/* Layout */
+.order-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+@media (min-width: 1024px) {
+    .order-layout {
+        grid-template-columns: 1fr 380px;
+    }
+}
+
+.order-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.order-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Cards */
+.order-card {
+    background-color: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.order-card--summary {
+    background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
+}
+
+.order-cardHeader {
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.order-cardTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0;
+}
+
+.order-cardTitle svg {
+    color: var(--color-text-light, #9ca3af);
+}
+
+.order-cardCount {
+    font-weight: 400;
+    color: var(--color-text-light, #9ca3af);
+}
+
+.order-cardBody {
+    padding: 24px;
+}
+
+/* Order Items */
+.order-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.order-item {
+    display: grid;
+    grid-template-columns: 72px 1fr auto auto;
+    gap: 16px;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.order-item:first-child {
+    padding-top: 0;
+}
+
+.order-item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+@media (max-width: 640px) {
+    .order-item {
+        grid-template-columns: 64px 1fr;
+        grid-template-rows: auto auto;
+        gap: 12px;
+    }
+
+    .order-itemQty,
+    .order-itemPrice {
+        grid-column: 2;
+    }
+
+    .order-itemQty {
+        flex-direction: row;
+        gap: 8px;
+    }
+}
+
+.order-itemImage {
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .order-itemImage {
+        width: 64px;
+        height: 64px;
+    }
+}
+
+.order-itemImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.order-itemPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d1d5db;
+}
+
+.order-itemInfo {
+    min-width: 0;
+}
+
+.order-itemTitle {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 4px;
+    line-height: 1.4;
+}
+
+.order-itemDesc {
+    font-size: 0.8125rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.order-itemMeta {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.order-itemRef {
+    font-family: ui-monospace, monospace;
+}
+
+.order-itemQty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.order-itemQtyLabel {
+    font-size: 0.6875rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.order-itemQtyValue {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+}
+
+.order-itemPrice {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.order-itemUnitPrice {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.order-itemPriceValue {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text, #010101);
+}
+
+.order-noItems {
+    text-align: center;
+    padding: 32px;
+    color: var(--color-text-light, #6b7280);
+}
+
+/* Order Summary */
+.order-summaryLines {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+}
+
+.order-summaryLine {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.order-summaryLine--discount {
+    color: #059669;
+}
+
+.order-summaryTotal {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-text, #010101);
+}
+
+/* Address */
+.order-address p {
+    margin: 0 0 4px;
+    font-size: 0.875rem;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.order-address p:last-child {
+    margin-bottom: 0;
+}
+
+.order-addressName {
+    font-weight: 600;
+    color: var(--color-text, #010101) !important;
+}
+
+.order-addressCompany {
+    color: #6b7280 !important;
+}
+
+.order-addressPhone {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #6b7280 !important;
+    margin-top: 8px !important;
+}
+
+.order-noAddress {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* Details Grid */
+.order-detailsGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.order-detailItem {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.order-detailLabel {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.order-detailValue {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+}
+
+/* Timeline */
+.order-timeline {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-timelineItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    position: relative;
+    padding-bottom: 28px;
+}
+
+.order-timelineItem:last-child {
+    padding-bottom: 0;
+}
+
+.order-timelineItem::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 28px;
+    bottom: 0;
+    width: 2px;
+    background-color: #e5e7eb;
+}
+
+.order-timelineItem:last-child::before {
+    display: none;
+}
+
+.order-timelineItem--completed::before {
+    background-color: #22c55e;
+}
+
+.order-timelineIcon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #9ca3af;
+    border: 2px solid #e5e7eb;
+}
+
+.order-timelineItem--completed .order-timelineIcon {
+    background-color: #22c55e;
+    border-color: #22c55e;
+    color: white;
+}
+
+.order-timelineNumber {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.order-timelineContent {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 4px;
+}
+
+.order-timelineTitle {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+}
+
+.order-timelineItem:not(.order-timelineItem--completed) .order-timelineTitle {
+    color: #9ca3af;
+}
+
+.order-timelineDate {
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+/* Actions */
+.order-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.order-actionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.order-actionBtn:hover {
+    border-color: var(--color-primary, #010101);
+    background-color: #fafafa;
+}
+
+.order-actionBtn--primary {
+    background-color: var(--color-primary, #010101);
+    border-color: var(--color-primary, #010101);
+    color: white;
+}
+
+.order-actionBtn--primary:hover {
+    background-color: #1a1a1a;
+    border-color: #1a1a1a;
+}
+
+/* Not Found State */
+.order-notFound {
+    text-align: center;
+    padding: 80px 24px;
+}
+
+.order-notFoundIcon {
+    color: #d1d5db;
+    margin-bottom: 24px;
+}
+
+.order-notFoundTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 8px;
+}
+
+.order-notFoundText {
+    font-size: 0.9375rem;
+    color: #6b7280;
+    margin: 0 0 24px;
+}
+
+.order-notFoundBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: white;
+    background-color: var(--color-primary, #010101);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: background-color 0.15s;
+}
+
+.order-notFoundBtn:hover {
+    background-color: #1a1a1a;
+}
+</style>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,565 @@
+{#
+    Address Form Component - Modern.A
+    Used for creating/editing addresses during checkout
+#}
+
+<div class="address-form" x-data="addressFormComponent()">
+    <h3 class="form-title">{{ 'New Delivery Address'|trans }}</h3>
+
+    <form @submit.prevent="submitForm()" class="form">
+        {# Address Label - First for easy identification #}
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="label">{{ 'Address Label'|trans }}</label>
+                <input
+                    type="text"
+                    id="label"
+                    x-model="formData.label"
+                    class="form-input"
+                    placeholder="{{ 'e.g., Home, Office'|trans }}"
+                >
+            </div>
+        </div>
+
+        {# Title Selection #}
+        <div class="form-row">
+            <div class="form-group form-group-title">
+                <label class="form-label">{{ 'Title'|trans }} *</label>
+                <div class="title-options">
+                    <template x-for="title in titles" :key="title.id">
+                        <label class="title-option" :class="{ 'selected': formData.title === title.id }">
+                            <input
+                                type="radio"
+                                name="title"
+                                :value="title.id"
+                                x-model.number="formData.title"
+                                class="sr-only"
+                            >
+                            <span x-text="title.short"></span>
+                        </label>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        {# Name Fields #}
+        <div class="form-row form-row-2">
+            <div class="form-group">
+                <label class="form-label" for="firstname">{{ 'First Name'|trans }} *</label>
+                <input
+                    type="text"
+                    id="firstname"
+                    x-model="formData.firstname"
+                    class="form-input"
+                    :class="{ 'error': errors.firstname }"
+                    required
+                >
+                <span class="form-error" x-show="errors.firstname" x-text="errors.firstname"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="lastname">{{ 'Last Name'|trans }} *</label>
+                <input
+                    type="text"
+                    id="lastname"
+                    x-model="formData.lastname"
+                    class="form-input"
+                    :class="{ 'error': errors.lastname }"
+                    required
+                >
+                <span class="form-error" x-show="errors.lastname" x-text="errors.lastname"></span>
+            </div>
+        </div>
+
+        {# Company (Optional) #}
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="company">{{ 'Company'|trans }}</label>
+                <input
+                    type="text"
+                    id="company"
+                    x-model="formData.company"
+                    class="form-input"
+                    placeholder="{{ 'Optional'|trans }}"
+                >
+            </div>
+        </div>
+
+        {# Address Fields #}
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="address1">{{ 'Address'|trans }} *</label>
+                <input
+                    type="text"
+                    id="address1"
+                    x-model="formData.address1"
+                    class="form-input"
+                    :class="{ 'error': errors.address1 }"
+                    placeholder="{{ 'Street address'|trans }}"
+                    required
+                >
+                <span class="form-error" x-show="errors.address1" x-text="errors.address1"></span>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="address2">{{ 'Address Line 2'|trans }}</label>
+                <input
+                    type="text"
+                    id="address2"
+                    x-model="formData.address2"
+                    class="form-input"
+                    placeholder="{{ 'Apartment, suite, etc. (optional)'|trans }}"
+                >
+            </div>
+        </div>
+
+        {# City and Postal Code #}
+        <div class="form-row form-row-2">
+            <div class="form-group">
+                <label class="form-label" for="zipcode">{{ 'Postal Code'|trans }} *</label>
+                <input
+                    type="text"
+                    id="zipcode"
+                    x-model="formData.zipcode"
+                    class="form-input"
+                    :class="{ 'error': errors.zipcode }"
+                    required
+                >
+                <span class="form-error" x-show="errors.zipcode" x-text="errors.zipcode"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="city">{{ 'City'|trans }} *</label>
+                <input
+                    type="text"
+                    id="city"
+                    x-model="formData.city"
+                    class="form-input"
+                    :class="{ 'error': errors.city }"
+                    required
+                >
+                <span class="form-error" x-show="errors.city" x-text="errors.city"></span>
+            </div>
+        </div>
+
+        {# Country #}
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="country">{{ 'Country'|trans }} *</label>
+                <select
+                    id="country"
+                    x-model.number="formData.country"
+                    class="form-select"
+                    :class="{ 'error': errors.country }"
+                    required
+                >
+                    <option value="">{{ 'Select a country'|trans }}</option>
+                    <template x-for="country in countries" :key="country.id">
+                        <option :value="country.id" x-text="country.title"></option>
+                    </template>
+                </select>
+                <span class="form-error" x-show="errors.country" x-text="errors.country"></span>
+            </div>
+        </div>
+
+        {# Phone Numbers #}
+        <div class="form-row form-row-2">
+            <div class="form-group">
+                <label class="form-label" for="phone">{{ 'Phone'|trans }}</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    x-model="formData.phone"
+                    class="form-input"
+                    placeholder="{{ 'Landline (optional)'|trans }}"
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="cellphone">{{ 'Mobile'|trans }}</label>
+                <input
+                    type="tel"
+                    id="cellphone"
+                    x-model="formData.cellphone"
+                    class="form-input"
+                    placeholder="{{ 'Mobile (optional)'|trans }}"
+                >
+            </div>
+        </div>
+
+        {# Set as Default #}
+        <div class="form-row">
+            <label class="form-checkbox">
+                <input
+                    type="checkbox"
+                    x-model="formData.isDefault"
+                >
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-label">{{ 'Set as default address'|trans }}</span>
+            </label>
+        </div>
+
+        {# Error Message #}
+        <div x-show="submitError" class="form-submit-error" x-text="submitError"></div>
+
+        {# Form Actions #}
+        <div class="form-actions">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                @click="$dispatch('cancel-address-form')"
+                :disabled="submitting"
+            >
+                {{ 'Cancel'|trans }}
+            </button>
+            <button
+                type="submit"
+                class="btn btn-primary"
+                :disabled="submitting"
+            >
+                <template x-if="!submitting">
+                    <span>{{ 'Save Address'|trans }}</span>
+                </template>
+                <template x-if="submitting">
+                    <span class="btn-loading">
+                        <svg class="spinner-small" width="16" height="16" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/>
+                        </svg>
+                        {{ 'Saving...'|trans }}
+                    </span>
+                </template>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function addressFormComponent() {
+    return {
+        formData: {
+            title: 1,
+            firstname: '',
+            lastname: '',
+            company: '',
+            address1: '',
+            address2: '',
+            address3: '',
+            zipcode: '',
+            city: '',
+            country: 64, {# Default country ID - France #}
+            phone: '',
+            cellphone: '',
+            label: '',
+            isDefault: false
+        },
+        titles: [],
+        countries: [],
+        errors: {},
+        submitError: null,
+        submitting: false,
+
+        async init() {
+            await Promise.all([
+                this.loadTitles(),
+                this.loadCountries()
+            ]);
+        },
+
+        async loadTitles() {
+            try {
+                const response = await fetch('/moderna-api/data/titles');
+                if (response.ok) {
+                    this.titles = await response.json();
+                    if (this.titles.length > 0 && !this.formData.title) {
+                        const defaultTitle = this.titles.find(t => t.byDefault) || this.titles[0];
+                        this.formData.title = defaultTitle.id;
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading titles:', e);
+            }
+        },
+
+        async loadCountries() {
+            try {
+                const response = await fetch('/moderna-api/data/countries');
+                if (response.ok) {
+                    this.countries = await response.json();
+                }
+            } catch (e) {
+                console.error('Error loading countries:', e);
+            }
+        },
+
+        validate() {
+            this.errors = {};
+
+            if (!this.formData.firstname?.trim()) {
+                this.errors.firstname = '{{ "First name is required"|trans }}';
+            }
+            if (!this.formData.lastname?.trim()) {
+                this.errors.lastname = '{{ "Last name is required"|trans }}';
+            }
+            if (!this.formData.address1?.trim()) {
+                this.errors.address1 = '{{ "Address is required"|trans }}';
+            }
+            if (!this.formData.zipcode?.trim()) {
+                this.errors.zipcode = '{{ "Postal code is required"|trans }}';
+            }
+            if (!this.formData.city?.trim()) {
+                this.errors.city = '{{ "City is required"|trans }}';
+            }
+            if (!this.formData.country) {
+                this.errors.country = '{{ "Country is required"|trans }}';
+            }
+
+            return Object.keys(this.errors).length === 0;
+        },
+
+        async submitForm() {
+            if (!this.validate()) return;
+
+            this.submitting = true;
+            this.submitError = null;
+
+            try {
+                // Build form data
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token("address_form") }}');
+                formData.append('_json', '1'); // Request JSON response
+                formData.append('title', this.formData.title);
+                formData.append('firstname', this.formData.firstname);
+                formData.append('lastname', this.formData.lastname);
+                formData.append('company', this.formData.company || '');
+                formData.append('address1', this.formData.address1);
+                formData.append('address2', this.formData.address2 || '');
+                formData.append('address3', this.formData.address3 || '');
+                formData.append('zipcode', this.formData.zipcode);
+                formData.append('city', this.formData.city);
+                formData.append('country', this.formData.country);
+                formData.append('phone', this.formData.phone || '');
+                formData.append('cellphone', this.formData.cellphone || '');
+                formData.append('label', this.formData.label || '');
+                formData.append('is_default', this.formData.isDefault ? '1' : '0');
+
+                const response = await fetch('/moderna-api/account/address/new', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.addressId) {
+                        // Dispatch event to parent component with new address ID
+                        this.$dispatch('address-created', { addressId: data.addressId });
+                    } else {
+                        this.submitError = data.error || '{{ "Error creating address"|trans }}';
+                    }
+                } else {
+                    try {
+                        const data = await response.json();
+                        this.submitError = data.error || '{{ "Error creating address"|trans }}';
+                    } catch {
+                        this.submitError = '{{ "Error creating address"|trans }}';
+                    }
+                }
+            } catch (e) {
+                console.error('Error submitting address:', e);
+                this.submitError = '{{ "Error creating address. Please try again."|trans }}';
+            } finally {
+                this.submitting = false;
+            }
+        }
+    }
+}
+</script>
+
+<style>
+.address-form {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 16px;
+}
+
+.form-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 24px;
+}
+
+.form-row {
+    margin-bottom: 20px;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.form-input,
+.form-select {
+    padding: 12px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: white;
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #000);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-input.error,
+.form-select.error {
+    border-color: #dc2626;
+}
+
+.form-error {
+    font-size: 12px;
+    color: #dc2626;
+}
+
+/* Title Options */
+.title-options {
+    display: flex;
+    gap: 8px;
+}
+
+.title-option {
+    padding: 8px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.title-option:hover {
+    border-color: rgba(0, 0, 0, 0.4);
+}
+
+.title-option.selected {
+    background: var(--color-primary, #000);
+    color: white;
+    border-color: var(--color-primary, #000);
+}
+
+/* Checkbox */
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.form-checkbox input {
+    position: absolute;
+    opacity: 0;
+}
+
+.checkbox-mark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.form-checkbox input:checked + .checkbox-mark {
+    background: var(--color-primary, #000);
+    border-color: var(--color-primary, #000);
+}
+
+.checkbox-mark::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+}
+
+.form-checkbox input:checked + .checkbox-mark::after {
+    opacity: 1;
+}
+
+.checkbox-label {
+    font-size: 14px;
+}
+
+/* Submit Error */
+.form-submit-error {
+    padding: 12px 16px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.btn-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner-small {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>

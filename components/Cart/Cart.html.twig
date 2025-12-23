@@ -1,0 +1,842 @@
+{#
+    Cart Component - Modern.A
+    Displays the full shopping cart with items, quantities, and actions
+#}
+
+{% set cartItems = get_cart_items_by_cookie() %}
+{% set totalQuantity = 0 %}
+{% for item in cartItems %}
+    {% set totalQuantity = totalQuantity + item.quantity %}
+{% endfor %}
+
+<div class="cart" x-data="cartComponent()">
+    {% if cartItems|length > 0 %}
+        <div class="cart-header">
+            <h1 class="cart-title">{{ 'Shopping Cart'|trans }}</h1>
+            <p class="cart-count">{{ totalQuantity }} {{ (totalQuantity > 1 ? 'items' : 'item')|trans }}</p>
+        </div>
+
+        <div class="cart-items">
+            {% for item in cartItems %}
+                {# Extract product ID from API URL like "/api/admin/products/11" #}
+                {% set productIdMatch = item.product|split('/')|last %}
+                {% set pseId = item.productSaleElements.id %}
+
+                {% set product = resources('/api/front/products/' ~ productIdMatch) %}
+                {% set pse = item.productSaleElements %}
+                {% set productImages = resources('/api/front/product_images', {'product.id': productIdMatch, itemsPerPage: 1}) %}
+
+                {% include 'components/Cart/CartItem.html.twig' with {
+                    item: item,
+                    product: product,
+                    pse: pse,
+                    productImages: productImages,
+                    index: loop.index0
+                } %}
+            {% endfor %}
+        </div>
+
+        {# Continue Shopping Button #}
+        <div class="cart-actions mt-8">
+            <a href="/" class="btn btn-secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                    <path d="m12 19-7-7 7-7m7 7H5"/>
+                </svg>
+                {{ 'Continue Shopping'|trans }}
+            </a>
+        </div>
+
+    {% else %}
+        {# Empty Cart State with Suggestions #}
+        <div class="cart-empty-main" x-data="{
+            get wishlistItems() {
+                return $store.wishlist.items;
+            }
+        }">
+            <div class="cart-empty-layout">
+                {# Left Column - Hero #}
+                <div class="cart-empty-hero">
+                    <div class="cart-empty-content">
+                        <div class="cart-empty-icon">
+                            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                <path d="M3 6h18"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                        </div>
+                        <h2 class="cart-empty-title">{{ 'Your cart is waiting'|trans }}</h2>
+                        <p class="cart-empty-subtitle">{{ 'Add items you love and make them yours'|trans }}</p>
+                        <div class="cart-empty-actions">
+                            <a href="/" class="btn btn-primary">
+                                {{ 'Start Shopping'|trans }}
+                            </a>
+                            <a href="/?view=wishlist" class="btn btn-secondary">
+                                {% include 'components/UI/Icon.html.twig' with { name: 'heart', size: 18, class: 'mr-2' } %}
+                                {{ 'View Wishlist'|trans }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {# Right Column - Wishlist Mini #}
+                <div class="cart-empty-wishlist" x-show="wishlistItems.length > 0" x-cloak>
+                    <h3 class="cart-empty-wishlist-title">
+                            {% include 'components/UI/Icon.html.twig' with { name: 'heart-fill', size: 20, class: 'mr-2' } %}
+                            {{ 'Your Wishlist'|trans }}
+                        </h3>
+                        <div class="cart-empty-wishlist-grid">
+                            <template x-for="item in wishlistItems.slice(0, 4)" :key="item.id">
+                                <a :href="`/?view=product&product_id=${item.id}`"
+                                   class="cart-empty-wishlist-item"
+                                   x-data="{
+                                       imageId: item.imageId,
+                                       imageLoaded: !!item.imageId,
+                                       async init() {
+                                           if (!this.imageId) {
+                                               try {
+                                                   const response = await fetch(`/api/front/products/${item.id}`);
+                                                   if (response.ok) {
+                                                       const product = await response.json();
+                                                       const imagesResponse = await fetch(`/api/front/product_images?product.id=${item.id}&itemsPerPage=1`);
+                                                       if (imagesResponse.ok) {
+                                                           const imagesData = await imagesResponse.json();
+                                                           const images = imagesData['hydra:member'] || imagesData;
+                                                           if (images && images.length > 0) {
+                                                               this.imageId = images[0].id;
+                                                               this.imageLoaded = true;
+                                                               item.imageId = images[0].id;
+                                                           }
+                                                       }
+                                                   }
+                                               } catch (error) {
+                                                   console.error('Error loading product image:', error);
+                                               }
+                                           }
+                                       }
+                                   }">
+                                    <div class="cart-empty-wishlist-image">
+                                        <img x-show="imageLoaded && imageId"
+                                             :src="imageId ? `/legacy-image-library/product_image_${imageId}/full/%5E*!150,150/0/default.webp` : ''"
+                                             :alt="item.title"
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                        <div x-show="!imageLoaded || !imageId"
+                                             style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f5f5f5; color: #999;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                                <path d="M3 6h18"/>
+                                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                                            </svg>
+                                        </div>
+                                        <template x-if="item.notifyMe">
+                                            <span class="cart-empty-wishlist-badge">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                                                </svg>
+                                            </span>
+                                        </template>
+                                    </div>
+                                    <div class="cart-empty-wishlist-info">
+                                        <h4 class="cart-empty-wishlist-name" x-text="item.title"></h4>
+                                        <div class="cart-empty-wishlist-price">
+                                            <template x-if="item.isPromo && item.promoPrice">
+                                                <span x-text="item.promoPrice + ' €'" class="promo"></span>
+                                            </template>
+                                            <template x-if="!item.isPromo || !item.promoPrice">
+                                                <span x-text="item.price + ' €'"></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </a>
+                            </template>
+                        </div>
+                        <template x-if="wishlistItems.length > 4">
+                            <a href="/?view=wishlist" class="cart-empty-wishlist-more">
+                                {{ 'View all'|trans }} (<span x-text="wishlistItems.length"></span>)
+                            </a>
+                        </template>
+                </div>
+            </div>
+        </div>
+
+        {# Promo Products Section #}
+        <div class="cart-empty-suggestions">
+
+            {# Promo Products Section #}
+            {% set promoProducts = resources('/api/front/products', {'productSaleElements.promo': true, 'limit': 8}) %}
+            {% if promoProducts|length > 0 %}
+                <div class="cart-suggestions-section">
+                    <h3 class="cart-suggestions-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                            <path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        {{ 'Special Offers'|trans }}
+                    </h3>
+                    <p class="cart-suggestions-subtitle">{{ 'Amazing deals you don\'t want to miss'|trans }}</p>
+
+                    <div class="cart-suggestions-grid">
+                        {% for product in promoProducts %}
+                            {% set defaultPse = product.productSaleElements|filter(pse => pse.isDefault)|first %}
+                            {% set price = defaultPse.productPrices|first %}
+                            {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
+
+                            {% set cartImageId = productImages|length > 0 ? productImages|first.id : 0 %}
+                            <div class="cart-suggestion-card"
+                                 x-data="{
+                                     productData: {
+                                         id: {{ product.id }},
+                                         title: '{{ product.i18ns.title|e('js') }}',
+                                         url: '{{ product.publicUrl|e('js') }}',
+                                         image: {{ cartImageId ? "'/legacy-image-library/product_image_" ~ cartImageId ~ "/full/%5E*!400,400/0/default.webp'" : "''" }},
+                                         imageId: {{ cartImageId }},
+                                         price: '{{ price.price|format_currency('EUR') }}',
+                                         promoPrice: '{{ price.promoPrice|format_currency('EUR') }}',
+                                         isPromo: {{ defaultPse.promo and price.promoPrice > 0 ? 'true' : 'false' }}
+                                     },
+                                     isInWishlist: false,
+                                     init() {
+                                         this.checkWishlist();
+                                     },
+                                     checkWishlist() {
+                                         this.isInWishlist = $store.wishlist.has({{ product.id }});
+                                     },
+                                     toggleWishlist(event) {
+                                         event.preventDefault();
+                                         event.stopPropagation();
+                                         $store.wishlist.toggle(this.productData);
+                                         this.checkWishlist();
+                                     }
+                                 }"
+                                 @wishlist:added.window="checkWishlist()"
+                                 @wishlist:removed.window="checkWishlist()"
+                                 @wishlist:cleared.window="checkWishlist()">
+                                <a href="{{ product.publicUrl }}" class="cart-suggestion-image">
+                                    {% if productImages|length > 0 %}
+                                        <img src="/legacy-image-library/product_image_{{ productImages|first.id }}/full/%5E*!300,300/0/default.webp"
+                                             alt="{{ product.i18ns.title }}">
+                                    {% else %}
+                                        <div class="cart-suggestion-placeholder">
+                                            {% include 'components/UI/Icon.html.twig' with { name: 'cart', size: 48 } %}
+                                        </div>
+                                    {% endif %}
+                                    {% if defaultPse.promo and price.promoPrice > 0 %}
+                                        <span class="cart-suggestion-badge cart-suggestion-badge-promo">
+                                            -{{ (((price.price - price.promoPrice) / price.price) * 100)|round }}%
+                                        </span>
+                                    {% endif %}
+
+                                    {# Wishlist Heart Button #}
+                                    <button @click="toggleWishlist($event)"
+                                            class="cart-suggestion-wishlist-btn"
+                                            :class="{ 'active': isInWishlist }"
+                                            type="button"
+                                            :aria-label="isInWishlist ? '{{ 'Remove from wishlist'|trans }}' : '{{ 'Add to wishlist'|trans }}'">
+                                        <svg x-show="!isInWishlist" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                                        </svg>
+                                        <svg x-show="isInWishlist" x-cloak width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                                        </svg>
+                                    </button>
+                                </a>
+                                <div class="cart-suggestion-info">
+                                    <h4 class="cart-suggestion-name">{{ product.i18ns.title }}</h4>
+                                    <div class="cart-suggestion-price">
+                                        {% if defaultPse.promo and price.promoPrice > 0 %}
+                                            <span class="cart-suggestion-price-promo">{{ price.promoPrice|format_currency('EUR') }}</span>
+                                            <span class="cart-suggestion-price-original">{{ price.price|format_currency('EUR') }}</span>
+                                        {% else %}
+                                            <span class="cart-suggestion-price-regular">{{ price.price|format_currency('EUR') }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="cart-suggestions-more">
+                        <a href="/?view=promo" class="btn btn-secondary">
+                            {{ 'View All Special Offers'|trans }}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function cartComponent() {
+    return {
+        pendingDelete: null,
+        deletedItem: null,
+
+        init() {
+            // Note: Removed $watch on $store.cart.items as it was causing an infinite loop
+            // The cart-updated event is already handled by cart_controller.js
+        },
+
+        deleteItem(itemId, productId, index) {
+            // Store item for potential undo
+            this.deletedItem = {
+                itemId: itemId,
+                productId: productId,
+                index: index
+            };
+
+            // Show notification with undo option
+            this.$dispatch('show-toast', {
+                type: 'info',
+                message: '{{ 'Item removed from cart'|trans }}',
+                action: {
+                    text: '{{ 'Undo'|trans }}',
+                    callback: 'undoDelete'
+                },
+                duration: 5000
+            });
+
+            // Actually delete the item via API
+            fetch('/api/cart/remove/' + itemId, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reload page to refresh cart
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            })
+            .catch(error => {
+                console.error('Error removing item:', error);
+            });
+        },
+
+        undoDelete() {
+            if (this.deletedItem) {
+                // Restore item via API
+                // This would need to be implemented based on Thelia's API
+                console.log('Undo delete:', this.deletedItem);
+                this.deletedItem = null;
+            }
+        }
+    }
+}
+</script>
+
+<style>
+.cart {
+    background-color: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.cart-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.cart-count {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0;
+}
+
+.cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.cart-actions {
+    display: flex;
+    justify-content: flex-start;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Empty Cart Layout */
+.cart-empty-main {
+    margin-bottom: 48px;
+}
+
+.cart-empty-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+}
+
+/* Empty Cart Hero Section */
+.cart-empty-hero {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 48px 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cart-empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.cart-empty-icon {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border-radius: 50%;
+    margin-bottom: 24px;
+    color: #999;
+}
+
+.cart-empty-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    color: #333;
+}
+
+.cart-empty-subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin: 0 0 32px 0;
+    max-width: 500px;
+}
+
+.cart-empty-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.cart-empty-actions .btn {
+    min-width: 160px;
+}
+
+/* Empty Cart Wishlist Sidebar */
+.cart-empty-wishlist {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cart-empty-wishlist-title {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #333;
+}
+
+.cart-empty-wishlist-title .icon {
+    color: #ef4444;
+}
+
+.cart-empty-wishlist-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.cart-empty-wishlist-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.cart-empty-wishlist-item:hover {
+    background: white;
+    border-color: #e5e5e5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cart-empty-wishlist-image {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: white;
+}
+
+.cart-empty-wishlist-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-empty-wishlist-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f59e0b;
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+}
+
+.cart-empty-wishlist-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+.cart-empty-wishlist-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+}
+
+.cart-empty-wishlist-price {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.cart-empty-wishlist-price .promo {
+    color: #ef4444;
+}
+
+.cart-empty-wishlist-more {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #666;
+    text-decoration: none;
+    border-top: 1px solid #f0f0f0;
+    transition: color 0.2s ease;
+}
+
+.cart-empty-wishlist-more:hover {
+    color: #333;
+}
+
+/* Suggestions Sections */
+.cart-empty-suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
+.cart-suggestions-section {
+    padding: 0;
+    margin-bottom: 48px;
+    background: transparent;
+}
+
+.cart-suggestions-title {
+    display: flex;
+    align-items: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: var(--color-text);
+}
+
+.cart-suggestions-title svg,
+.cart-suggestions-title .icon {
+    color: #ef4444;
+}
+
+.cart-suggestions-subtitle {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    margin: 0 0 32px 0;
+}
+
+.cart-suggestions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+    .cart-suggestions-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .cart-suggestions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.cart-suggestion-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cart-suggestion-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #d4d4d4;
+}
+
+.cart-suggestion-image {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background-color: white;
+    display: block;
+}
+
+.cart-suggestion-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.cart-suggestion-card:hover .cart-suggestion-image img {
+    transform: scale(1.05);
+}
+
+.cart-suggestion-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border);
+}
+
+.cart-suggestion-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: var(--radius-md);
+    z-index: 10;
+}
+
+.cart-suggestion-wishlist-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cart-suggestion-wishlist-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cart-suggestion-wishlist-btn svg {
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.cart-suggestion-wishlist-btn:hover svg {
+    color: #ef4444;
+}
+
+.cart-suggestion-wishlist-btn.active svg {
+    color: #ef4444;
+}
+
+.cart-suggestion-badge-promo {
+    background-color: #ef4444;
+    color: white;
+}
+
+.cart-suggestion-badge-notify {
+    background-color: #f59e0b;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cart-suggestion-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+}
+
+.cart-suggestion-name {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.cart-suggestion-price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.cart-suggestion-price-regular,
+.cart-suggestion-price-promo {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.cart-suggestion-price-original {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    text-decoration: line-through;
+}
+
+.cart-suggestions-more {
+    text-align: center;
+    padding-top: 8px;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .cart {
+        padding: 24px 16px;
+        border-radius: 0;
+    }
+
+    .cart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 24px;
+    }
+
+    .cart-title {
+        font-size: 24px;
+    }
+
+    .cart-empty-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .cart-empty-hero {
+        padding: 32px 24px;
+    }
+
+    .cart-empty-title {
+        font-size: 1.5rem;
+    }
+
+    .cart-empty-subtitle {
+        font-size: 0.9375rem;
+    }
+
+    .cart-empty-icon {
+        width: 80px;
+        height: 80px;
+    }
+
+    .cart-empty-wishlist {
+        padding: 16px;
+    }
+
+    .cart-empty-wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .cart-empty-wishlist-item {
+        flex-direction: column;
+        padding: 8px;
+    }
+
+    .cart-empty-wishlist-image {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+    }
+
+    .cart-empty-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .cart-empty-actions .btn {
+        width: 100%;
+    }
+
+    .cart-suggestions-section {
+        padding: 24px 16px;
+    }
+
+    .cart-suggestions-title {
+        font-size: 1.5rem;
+    }
+}
+</style>

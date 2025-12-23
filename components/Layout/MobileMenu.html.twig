@@ -1,0 +1,196 @@
+{# Mobile Menu Drawer #}
+{% set mobileCategories = resources('/api/front/categories', {'depth': 1, 'limit': 8}) %}
+
+<div
+    class="mobile-menu"
+    x-show="$store.mobileMenu.open"
+    x-cloak
+    @keydown.escape.window="$store.mobileMenu.close()"
+>
+    {# Backdrop #}
+    <div
+        class="mobile-menu-backdrop"
+        x-show="$store.mobileMenu.open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click="$store.mobileMenu.close()"
+    ></div>
+
+    {# Drawer Panel #}
+    <div
+        class="mobile-menu-panel"
+        x-show="$store.mobileMenu.open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="-translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="-translate-x-full"
+    >
+        {# Header #}
+        <div class="mobile-menu-header">
+            <a href="{{ path('index') }}" class="mobile-menu-logo">
+                {% include 'components/UI/Logo.html.twig' %}
+            </a>
+            <button
+                type="button"
+                class="mobile-menu-close"
+                @click="$store.mobileMenu.close()"
+                aria-label="{{ 'Close menu'|trans }}"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        {# Navigation #}
+        <nav class="mobile-menu-nav" aria-label="{{ 'Main navigation'|trans }}">
+            {% if mobileCategories is iterable %}
+                {% for category in mobileCategories %}
+                    <a href="{{ category.publicUrl }}" class="mobile-menu-link">
+                        {{ category.i18ns.title }}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </a>
+                {% endfor %}
+            {% endif %}
+            <a href="/?view=category&category_id=1" class="mobile-menu-link mobile-menu-link--sale">
+                {{ 'Sale'|trans }}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                </svg>
+            </a>
+        </nav>
+
+        {# Footer Links #}
+        <div class="mobile-menu-footer">
+            <a href="/?view=account" class="mobile-menu-footerLink">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="5"/>
+                    <path d="M20 21a8 8 0 0 0-16 0"/>
+                </svg>
+                {{ 'My Account'|trans }}
+            </a>
+            <a href="/?view=wishlist" class="mobile-menu-footerLink">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                </svg>
+                {{ 'Wishlist'|trans }}
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+}
+
+.mobile-menu-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.mobile-menu-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 320px;
+    background-color: var(--color-white);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.mobile-menu-logo {
+    display: flex;
+    align-items: center;
+}
+
+.mobile-menu-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.mobile-menu-nav {
+    flex: 1;
+    padding: 16px 0;
+}
+
+.mobile-menu-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+}
+
+.mobile-menu-link:hover {
+    background-color: var(--color-surface);
+}
+
+.mobile-menu-link--sale {
+    color: #c9a227;
+}
+
+.mobile-menu-link svg {
+    color: var(--color-text-light);
+}
+
+.mobile-menu-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-menu-footerLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+
+.mobile-menu-footerLink:hover {
+    color: var(--color-text);
+}
+
+[x-cloak] {
+    display: none !important;
+}
+</style>

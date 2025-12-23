@@ -1,0 +1,882 @@
+{#
+    Cart Item Component - Modern.A
+    Displays a single cart item with quantity controls
+#}
+
+{% set itemTotal = item.taxedPrice * item.quantity %}
+{% set hasPromo = item.taxedPromoPrice is defined and item.taxedPromoPrice > 0 and item.taxedPromoPrice < item.taxedPrice %}
+{% set finalPrice = hasPromo ? item.taxedPromoPrice : item.taxedPrice %}
+{% set finalTotal = finalPrice * item.quantity %}
+
+{% set attributes = [] %}
+{% if pse.attributeCombinations is defined %}
+    {% for attr in pse.attributeCombinations %}
+        {# Support both API format (attr.attributeAv.i18ns.title) and CartIsolationExtension format (attr.title) #}
+        {% if attr.attributeAv is defined %}
+            {% set attributes = attributes|merge([attr.attributeAv.i18ns.title]) %}
+        {% elseif attr.title is defined %}
+            {% set attributes = attributes|merge([attr.title]) %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{# Check stock availability #}
+{% set isInStock = pse.quantity > 0 %}
+{% set maxQuantity = pse.quantity %}
+
+{# Use image ID from cart item data (already calculated in PHP) #}
+{% set initialImageId = item.imageId|default(productImages|first.id|default(0)) %}
+
+<div class="cart-item"
+     x-data="cartItemComponent({{ item.id }}, {{ item.quantity }}, {{ maxQuantity }}, {{ isInStock ? 'true' : 'false' }})"
+     :class="{ 'out-of-stock': !inStock, 'deleting': showDeletePopup }"
+>
+    {# Product Image #}
+    <div class="cart-item-image">
+        <a href="/?view=product&product_id={{ product.id|default('') }}">
+            {% if productImages|length > 0 %}
+                <img src="/legacy-image-library/product_image_{{ initialImageId }}/full/%5E*!120,120/0/default.webp"
+                     alt="{{ product.i18ns.title|default('Product') }}"
+                     loading="lazy">
+            {% else %}
+                <div class="cart-item-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                        <circle cx="9" cy="9" r="2"/>
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                    </svg>
+                </div>
+            {% endif %}
+        </a>
+    </div>
+
+    {# Product Info #}
+    <div class="cart-item-info">
+        <div class="cart-item-header">
+            <div>
+                <h3 class="cart-item-title">
+                    <a href="/?view=product&product_id={{ product.id|default('') }}">
+                        {{ product.i18ns.title|default('Product') }}
+                    </a>
+                </h3>
+
+                {# Product Attributes (Size, Color, etc.) - Display only #}
+                {% if attributes|length > 0 %}
+                    <div class="cart-item-attributes">
+                        {% for attribute in attributes %}
+                            <span class="cart-item-attribute">{{ attribute }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# Stock Status #}
+                {% if not isInStock %}
+                    <div class="cart-item-stock-warning">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                            <path d="M12 9v4"/>
+                            <path d="M12 17h.01"/>
+                        </svg>
+                        {{ 'Out of stock'|trans }}
+                    </div>
+                {% elseif pse.quantity < item.quantity %}
+                    <div class="cart-item-stock-warning">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                            <path d="M12 9v4"/>
+                            <path d="M12 17h.01"/>
+                        </svg>
+                        {{ 'Only %count% left in stock'|trans({'%count%': pse.quantity}) }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Delete Button with popup container #}
+            <div class="cart-item-delete-wrapper" style="position: relative;">
+                <button
+                    type="button"
+                    class="cart-item-delete"
+                    @click="confirmDelete()"
+                    :disabled="deleting"
+                    aria-label="{{ 'Remove item'|trans }}"
+                    title="{{ 'Remove from cart'|trans }}"
+                    data-delete-url="/cart/delete/{{ item.id }}"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        <line x1="10" x2="10" y1="11" y2="17"/>
+                        <line x1="14" x2="14" y1="11" y2="17"/>
+                    </svg>
+                </button>
+
+                {# Delete Confirmation Popup - Positioned relative to delete button #}
+                <div
+                    class="delete-popup-compact"
+                    x-show="showDeletePopup"
+                    x-cloak
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-90"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-90"
+                >
+                    <div class="delete-popup-timer">
+                        <svg class="countdown-ring-compact" width="40" height="40" viewBox="0 0 40 40">
+                            <circle
+                                class="countdown-ring-circle-bg"
+                                cx="20"
+                                cy="20"
+                                r="16"
+                                fill="none"
+                                stroke="rgba(100, 116, 139, 0.2)"
+                                stroke-width="2.5"
+                            />
+                            <circle
+                                class="countdown-ring-circle"
+                                cx="20"
+                                cy="20"
+                                r="16"
+                                fill="none"
+                                stroke="url(#gradient-{{ item.id }})"
+                                stroke-width="2.5"
+                                stroke-dasharray="100.53"
+                                x-bind:stroke-dashoffset="100.53 * (1 - deleteCountdown / 3)"
+                            />
+                            <defs>
+                                <linearGradient id="gradient-{{ item.id }}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#64748b;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#94a3b8;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="delete-icon-compact">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M3 6h18"/>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="delete-popup-info">
+                        <p class="delete-popup-label">{{ 'Deleting...'|trans }}</p>
+                        <button
+                            type="button"
+                            class="delete-popup-cancel-compact"
+                            @click="cancelDelete()"
+                        >
+                            {{ 'Cancel'|trans }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Quantity Controls & Price #}
+        <div class="cart-item-actions">
+            {# Quantity Controls #}
+            <div class="cart-item-quantity-wrapper">
+                <div class="cart-item-quantity" :class="{ 'quantity-error': stockError }">
+                    <button
+                        type="button"
+                        class="quantity-btn quantity-btn-minus"
+                        @click="decreaseQuantity()"
+                        :disabled="quantity <= 1 || updating || !inStock"
+                        aria-label="{{ 'Decrease quantity'|trans }}"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" x2="19" y1="12" y2="12"/>
+                        </svg>
+                    </button>
+
+                    <input
+                        type="number"
+                        class="quantity-input"
+                        x-model.number="quantity"
+                        @change="updateQuantity()"
+                        @blur="updateQuantity()"
+                        :min="1"
+                        :max="maxQuantity"
+                        :disabled="updating || !inStock"
+                        aria-label="{{ 'Quantity'|trans }}"
+                    >
+
+                    <button
+                        type="button"
+                        class="quantity-btn quantity-btn-plus"
+                        @click="increaseQuantity()"
+                        :disabled="quantity >= maxQuantity || updating || !inStock"
+                        aria-label="{{ 'Increase quantity'|trans }}"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" x2="12" y1="5" y2="19"/>
+                            <line x1="5" x2="19" y1="12" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                {# Stock limit warning #}
+                <div class="quantity-max-warning"
+                     x-show="stockError"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform -translate-y-1"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     x-cloak>
+                    {{ 'Max:'|trans }} <span x-text="maxQuantity"></span>
+                </div>
+            </div>
+
+            {# Price Display #}
+            <div class="cart-item-price">
+                {% if hasPromo %}
+                    <span class="price-original">{{ itemTotal|format_currency('EUR') }}</span>
+                    <span class="price-promo">{{ finalTotal|format_currency('EUR') }}</span>
+                {% else %}
+                    <span class="price-regular">{{ finalTotal|format_currency('EUR') }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Loading Overlay #}
+    <div class="cart-item-loading" x-show="updating" x-cloak>
+        <div class="spinner"></div>
+    </div>
+</div>
+
+<script>
+function cartItemComponent(itemId, initialQuantity, maxStock, isInStock) {
+    return {
+        itemId: itemId,
+        quantity: initialQuantity,
+        previousQuantity: initialQuantity,
+        maxQuantity: maxStock,
+        inStock: isInStock,
+        updating: false,
+        deleting: false,
+        showDeletePopup: false,
+        deleteCountdown: 3,
+        deleteTimer: null,
+        deleteInterval: null,
+        stockError: false,
+
+        init() {
+            // Watch for quantity changes - enforce bounds
+            this.$watch('quantity', (newValue, oldValue) => {
+                if (newValue !== oldValue) {
+                    const parsed = parseInt(newValue) || 1;
+                    // Enforce min 1, max stock
+                    const clamped = Math.max(1, Math.min(this.maxQuantity, parsed));
+                    if (clamped !== parsed) {
+                        this.quantity = clamped;
+                        // Show brief warning if user tried to exceed stock
+                        if (parsed > this.maxQuantity) {
+                            this.showStockWarning();
+                        }
+                    }
+                }
+            });
+        },
+
+        showStockWarning() {
+            this.stockError = true;
+            setTimeout(() => {
+                this.stockError = false;
+            }, 3000);
+        },
+
+        decreaseQuantity() {
+            if (this.quantity > 1) {
+                this.quantity--;
+                this.updateQuantity();
+            }
+        },
+
+        increaseQuantity() {
+            if (this.quantity < this.maxQuantity) {
+                this.quantity++;
+                this.updateQuantity();
+            }
+        },
+
+        async updateQuantity() {
+            if (this.updating) return;
+
+            // Validate quantity before sending
+            const validQuantity = Math.max(1, Math.min(this.maxQuantity, this.quantity));
+            if (validQuantity !== this.quantity) {
+                this.quantity = validQuantity;
+            }
+
+            // Don't update if quantity hasn't changed
+            if (this.quantity === this.previousQuantity) {
+                return;
+            }
+
+            this.updating = true;
+
+            try {
+                // Update cart via cookie-based API
+                const response = await fetch('/cart/update-quantity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cartItemId: this.itemId,
+                        quantity: this.quantity
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.previousQuantity = this.quantity;
+                    // Dispatch event to update header counter
+                    window.dispatchEvent(new CustomEvent('cart-updated', {
+                        detail: { count: data.cartCount }
+                    }));
+
+                    // Reload to update all prices and totals
+                    setTimeout(() => window.location.reload(), 300);
+                } else {
+                    // Restore previous quantity on error
+                    this.quantity = this.previousQuantity;
+                    this.showStockWarning();
+                    console.error('Error:', data.error);
+                    this.updating = false;
+                }
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                // Restore previous quantity on error
+                this.quantity = this.previousQuantity;
+                this.updating = false;
+            }
+        },
+
+        confirmDelete() {
+            // Show popup and start countdown
+            this.showDeletePopup = true;
+            this.deleteCountdown = 3;
+            this.startDeleteCountdown();
+        },
+
+        startDeleteCountdown() {
+            // Update countdown every 30ms for smooth animation
+            this.deleteInterval = setInterval(() => {
+                this.deleteCountdown -= 0.03;
+                if (this.deleteCountdown <= 0) {
+                    this.deleteItem();
+                }
+            }, 30);
+        },
+
+        cancelDelete() {
+            // Clear timers and hide popup
+            if (this.deleteInterval) {
+                clearInterval(this.deleteInterval);
+                this.deleteInterval = null;
+            }
+            if (this.deleteTimer) {
+                clearTimeout(this.deleteTimer);
+                this.deleteTimer = null;
+            }
+            this.showDeletePopup = false;
+            this.deleteCountdown = 3;
+        },
+
+        async deleteItem() {
+            if (this.deleting) return;
+
+            // Clear intervals
+            if (this.deleteInterval) {
+                clearInterval(this.deleteInterval);
+                this.deleteInterval = null;
+            }
+
+            this.deleting = true;
+
+            // Hide popup immediately
+            this.showDeletePopup = false;
+
+            try {
+                // Use Thelia REST API to delete cart item
+                const response = await fetch(`/api/front/cart_items/${this.itemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok || response.status === 204) {
+                    // Update counter
+                    if (window.updateCartCounter) {
+                        await window.updateCartCounter();
+                    }
+
+                    // Reload page to refresh cart
+                    window.location.reload();
+                } else {
+                    throw new Error('Failed to delete item');
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                this.deleting = false;
+                this.showDeletePopup = false;
+                alert('Failed to delete item. Please try again.');
+            }
+        }
+    }
+}
+</script>
+
+<style>
+.cart-item {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 20px;
+    padding: 24px;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cart-item.out-of-stock {
+    opacity: 0.7;
+    background-color: #f9f9f9;
+}
+
+.cart-item-image {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 8px;
+}
+
+.cart-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.2s;
+}
+
+.cart-item-image:hover img {
+    transform: scale(1.05);
+}
+
+.cart-item-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.cart-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cart-item-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.cart-item-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.cart-item-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.cart-item-title a:hover {
+    color: var(--color-primary, #000);
+}
+
+.cart-item-attributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.cart-item-attribute {
+    font-size: 14px;
+    padding: 4px 12px;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: 6px;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.cart-item-stock-warning {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #d97706;
+    margin-top: 8px;
+}
+
+.cart-item-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0.5);
+    transition: all 0.2s;
+}
+
+.cart-item-delete:hover:not(:disabled) {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.cart-item-delete:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cart-item-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: auto;
+}
+
+.cart-item-quantity-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cart-item-quantity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 4px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cart-item-quantity.quantity-error {
+    border-color: #d97706;
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+}
+
+.quantity-max-warning {
+    font-size: 12px;
+    color: #d97706;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.quantity-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0.7);
+    transition: all 0.2s;
+}
+
+.quantity-btn:hover:not(:disabled) {
+    background-color: var(--color-surface, #f5f5f5);
+    color: var(--color-primary, #000);
+}
+
+.quantity-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.quantity-input {
+    width: 50px;
+    height: 32px;
+    border: none;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    background: none;
+}
+
+.quantity-input:disabled {
+    opacity: 0.5;
+}
+
+/* Remove spinner arrows */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.cart-item-price {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.price-original {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    text-decoration: line-through;
+}
+
+.price-promo {
+    color: #dc2626;
+}
+
+.cart-item-loading {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    z-index: 10;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: var(--color-primary, #000);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* Delete button wrapper */
+.cart-item-delete-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Delete Confirmation Popup - Compact next to delete button */
+.delete-popup-compact {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 12px);
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: blur(20px) saturate(120%);
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    box-shadow:
+        0 8px 24px rgba(71, 85, 105, 0.12),
+        0 0 0 1px rgba(226, 232, 240, 0.9),
+        inset 0 1px 0 rgba(241, 245, 249, 0.9);
+    z-index: 40;
+    white-space: nowrap;
+}
+
+.delete-popup-timer {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.countdown-ring-compact {
+    transform: rotate(-90deg);
+}
+
+.countdown-ring-circle {
+    transition: stroke-dashoffset 0.03s linear;
+    filter: drop-shadow(0 2px 4px rgba(100, 116, 139, 0.15));
+}
+
+.delete-icon-compact {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #64748b;
+    animation: deleteIconPulse 2s ease-in-out infinite;
+}
+
+@keyframes deleteIconPulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.05);
+        opacity: 0.6;
+    }
+}
+
+.delete-popup-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 100px;
+}
+
+.delete-popup-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.delete-popup-cancel-compact {
+    padding: 6px 14px;
+    background: rgba(100, 116, 139, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 2px 8px rgba(71, 85, 105, 0.2),
+        inset 0 1px 0 rgba(148, 163, 184, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.delete-popup-cancel-compact:hover {
+    transform: translateY(-1px);
+    background: rgba(71, 85, 105, 0.95);
+    box-shadow:
+        0 4px 12px rgba(71, 85, 105, 0.3),
+        inset 0 1px 0 rgba(148, 163, 184, 0.2);
+}
+
+.delete-popup-cancel-compact:active {
+    transform: translateY(0);
+    background: rgba(51, 65, 85, 0.95);
+    box-shadow:
+        0 1px 4px rgba(71, 85, 105, 0.25),
+        inset 0 1px 0 rgba(148, 163, 184, 0.2);
+}
+
+@media (max-width: 768px) {
+    .cart-item {
+        grid-template-columns: 80px 1fr;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .cart-item-title {
+        font-size: 16px;
+    }
+
+    .cart-item-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .cart-item-quantity-wrapper {
+        align-items: center;
+    }
+
+    .cart-item-quantity {
+        justify-content: center;
+    }
+
+    .cart-item-price {
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .delete-popup-compact {
+        top: 50%;
+        right: calc(100% + 8px);
+        transform: translateY(-50%);
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .delete-popup-timer {
+        width: 36px;
+        height: 36px;
+    }
+
+    .countdown-ring-compact {
+        width: 36px;
+        height: 36px;
+    }
+
+    .delete-icon-compact svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .delete-popup-info {
+        min-width: 80px;
+        gap: 4px;
+    }
+
+    .delete-popup-label {
+        font-size: 11px;
+    }
+
+    .delete-popup-cancel-compact {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+}
+</style>

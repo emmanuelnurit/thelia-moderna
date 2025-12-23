@@ -1,0 +1,55 @@
+{#
+    Added To Cart Message Template - Modern.A
+    This template is shown after successfully adding an item to cart
+    Now uses the modern toast notification system
+#}
+{% set cartItems = get_cart_items_by_cookie() %}
+{% set lastItem = cartItems|last %}
+
+{# Get product details for the last added item #}
+{% if lastItem %}
+    {% set product = resources('/api/front/products/' ~ lastItem.productId) %}
+    {% set productImages = resources('/api/front/product_images', {'product.id': lastItem.productId, itemsPerPage: 1}) %}
+{% endif %}
+
+<script>
+    // Show toast notification for added product
+    (function() {
+        {% if lastItem and product %}
+            // Show enhanced toast with product info
+            window.showToast({
+                type: 'success',
+                message: '{{ product.i18ns.title|default('Product')|e('js') }} {{ 'added to cart!'|trans }}',
+                duration: 4000
+            });
+
+            // Also dispatch event to open cart drawer
+            window.dispatchEvent(new CustomEvent('cart:open'));
+        {% else %}
+            // Fallback simple notification
+            window.showToast({
+                type: 'success',
+                message: '{{ 'Product added to cart!'|trans }}',
+                duration: 3000
+            });
+        {% endif %}
+
+        // Dispatch cart-updated event for header badge
+        var totalQuantity = 0;
+        {% for item in cartItems %}
+        totalQuantity += {{ item.quantity }};
+        {% endfor %}
+
+        window.dispatchEvent(new CustomEvent('cart-updated', {
+            detail: {
+                cart: {
+                    items: [
+                        {% for item in cartItems %}
+                        { quantity: {{ item.quantity }} }{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }
+            }
+        }));
+    })();
+</script>

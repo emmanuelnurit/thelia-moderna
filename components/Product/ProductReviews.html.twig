@@ -1,0 +1,279 @@
+{#
+  Product Reviews Component
+  Placeholder for reviews - can be extended with TheliaReviews module
+#}
+{% set id = productId|default(0) %}
+
+<div class="product-reviews" x-data="{ showForm: false }">
+    {# Reviews Summary #}
+    <div class="reviews-summary">
+        <div class="reviews-average">
+            <span class="reviews-averageScore">4.5</span>
+            <div class="reviews-averageStars">
+                {% include 'components/UI/Rating.html.twig' with { rating: 4.5, max: 5 } %}
+            </div>
+            <span class="reviews-count">{{ 'Based on 42 reviews'|trans }}</span>
+        </div>
+
+        <button type="button" class="btn btn-secondary" @click="showForm = !showForm">
+            {{ 'Write a review'|trans }}
+        </button>
+    </div>
+
+    {# Review Form (Hidden by default) #}
+    <div class="reviews-form" x-show="showForm" x-transition x-cloak>
+        <form action="{{ path('review.add') }}" method="post" class="review-form">
+            <input type="hidden" name="product_id" value="{{ id }}">
+
+            <div class="form-group">
+                <label for="review-rating" class="form-label">{{ 'Your rating'|trans }} *</label>
+                <div class="review-rating-input" x-data="{ rating: 0, hoverRating: 0 }">
+                    {% for i in 1..5 %}
+                        <button
+                            type="button"
+                            class="review-star"
+                            @click="rating = {{ i }}"
+                            @mouseenter="hoverRating = {{ i }}"
+                            @mouseleave="hoverRating = 0"
+                            :class="{ 'is-filled': {{ i }} <= (hoverRating || rating) }"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                        </button>
+                    {% endfor %}
+                    <input type="hidden" name="rating" x-bind:value="rating">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="review-title" class="form-label">{{ 'Review title'|trans }}</label>
+                <input type="text" id="review-title" name="title" class="input" placeholder="{{ 'Summarize your experience'|trans }}">
+            </div>
+
+            <div class="form-group">
+                <label for="review-content" class="form-label">{{ 'Your review'|trans }} *</label>
+                <textarea id="review-content" name="content" class="input" rows="4" placeholder="{{ 'Share your thoughts about this product...'|trans }}" required></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" @click="showForm = false">{{ 'Cancel'|trans }}</button>
+                <button type="submit" class="btn btn-primary">{{ 'Submit review'|trans }}</button>
+            </div>
+        </form>
+    </div>
+
+    {# Reviews List #}
+    <div class="reviews-list">
+        {# Example reviews - would be loaded from database #}
+        <div class="review">
+            <div class="review-header">
+                <div class="review-author">
+                    <div class="review-avatar">JD</div>
+                    <div class="review-authorInfo">
+                        <span class="review-authorName">John Doe</span>
+                        <span class="review-date">{{ '2 weeks ago'|trans }}</span>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    {% include 'components/UI/Rating.html.twig' with { rating: 5, max: 5 } %}
+                </div>
+            </div>
+            <h4 class="review-title">{{ 'Great quality and fit!'|trans }}</h4>
+            <p class="review-content">{{ 'These shoes exceeded my expectations. Very comfortable for daily wear and the quality is top-notch. Would definitely recommend!'|trans }}</p>
+        </div>
+
+        <div class="review">
+            <div class="review-header">
+                <div class="review-author">
+                    <div class="review-avatar">SM</div>
+                    <div class="review-authorInfo">
+                        <span class="review-authorName">Sarah M.</span>
+                        <span class="review-date">{{ '1 month ago'|trans }}</span>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    {% include 'components/UI/Rating.html.twig' with { rating: 4, max: 5 } %}
+                </div>
+            </div>
+            <h4 class="review-title">{{ 'Good but runs small'|trans }}</h4>
+            <p class="review-content">{{ 'Love the design and comfort. Just note that they run a bit small, so I would recommend ordering half a size up.'|trans }}</p>
+        </div>
+    </div>
+
+    {# Load More #}
+    <div class="reviews-loadMore">
+        <button type="button" class="btn btn-secondary">{{ 'Load more reviews'|trans }}</button>
+    </div>
+</div>
+
+<style>
+.product-reviews {
+    /* Container */
+}
+
+.reviews-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 24px;
+}
+
+.reviews-average {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.reviews-averageScore {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.reviews-averageStars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.reviews-count {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+/* Review Form */
+.reviews-form {
+    padding: 24px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    margin-bottom: 32px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: 8px;
+}
+
+.review-rating-input {
+    display: flex;
+    gap: 4px;
+}
+
+.review-star {
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-border);
+    transition: color var(--transition-fast);
+
+    &:hover,
+    &.is-filled {
+        color: #fbbf24;
+    }
+}
+
+textarea.input {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* Reviews List */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.review {
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--color-border);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.review-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.review-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.review-avatar {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 50%;
+}
+
+.review-authorInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.review-authorName {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.review-date {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.review-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+}
+
+.review-content {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.reviews-loadMore {
+    text-align: center;
+    margin-top: 32px;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+</style>

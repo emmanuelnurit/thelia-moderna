@@ -1,0 +1,89 @@
+{#
+  Icon Component
+  Usage: {% include 'components/UI/Icon.html.twig' with { name: 'search', size: 24 } %}
+#}
+{% set iconSize = size|default(24) %}
+{% set iconClass = class|default('') %}
+
+{# Inline SVG based on name #}
+{% if name == 'search' %}
+<svg class="icon icon-search {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="8"/>
+    <path d="m21 21-4.35-4.35"/>
+</svg>
+{% elseif name == 'cart' %}
+<svg class="icon icon-cart {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+    <path d="M3 6h18"/>
+    <path d="M16 10a4 4 0 0 1-8 0"/>
+</svg>
+{% elseif name == 'heart' %}
+<svg class="icon icon-heart {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+</svg>
+{% elseif name == 'heart-fill' %}
+<svg class="icon icon-heart-fill {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+</svg>
+{% elseif name == 'user' %}
+<svg class="icon icon-user {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="8" r="5"/>
+    <path d="M20 21a8 8 0 0 0-16 0"/>
+</svg>
+{% elseif name == 'menu' %}
+<svg class="icon icon-menu {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="4" x2="20" y1="12" y2="12"/>
+    <line x1="4" x2="20" y1="6" y2="6"/>
+    <line x1="4" x2="20" y1="18" y2="18"/>
+</svg>
+{% elseif name == 'close' %}
+<svg class="icon icon-close {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+</svg>
+{% elseif name == 'chevron-right' %}
+<svg class="icon icon-chevron-right {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="m9 18 6-6-6-6"/>
+</svg>
+{% elseif name == 'chevron-left' %}
+<svg class="icon icon-chevron-left {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="m15 18-6-6 6-6"/>
+</svg>
+{% elseif name == 'star' %}
+<svg class="icon icon-star {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+{% elseif name == 'star-empty' %}
+<svg class="icon icon-star-empty {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+</svg>
+{% elseif name == 'truck' %}
+<svg class="icon icon-truck {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+    <path d="M15 18H9"/>
+    <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
+    <circle cx="17" cy="18" r="2"/>
+    <circle cx="7" cy="18" r="2"/>
+</svg>
+{% elseif name == 'plus' %}
+<svg class="icon icon-plus {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M5 12h14"/>
+    <path d="M12 5v14"/>
+</svg>
+{% elseif name == 'minus' %}
+<svg class="icon icon-minus {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M5 12h14"/>
+</svg>
+{% elseif name == 'check' %}
+<svg class="icon icon-check {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="20 6 9 17 4 12"/>
+</svg>
+{% elseif name == 'arrow-right' %}
+<svg class="icon icon-arrow-right {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M5 12h14m-7-7 7 7-7 7"/>
+</svg>
+{% elseif name == 'arrow-left' %}
+<svg class="icon icon-arrow-left {{ iconClass }}" width="{{ iconSize }}" height="{{ iconSize }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M19 12H5m7 7-7-7 7-7"/>
+</svg>
+{% endif %}

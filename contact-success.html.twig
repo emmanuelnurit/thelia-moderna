@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'Message Sent'|trans }} - {{ store_name|default('Modern.A') }}{% endblock %}
+
+{% block body %}
+<main class="contact-success-page" id="main-content">
+    {# Breadcrumb #}
+    <nav class="contact-breadcrumb" aria-label="Breadcrumb">
+        <div class="container">
+            <ol class="breadcrumb-list">
+                <li class="breadcrumb-item">
+                    <a href="{{ path('index') }}">{{ 'Home'|trans }}</a>
+                    <span class="breadcrumb-separator">/</span>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="/?view=contact">{{ 'Contact'|trans }}</a>
+                    <span class="breadcrumb-separator">/</span>
+                </li>
+                <li class="breadcrumb-item breadcrumb-item--active" aria-current="page">
+                    {{ 'Message Sent'|trans }}
+                </li>
+            </ol>
+        </div>
+    </nav>
+
+    {# Success Content #}
+    <div class="contact-success">
+        <div class="container">
+            <div class="contact-successCard">
+                <div class="contact-successIcon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
+                </div>
+                <h1 class="contact-successTitle">{{ 'Thank you!'|trans }}</h1>
+                <p class="contact-successText">
+                    {{ 'Your message has been sent successfully. We will get back to you as soon as possible.'|trans }}
+                </p>
+                <div class="contact-successActions">
+                    <a href="{{ path('index') }}" class="contact-successBtn contact-successBtn--primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        {{ 'Back to Home'|trans }}
+                    </a>
+                    <a href="/?view=contact" class="contact-successBtn contact-successBtn--secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        {{ 'Send another message'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+.contact-success-page {
+    min-height: 100vh;
+}
+
+/* Breadcrumb */
+.contact-breadcrumb {
+    padding: 16px 0;
+    background-color: var(--color-surface, #f8f8f8);
+}
+
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.875rem;
+}
+
+.breadcrumb-item a {
+    color: var(--color-text-muted, #666);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--color-text, #1a1a1a);
+}
+
+.breadcrumb-separator {
+    color: var(--color-text-light, #999);
+}
+
+.breadcrumb-item--active {
+    color: var(--color-text, #1a1a1a);
+    font-weight: 500;
+}
+
+/* Success Content */
+.contact-success {
+    padding: 80px 0 120px;
+}
+
+.contact-successCard {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 48px 32px;
+    background-color: var(--color-white, #fff);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 20px;
+}
+
+.contact-successIcon {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    background-color: #ecfdf5;
+    border-radius: 50%;
+    color: #059669;
+}
+
+.contact-successTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--color-text, #1a1a1a);
+}
+
+.contact-successText {
+    font-size: 1.0625rem;
+    color: var(--color-text-muted, #666);
+    margin: 0 0 32px;
+    line-height: 1.6;
+}
+
+.contact-successActions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (min-width: 480px) {
+    .contact-successActions {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+.contact-successBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.contact-successBtn--primary {
+    background-color: var(--color-text, #1a1a1a);
+    color: var(--color-white, #fff);
+}
+
+.contact-successBtn--primary:hover {
+    background-color: #333;
+}
+
+.contact-successBtn--secondary {
+    background-color: var(--color-surface, #f8f8f8);
+    color: var(--color-text, #1a1a1a);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.contact-successBtn--secondary:hover {
+    background-color: #eee;
+}
+</style>
+{% endblock %}

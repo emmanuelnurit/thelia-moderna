@@ -1,0 +1,37 @@
+{% extends 'checkout-base.html.twig' %}
+
+{% block title %}
+    {{ 'Shopping Cart'|trans }} - {{ parent() }}
+{% endblock %}
+
+{% set current = 'cart' %}
+
+{% block checkoutContent %}
+    {% include 'components/Cart/Cart.html.twig' %}
+{% endblock %}
+
+{% block checkoutSummary %}
+    {% set cartItems = get_cart_items_by_cookie() %}
+    {% set cartDiscount = get_cart_discount_by_cookie() %}
+
+    {% if cartItems|length > 0 %}
+        {% include 'components/Cart/CartSummary.html.twig' with {
+            cartItems: cartItems,
+            discount: cartDiscount.discount,
+            coupons: cartDiscount.coupons
+        } %}
+    {% endif %}
+{% endblock %}
+
+{% block checkoutNextButton %}
+    {% set cartItems = get_cart_items_by_cookie() %}
+
+    {% if cartItems|length > 0 %}
+        <a href="/?view=checkout-delivery" class="btn btn-primary w-full mt-6">
+            {{ 'Proceed to Delivery'|trans }}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-2">
+                <path d="M5 12h14m-7-7 7 7-7 7"/>
+            </svg>
+        </a>
+    {% endif %}
+{% endblock %}

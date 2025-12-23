@@ -1,0 +1,310 @@
+{# Footer Component - Modern.A #}
+{% set footerCategories = resources('/api/front/categories', {'depth': 1, 'limit': 5}) %}
+
+<footer class="footer">
+    <div class="container">
+        {# Main Footer #}
+        <div class="footer-main">
+            {# Brand Column #}
+            <div class="footer-brand">
+                <a href="{{ path('index') }}" class="footer-logo">
+                    {% include 'components/UI/Logo.html.twig' %}
+                </a>
+                <p class="footer-brandText">
+                    {{ 'Discover premium products curated for modern lifestyle.'|trans }}
+                </p>
+                {# Social Links #}
+                <div class="footer-social">
+                    <a href="#" class="footer-socialLink" aria-label="Instagram">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                            <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="footer-socialLink" aria-label="Twitter">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="footer-socialLink" aria-label="Facebook">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            {# Links Columns #}
+            <div class="footer-links">
+                {# Shop #}
+                <div class="footer-column">
+                    <h3 class="footer-columnTitle">{{ 'Shop'|trans }}</h3>
+                    <ul class="footer-columnList">
+                        {% if footerCategories is iterable %}
+                            {% for category in footerCategories %}
+                                <li>
+                                    <a href="{{ category.publicUrl }}">{{ category.i18ns.title }}</a>
+                                </li>
+                            {% endfor %}
+                        {% endif %}
+                        <li><a href="/?view=promo">{{ 'Sale'|trans }}</a></li>
+                    </ul>
+                </div>
+
+                {# Help #}
+                <div class="footer-column">
+                    <h3 class="footer-columnTitle">{{ 'Help'|trans }}</h3>
+                    <ul class="footer-columnList">
+                        <li><a href="/?view=contact">{{ 'Contact Us'|trans }}</a></li>
+                        <li><a href="#">{{ 'FAQs'|trans }}</a></li>
+                        <li><a href="#">{{ 'Shipping Info'|trans }}</a></li>
+                        <li><a href="#">{{ 'Returns'|trans }}</a></li>
+                        <li><a href="#">{{ 'Size Guide'|trans }}</a></li>
+                    </ul>
+                </div>
+
+                {# Company #}
+                <div class="footer-column">
+                    <h3 class="footer-columnTitle">{{ 'Company'|trans }}</h3>
+                    <ul class="footer-columnList">
+                        <li><a href="#">{{ 'About Us'|trans }}</a></li>
+                        <li><a href="#">{{ 'Careers'|trans }}</a></li>
+                        <li><a href="#">{{ 'Press'|trans }}</a></li>
+                        <li><a href="#">{{ 'Sustainability'|trans }}</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            {# Newsletter #}
+            <div class="footer-newsletter">
+                <h3 class="footer-columnTitle">{{ 'Newsletter'|trans }}</h3>
+                <p class="footer-newsletterText">
+                    {{ 'Subscribe to get special offers, free giveaways, and new arrivals.'|trans }}
+                </p>
+                <form class="footer-newsletterForm" action="#" method="post">
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="{{ 'Enter your email'|trans }}"
+                        class="footer-newsletterInput"
+                        required
+                    >
+                    <button type="submit" class="footer-newsletterBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {# Bottom Footer #}
+        <div class="footer-bottom">
+            <p class="footer-copyright">
+                &copy; {{ "now"|date("Y") }} {{ store_name|default('Modern.A') }}. {{ 'All rights reserved.'|trans }}
+            </p>
+            <div class="footer-legal">
+                <a href="#">{{ 'Privacy Policy'|trans }}</a>
+                <a href="#">{{ 'Terms of Service'|trans }}</a>
+                <a href="#">{{ 'Cookie Policy'|trans }}</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+.footer {
+    background-color: var(--color-white);
+    border-top: 1px solid var(--color-border);
+    margin-top: 80px;
+}
+
+.footer-main {
+    display: grid;
+    gap: 48px;
+    padding: 64px 0 48px;
+}
+
+@media (min-width: 768px) {
+    .footer-main {
+        grid-template-columns: 1fr 2fr 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .footer-main {
+        gap: 64px;
+    }
+}
+
+.footer-brand {
+    max-width: 280px;
+}
+
+.footer-logo {
+    display: inline-block;
+    margin-bottom: 16px;
+    transform: scale(0.6);
+    transform-origin: left center;
+}
+
+.footer-brandText {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.footer-social {
+    display: flex;
+    gap: 12px;
+}
+
+.footer-socialLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: var(--color-surface);
+    border-radius: 50%;
+    color: var(--color-text);
+    transition: all var(--transition-fast);
+}
+
+.footer-socialLink:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.footer-links {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+}
+
+@media (min-width: 768px) {
+    .footer-links {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.footer-columnTitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+}
+
+.footer-columnList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-columnList li {
+    margin-bottom: 12px;
+}
+
+.footer-columnList a {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.footer-columnList a:hover {
+    color: var(--color-text);
+}
+
+.footer-newsletter {
+    max-width: 320px;
+}
+
+.footer-newsletterText {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.footer-newsletterForm {
+    display: flex;
+    gap: 8px;
+}
+
+.footer-newsletterInput {
+    flex: 1;
+    padding: 12px 16px;
+    background-color: var(--color-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--color-text);
+}
+
+.footer-newsletterInput::placeholder {
+    color: var(--color-text-light);
+}
+
+.footer-newsletterInput:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+.footer-newsletterBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-white);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.footer-newsletterBtn:hover {
+    background-color: #333;
+}
+
+.footer-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 0;
+    border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 768px) {
+    .footer-bottom {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.footer-copyright {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+}
+
+.footer-legal {
+    display: flex;
+    gap: 24px;
+}
+
+.footer-legal a {
+    font-size: 0.8125rem;
+    color: var(--color-text-light);
+    text-decoration: none;
+}
+
+.footer-legal a:hover {
+    color: var(--color-text);
+}
+</style>

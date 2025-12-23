@@ -1,0 +1,782 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'My Orders'|trans }} - {{ store_name|default('Modern.A') }}{% endblock %}
+
+{# Get customer ID #}
+{% set customerId = attr('customer', 'id') %}
+
+{% block body %}
+{# Redirect to login if not authenticated #}
+{% if not customerId %}
+    <script>window.location.href = '/?view=login&redirect=' + encodeURIComponent(window.location.href);</script>
+{% else %}
+{# Get orders from API #}
+{% set orders = resources('/api/front/account/orders', {
+    'customer.id': customerId,
+    'order[createdAt]': 'desc'
+}) %}
+<div class="account-page">
+    <div class="container">
+        {# Breadcrumb #}
+        <nav class="account-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ path('index') }}">{{ 'Home'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <a href="/?view=account">{{ 'My Account'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <span>{{ 'My Orders'|trans }}</span>
+        </nav>
+
+        {# Page Header #}
+        <div class="account-pageHeader">
+            <h1 class="account-pageTitle">{{ 'My Orders'|trans }}</h1>
+            <p class="account-pageSubtitle">{{ 'View and track all your orders'|trans }}</p>
+        </div>
+
+        <div class="account-layout">
+            {# Sidebar Navigation #}
+            <aside class="account-sidebar">
+                <nav class="account-nav">
+                    <a href="/?view=account" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="8" r="5"/>
+                            <path d="M20 21a8 8 0 0 0-16 0"/>
+                        </svg>
+                        {{ 'My Profile'|trans }}
+                    </a>
+                    <a href="/?view=account-orders" class="account-navLink account-navLink--active">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                            <path d="M3 6h18"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        {{ 'My Orders'|trans }}
+                    </a>
+                    <a href="/?view=account-addresses" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        {{ 'My Addresses'|trans }}
+                    </a>
+                    <a href="/?view=wishlist" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                        </svg>
+                        {{ 'My Wishlist'|trans }}
+                    </a>
+                    <hr class="account-navDivider">
+                    <button type="button" class="account-navLink account-navLink--logout" @click="window.logout()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16,17 21,12 16,7"/>
+                            <line x1="21" x2="9" y1="12" y2="12"/>
+                        </svg>
+                        {{ 'Logout'|trans }}
+                    </button>
+                </nav>
+            </aside>
+
+            {# Main Content #}
+            <main class="account-main">
+                {% if orders is iterable and orders|length > 0 %}
+                    {# Orders count #}
+                    <div class="orders-header">
+                        <span class="orders-count">{{ orders|length }} {{ orders|length > 1 ? 'orders'|trans : 'order'|trans }}</span>
+                    </div>
+
+                    <div class="orders-list">
+                        {% for order in orders %}
+                            {# Get order products via separate API call #}
+                            {% set orderProducts = resources('/api/front/account/order_products', {'order.id': order.id}) %}
+
+                            <article class="order-card">
+                                {# Header #}
+                                <header class="order-header">
+                                    <div class="order-headerLeft">
+                                        <div class="order-icon">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                                <path d="M3 6h18"/>
+                                            </svg>
+                                        </div>
+                                        <div class="order-meta">
+                                            <h3 class="order-ref">{{ order.ref }}</h3>
+                                            <time class="order-date" datetime="{{ order.createdAt|date('Y-m-d') }}">
+                                                {{ order.createdAt|date('d F Y'|trans) }} {{ 'at'|trans }} {{ order.createdAt|date('H:i') }}
+                                            </time>
+                                        </div>
+                                    </div>
+                                    {% set statusCode = order.orderStatus.code|default('pending') %}
+                                    {% set statusTitle = order.orderStatus.i18ns.title|default(order.orderStatus.code|default('Pending')) %}
+                                    <span class="order-status order-status--{{ statusCode }}">
+                                        <span class="order-statusDot"></span>
+                                        {{ statusTitle }}
+                                    </span>
+                                </header>
+
+                                {# Products #}
+                                <div class="order-products">
+                                    {% for orderProduct in orderProducts|slice(0, 4) %}
+                                        {# Get product data #}
+                                        {% set productId = orderProduct.productId|default(null) %}
+                                        {% set productImage = null %}
+                                        {% set productTitle = orderProduct.title|default('Product') %}
+                                        {% if productId %}
+                                            {# Get product info from API #}
+                                            {% set product = resources('/api/front/products/' ~ productId) %}
+                                            {% if product %}
+                                                {% set productTitle = product.i18ns.title|default(productTitle) %}
+                                            {% endif %}
+                                            {# Get product image #}
+                                            {% set productImages = resources('/api/front/product_images', {'product.id': productId, 'itemsPerPage': 1}) %}
+                                            {% if productImages|length > 0 %}
+                                                {% set productImage = productImages|first %}
+                                            {% endif %}
+                                        {% endif %}
+
+                                        <div class="order-product">
+                                            {% if orderProduct.quantity > 1 %}
+                                                <span class="order-productQty">{{ orderProduct.quantity }}</span>
+                                            {% endif %}
+                                            <div class="order-productImage">
+                                                {% if productImage %}
+                                                    <img src="/legacy-image-library/product_image_{{ productImage.id }}/full/%5E*!80,80/0/default.webp"
+                                                         alt="{{ productTitle }}"
+                                                         loading="lazy">
+                                                {% else %}
+                                                    <div class="order-productPlaceholder">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                                                            <circle cx="9" cy="9" r="2"/>
+                                                            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                                                        </svg>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="order-productInfo">
+                                                <span class="order-productTitle">{{ productTitle }}</span>
+                                                {% set itemPrice = orderProduct.unitTaxedPrice|default(0) %}
+                                                <span class="order-productPrice">{{ itemPrice|format_currency('EUR', locale: lang_code) }}</span>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="order-noProducts">
+                                            <span>{{ 'No products'|trans }}</span>
+                                        </div>
+                                    {% endfor %}
+
+                                    {% if orderProducts|length > 4 %}
+                                        <div class="order-moreProducts">
+                                            <span>+{{ orderProducts|length - 4 }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {# Footer #}
+                                <footer class="order-footer">
+                                    <div class="order-totals">
+                                        <div class="order-totalRow">
+                                            <span class="order-totalLabel">{{ 'Subtotal'|trans }}</span>
+                                            <span class="order-totalValue">{{ order.totalAmountWithTaxesAfterDiscount|format_currency('EUR', locale: lang_code) }}</span>
+                                        </div>
+                                        <div class="order-totalRow">
+                                            <span class="order-totalLabel">{{ 'Shipping'|trans }}</span>
+                                            <span class="order-totalValue">{{ order.totalShippingWithTaxes|format_currency('EUR', locale: lang_code) }}</span>
+                                        </div>
+                                        {% if order.amountDiscountWithTaxes > 0 %}
+                                            <div class="order-totalRow order-totalRow--discount">
+                                                <span class="order-totalLabel">{{ 'Discount'|trans }}</span>
+                                                <span class="order-totalValue">-{{ order.amountDiscountWithTaxes|format_currency('EUR', locale: lang_code) }}</span>
+                                            </div>
+                                        {% endif %}
+                                        <div class="order-totalRow order-totalRow--final">
+                                            <span class="order-totalLabel">{{ 'Total'|trans }}</span>
+                                            <span class="order-totalValue">{{ order.totalAmount|format_currency('EUR', locale: lang_code) }}</span>
+                                        </div>
+                                    </div>
+                                    <a href="/?view=account-order&order_id={{ order.id }}" class="order-viewBtn">
+                                        {{ 'View Order'|trans }}
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="m9 18 6-6-6-6"/>
+                                        </svg>
+                                    </a>
+                                </footer>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="orders-empty">
+                        <div class="orders-emptyIcon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                <path d="M3 6h18"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                        </div>
+                        <h2>{{ 'No orders yet'|trans }}</h2>
+                        <p>{{ "You haven't placed any orders yet. Start shopping to see your orders here."|trans }}</p>
+                        <a href="{{ path('index') }}" class="orders-emptyBtn">
+                            {{ 'Start Shopping'|trans }}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14"/>
+                                <path d="m12 5 7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Page Layout */
+.account-page {
+    min-height: 100vh;
+    background-color: var(--color-surface, #f2f0ea);
+    padding: 24px 0 64px;
+}
+
+/* Breadcrumb */
+.account-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--color-text-light, #6b7280);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.account-breadcrumb a {
+    color: var(--color-text-light, #6b7280);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.account-breadcrumb a:hover {
+    color: var(--color-text, #010101);
+}
+
+/* Page Header */
+.account-pageHeader {
+    margin-bottom: 32px;
+}
+
+.account-pageTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text, #010101);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+}
+
+.account-pageSubtitle {
+    font-size: 1rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0;
+}
+
+/* Layout Grid */
+.account-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+}
+
+@media (min-width: 1024px) {
+    .account-layout {
+        grid-template-columns: 260px 1fr;
+    }
+}
+
+/* Sidebar */
+.account-sidebar {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 12px;
+    height: fit-content;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.account-navLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.account-navLink:hover {
+    background-color: var(--color-surface, #f2f0ea);
+}
+
+.account-navLink--active {
+    background-color: var(--color-primary, #010101);
+    color: white;
+}
+
+.account-navLink--active:hover {
+    background-color: var(--color-primary, #010101);
+}
+
+.account-navLink--logout {
+    color: #dc2626;
+}
+
+.account-navLink--logout:hover {
+    background-color: #fef2f2;
+}
+
+.account-navDivider {
+    border: none;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    margin: 8px 4px;
+}
+
+/* Main Content */
+.account-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Orders Header */
+.orders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.orders-count {
+    font-size: 0.875rem;
+    color: var(--color-text-light, #6b7280);
+    font-weight: 500;
+}
+
+/* Orders List */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Order Card */
+.order-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+}
+
+/* Order Header */
+.order-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: linear-gradient(to right, #fafafa, #fff);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.order-headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.order-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--color-primary, #010101);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.order-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.order-ref {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0;
+}
+
+.order-date {
+    font-size: 0.8125rem;
+    color: var(--color-text-light, #6b7280);
+}
+
+/* Order Status */
+.order-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-radius: 20px;
+}
+
+.order-statusDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.order-status--paid,
+.order-status--processing {
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+.order-status--sent,
+.order-status--delivered {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.order-status--canceled,
+.order-status--refunded {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.order-status--pending,
+.order-status--not_paid {
+    background-color: #fffbeb;
+    color: #d97706;
+}
+
+/* Order Products */
+.order-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 20px 24px;
+    background: #fff;
+    align-items: flex-start;
+}
+
+.order-product {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px 10px 10px;
+    background: #f9fafb;
+    border-radius: 12px;
+    max-width: 240px;
+    transition: background 0.2s;
+}
+
+.order-product:hover {
+    background: #f3f4f6;
+}
+
+.order-productImage {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.order-productImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.order-productPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d1d5db;
+    background: #f9fafb;
+}
+
+.order-productQty {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--color-primary, #010101);
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.order-productInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.order-productTitle {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.order-productPrice {
+    font-size: 0.75rem;
+    color: var(--color-text-light, #6b7280);
+}
+
+.order-noProducts {
+    padding: 16px 20px;
+    color: var(--color-text-light, #9ca3af);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+.order-moreProducts {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-light, #6b7280);
+}
+
+/* Order Footer */
+.order-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 24px;
+    background: #fafafa;
+    border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+@media (min-width: 640px) {
+    .order-footer {
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+    }
+}
+
+.order-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    margin-left: auto;
+}
+
+.order-totalRow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
+}
+
+.order-totalLabel {
+    font-size: 0.6875rem;
+    color: var(--color-text-light, #9ca3af);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.order-totalValue {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.order-totalRow--discount .order-totalValue {
+    color: #059669;
+}
+
+.order-totalRow--final .order-totalValue {
+    font-size: 1.125rem;
+    color: var(--color-primary, #010101);
+}
+
+.order-viewBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    background: var(--color-primary, #010101);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.order-viewBtn:hover {
+    background: #1a1a1a;
+    transform: translateY(-1px);
+}
+
+/* Empty State */
+.orders-empty {
+    text-align: center;
+    padding: 80px 32px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.orders-emptyIcon {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 28px;
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+}
+
+.orders-empty h2 {
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 10px;
+}
+
+.orders-empty p {
+    font-size: 1rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0 0 28px;
+    max-width: 360px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+.orders-emptyBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background: var(--color-primary, #010101);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.orders-emptyBtn:hover {
+    background: #1a1a1a;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .order-header {
+        padding: 16px 20px;
+    }
+
+    .order-products {
+        padding: 16px 20px;
+    }
+
+    .order-footer {
+        padding: 16px 20px;
+    }
+
+    .order-product {
+        max-width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .order-productTitle {
+        max-width: none;
+    }
+}
+</style>
+
+<script>
+function logout() {
+    fetch('/moderna-api/auth/logout', { method: 'POST', credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+            console.log('Logout response:', data);
+            const customerId = data.customer_id;
+            if (window.clearCartDisplay) window.clearCartDisplay();
+            if (window.clearWishlistDisplay) window.clearWishlistDisplay(customerId);
+            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { isLogout: true, customerId } }));
+            // Clear remember me cookie client-side to ensure it's deleted
+            document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            window.location.href = '/';
+        })
+        .catch(() => {
+            // Clear cookie even on error
+            document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            window.location.href = '/';
+        });
+}
+</script>
+{% endif %}
+{% endblock %}

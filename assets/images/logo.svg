@@ -1,0 +1,10 @@
+<svg viewBox="0 0 180 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Modern text -->
+  <text x="0" y="30" font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="28" font-weight="700" fill="#000000">Modern</text>
+  <!-- Dot -->
+  <text x="108" y="30" font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="28" font-weight="700" fill="#c9a227">.</text>
+  <!-- A as geometric shape -->
+  <g transform="translate(118, 6)">
+    <path d="M12 0L24 28H20L17 21H7L4 28H0L12 0Z M12 6L8.5 17H15.5L12 6Z" fill="#000000"/>
+  </g>
+</svg>

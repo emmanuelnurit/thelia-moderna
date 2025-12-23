@@ -1,0 +1,198 @@
+{% extends 'base.html.twig' %}
+
+{# Get category ID from route attribute #}
+{% set categoryId = attr('category', 'id') %}
+{% set categoryData = resources('/api/front/categories/' ~ categoryId) %}
+
+{% block title %}{{ categoryData.i18ns.title|default('Category') }} - {{ store_name }}{% endblock %}
+
+{% block meta_description %}{{ categoryData.i18ns.description|default('') }}{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <div class="container">
+        <ol class="breadcrumb-list">
+            <li class="breadcrumb-item">
+                <a href="/">{{ 'Home'|trans }}</a>
+            </li>
+            <li class="breadcrumb-item breadcrumb-current" aria-current="page">
+                {{ categoryData.i18ns.title|default('Category') }}
+            </li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block body %}
+{# Fetch products for this category #}
+{% set categoryProducts = resources('/api/front/products', {
+    'productCategories.category.id': categoryId,
+    'visible': true,
+    'itemsPerPage': 12
+}) %}
+
+<div class="category-page">
+    <div class="container">
+        {# Category Header #}
+        <header class="category-header">
+            <h1 class="category-title">{{ categoryData.i18ns.title }}</h1>
+            {% if categoryData.i18ns.description %}
+                <div class="category-description">{{ categoryData.i18ns.description|raw }}</div>
+            {% endif %}
+            {% if categoryProducts is iterable %}
+                <p class="category-count">{{ categoryProducts|length }} {{ 'products'|trans }}</p>
+            {% endif %}
+        </header>
+
+        {# Products Grid #}
+        {% if categoryProducts is iterable and categoryProducts|length > 0 %}
+        <div class="products-grid">
+            {% for product in categoryProducts %}
+                {% include 'components/Product/ProductCard.html.twig' with { product: product } %}
+            {% endfor %}
+        </div>
+        {% else %}
+        {# Empty state #}
+        <div class="category-empty">
+            <div class="category-emptyIcon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+            </div>
+            <h2 class="category-emptyTitle">{{ 'No products found'|trans }}</h2>
+            <p class="category-emptyText">{{ 'This category does not contain any products yet.'|trans }}</p>
+            <a href="/" class="btn btn-primary">
+                {{ 'Back to Home'|trans }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.category-page {
+    padding: 32px 0 80px;
+    min-height: 60vh;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    padding: 16px 0;
+    background-color: var(--color-surface);
+}
+
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumb-item::after {
+    content: '/';
+    color: var(--color-text-light);
+}
+
+.breadcrumb-item:last-child::after {
+    display: none;
+}
+
+.breadcrumb-item a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--color-text);
+}
+
+.breadcrumb-current {
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* Category Header */
+.category-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.category-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.category-description {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    max-width: 640px;
+    margin: 0 auto 12px;
+    line-height: 1.6;
+}
+
+.category-count {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    margin: 0;
+}
+
+/* Products Grid */
+.products-grid {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .products-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Empty state */
+.category-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 24px;
+}
+
+.category-emptyIcon {
+    margin-bottom: 24px;
+    color: var(--color-border);
+}
+
+.category-emptyTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.category-emptyText {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 32px;
+    max-width: 400px;
+}
+</style>
+{% endblock %}

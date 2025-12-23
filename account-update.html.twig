@@ -1,0 +1,431 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'Update Profile'|trans }} - {{ store_name|default('Modern.A') }}{% endblock %}
+
+{# Get customer data from API #}
+{% set customerId = attr('customer', 'id') %}
+
+{% block body %}
+{# Redirect to login if not authenticated #}
+{% if not customerId %}
+    <script>window.location.href = '/?view=login&redirect=' + encodeURIComponent(window.location.href);</script>
+{% else %}
+{% set customer = resources('/api/front/account/customers/' ~ customerId) %}
+<div class="account-page">
+    <div class="container">
+        {# Breadcrumb #}
+        <nav class="account-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ path('index') }}">{{ 'Home'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <a href="/?view=account">{{ 'My Account'|trans }}</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+            <span>{{ 'Update Profile'|trans }}</span>
+        </nav>
+
+        {# Page Header #}
+        <div class="account-pageHeader">
+            <div class="account-pageHeaderContent">
+                <h1 class="account-pageTitle">{{ 'Update Profile'|trans }}</h1>
+                <p class="account-pageSubtitle">{{ 'Edit your personal information'|trans }}</p>
+            </div>
+        </div>
+
+        <div class="account-layout">
+            {# Sidebar Navigation #}
+            <aside class="account-sidebar">
+                <nav class="account-nav">
+                    <a href="/?view=account" class="account-navLink account-navLink--active">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="8" r="5"/>
+                            <path d="M20 21a8 8 0 0 0-16 0"/>
+                        </svg>
+                        {{ 'My Profile'|trans }}
+                    </a>
+                    <a href="/?view=account-orders" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                            <path d="M3 6h18"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        {{ 'My Orders'|trans }}
+                    </a>
+                    <a href="/?view=account-addresses" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        {{ 'My Addresses'|trans }}
+                    </a>
+                    <a href="/?view=wishlist" class="account-navLink">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                        </svg>
+                        {{ 'My Wishlist'|trans }}
+                    </a>
+                    <hr class="account-navDivider">
+                    <button type="button" class="account-navLink account-navLink--logout" @click="window.logout()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16,17 21,12 16,7"/>
+                            <line x1="21" x2="9" y1="12" y2="12"/>
+                        </svg>
+                        {{ 'Logout'|trans }}
+                    </button>
+                </nav>
+            </aside>
+
+            {# Main Content #}
+            <main class="account-main">
+                {# Error Message #}
+                {% if app.request.get('error') %}
+                <div class="account-alert account-alert--error" style="margin-bottom: 24px;">
+                    {% if app.request.get('error') == 'invalid_token' %}
+                        {{ 'Invalid security token. Please try again.'|trans }}
+                    {% else %}
+                        {{ app.request.get('error') }}
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {# Update Profile Form #}
+                <div class="account-card">
+                    <div class="account-cardHeader">
+                        <h2 class="account-cardTitle">{{ 'Personal Information'|trans }}</h2>
+                    </div>
+                    <div class="account-cardBody">
+                        <form action="/moderna-api/account/customer/update" method="POST" class="account-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('customer_update') }}">
+
+                            <div class="account-formRow">
+                                <div class="account-formGroup">
+                                    <label for="title" class="account-label">{{ 'Title'|trans }}</label>
+                                    <select id="title" name="title" class="account-input" required>
+                                        <option value="1" {% if customer.customerTitle.id|default(1) == 1 %}selected{% endif %}>{{ 'Mr.'|trans }}</option>
+                                        <option value="2" {% if customer.customerTitle.id|default(1) == 2 %}selected{% endif %}>{{ 'Mrs.'|trans }}</option>
+                                        <option value="3" {% if customer.customerTitle.id|default(1) == 3 %}selected{% endif %}>{{ 'Miss'|trans }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="account-formRow">
+                                <div class="account-formGroup">
+                                    <label for="firstname" class="account-label">{{ 'First Name'|trans }}</label>
+                                    <input type="text" id="firstname" name="firstname" value="{{ customer.firstname }}" class="account-input" required>
+                                </div>
+                                <div class="account-formGroup">
+                                    <label for="lastname" class="account-label">{{ 'Last Name'|trans }}</label>
+                                    <input type="text" id="lastname" name="lastname" value="{{ customer.lastname }}" class="account-input" required>
+                                </div>
+                            </div>
+                            <div class="account-formGroup">
+                                <label for="email" class="account-label">{{ 'Email'|trans }}</label>
+                                <input type="email" id="email" name="email" value="{{ customer.email }}" class="account-input" required>
+                            </div>
+
+                            <div class="account-formActions">
+                                <a href="/?view=account" class="account-btnSecondary">{{ 'Cancel'|trans }}</a>
+                                <button type="submit" class="account-btnPrimary">
+                                    {{ 'Save Changes'|trans }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<style>
+.account-page {
+    min-height: 100vh;
+    background-color: var(--color-surface, #f2f0ea);
+    padding: 24px 0 48px;
+}
+
+.account-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--color-text-light, #6b7280);
+    margin-bottom: 24px;
+}
+
+.account-breadcrumb a {
+    color: var(--color-text-light, #6b7280);
+    text-decoration: none;
+}
+
+.account-breadcrumb a:hover {
+    color: var(--color-text, #010101);
+}
+
+.account-pageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.account-pageHeaderContent {
+    flex: 1;
+}
+
+.account-pageTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0 0 4px;
+}
+
+.account-pageSubtitle {
+    font-size: 0.9375rem;
+    color: var(--color-text-light, #6b7280);
+    margin: 0;
+}
+
+.account-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+@media (min-width: 1024px) {
+    .account-layout {
+        grid-template-columns: 280px 1fr;
+    }
+}
+
+/* Sidebar */
+.account-sidebar {
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    padding: 16px;
+    height: fit-content;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.account-navLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    text-decoration: none;
+    border-radius: var(--radius-md, 8px);
+    transition: background-color 0.2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.account-navLink:hover {
+    background-color: var(--color-surface, #f2f0ea);
+}
+
+.account-navLink--active {
+    background-color: var(--color-primary, #010101);
+    color: white;
+}
+
+.account-navLink--active:hover {
+    background-color: var(--color-primary, #010101);
+}
+
+.account-navLink--logout {
+    color: #dc2626;
+}
+
+.account-navLink--logout:hover {
+    background-color: #fef2f2;
+}
+
+.account-navDivider {
+    border: none;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    margin: 8px 0;
+}
+
+/* Main Content */
+.account-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.account-card {
+    background-color: var(--color-white, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+}
+
+.account-cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.account-cardTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text, #010101);
+    margin: 0;
+}
+
+.account-cardBody {
+    padding: 24px;
+}
+
+/* Form Styles */
+.account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.account-formRow {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 640px) {
+    .account-formRow {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.account-formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.account-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+}
+
+.account-input {
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.account-input:focus {
+    outline: none;
+    border-color: var(--color-primary, #010101);
+    box-shadow: 0 0 0 3px rgba(1, 1, 1, 0.1);
+}
+
+.account-formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+}
+
+.account-btnPrimary {
+    padding: 12px 24px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: white;
+    background-color: var(--color-primary, #010101);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.account-btnPrimary:hover {
+    background-color: #1a1a1a;
+}
+
+.account-btnPrimary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.account-btnSecondary {
+    padding: 12px 24px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text, #010101);
+    background-color: transparent;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: border-color 0.2s;
+}
+
+.account-btnSecondary:hover {
+    border-color: var(--color-primary, #010101);
+}
+
+/* Alerts */
+.account-alert {
+    padding: 12px 16px;
+    border-radius: var(--radius-md, 8px);
+    font-size: 0.875rem;
+}
+
+.account-alert--error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.account-alert--success {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+</style>
+
+<script>
+function logout() {
+    fetch('/moderna-api/auth/logout', { method: 'POST', credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+            console.log('Logout response:', data);
+            const customerId = data.customer_id;
+            if (window.clearCartDisplay) window.clearCartDisplay();
+            if (window.clearWishlistDisplay) window.clearWishlistDisplay(customerId);
+            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { isLogout: true, customerId } }));
+            // Clear remember me cookie client-side to ensure it's deleted
+            document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            window.location.href = '/';
+        })
+        .catch(() => {
+            // Clear cookie even on error
+            document.cookie = 'crmcn=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
+            window.location.href = '/';
+        });
+}
+</script>
+{% endif %}
+{% endblock %}

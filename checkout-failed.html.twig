@@ -1,0 +1,287 @@
+{% extends 'checkout-base.html.twig' %}
+
+{% block title %}
+    {{ 'Payment Failed'|trans }} - {{ parent() }}
+{% endblock %}
+
+{% set current = 'payment' %}
+
+{% block checkoutContent %}
+    <div class="payment-failed">
+        {# Error Icon #}
+        <div class="failed-icon">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+        </div>
+
+        {# Error Message #}
+        <h1 class="failed-title">{{ 'Payment Failed'|trans }}</h1>
+        <p class="failed-subtitle">{{ 'Unfortunately, your payment could not be processed.'|trans }}</p>
+
+        {# Error Details #}
+        {% set errorMessage = app.request.get('error') %}
+        {% if errorMessage %}
+            <div class="error-details">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p>{{ errorMessage }}</p>
+            </div>
+        {% endif %}
+
+        {# Possible Reasons #}
+        <div class="failure-reasons">
+            <h2>{{ 'Possible reasons'|trans }}:</h2>
+            <ul>
+                <li>{{ 'Insufficient funds in your account'|trans }}</li>
+                <li>{{ 'Card details entered incorrectly'|trans }}</li>
+                <li>{{ 'Card expired or blocked'|trans }}</li>
+                <li>{{ 'Transaction declined by your bank'|trans }}</li>
+                <li>{{ 'Connection timeout during payment'|trans }}</li>
+            </ul>
+        </div>
+
+        {# Help Section #}
+        <div class="help-section">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <p>{{ 'If the problem persists, please contact our customer service or try a different payment method.'|trans }}</p>
+        </div>
+
+        {# Action Buttons #}
+        <div class="failed-actions">
+            <a href="/?view=checkout-payment" class="btn btn-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                    <path d="M21 3v5h-5"/>
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                    <path d="M8 16H3v5"/>
+                </svg>
+                {{ 'Try Again'|trans }}
+            </a>
+            <a href="/?view=cart" class="btn btn-secondary">
+                {{ 'Return to Cart'|trans }}
+            </a>
+            <a href="/?view=contact" class="btn btn-link">
+                {{ 'Contact Support'|trans }}
+            </a>
+        </div>
+
+        {# Security Notice #}
+        <div class="security-notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <p>{{ 'Your payment information is secure and no charges have been made to your account.'|trans }}</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block checkoutSummary %}
+    {# No sidebar for failed page #}
+{% endblock %}
+
+{% block checkoutNextButton %}
+    {# No next button for failed page #}
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.payment-failed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 48px 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.failed-icon {
+    margin-bottom: 24px;
+    animation: shake 0.5s ease-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.failed-icon svg {
+    filter: drop-shadow(0 4px 12px rgba(220, 38, 38, 0.3));
+}
+
+.failed-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: #dc2626;
+}
+
+.failed-subtitle {
+    font-size: 18px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0 0 24px;
+    max-width: 500px;
+}
+
+.error-details {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    text-align: left;
+    width: 100%;
+    max-width: 500px;
+}
+
+.error-details svg {
+    flex-shrink: 0;
+    color: #dc2626;
+}
+
+.error-details p {
+    margin: 0;
+    font-size: 14px;
+    color: #991b1b;
+}
+
+.failure-reasons {
+    width: 100%;
+    max-width: 500px;
+    text-align: left;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.failure-reasons h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 12px;
+}
+
+.failure-reasons ul {
+    margin: 0;
+    padding: 0 0 0 20px;
+}
+
+.failure-reasons li {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.7);
+    margin-bottom: 8px;
+}
+
+.failure-reasons li:last-child {
+    margin-bottom: 0;
+}
+
+.help-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    margin-bottom: 32px;
+    text-align: left;
+    width: 100%;
+    max-width: 500px;
+}
+
+.help-section svg {
+    flex-shrink: 0;
+    color: #d97706;
+}
+
+.help-section p {
+    margin: 0;
+    font-size: 14px;
+    color: #92400e;
+}
+
+.failed-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.failed-actions .btn {
+    min-width: 150px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: rgba(0, 0, 0, 0.6);
+    padding: 12px 16px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.btn-link:hover {
+    color: var(--color-primary, #000);
+}
+
+.security-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.security-notice svg {
+    color: #16a34a;
+}
+
+.security-notice p {
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .payment-failed {
+        padding: 32px 20px;
+    }
+
+    .failed-title {
+        font-size: 24px;
+    }
+
+    .failed-subtitle {
+        font-size: 16px;
+    }
+
+    .failed-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .failed-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

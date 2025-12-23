@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="http://thelia.net/schema/dic/template">
+    <descriptive locale="en_US">
+        <title>Modern.A</title>
+        <subtitle>Modern E-commerce Template</subtitle>
+        <description>A modern, elegant e-commerce template with Tailwind CSS and Alpine.js. Features cart, wishlist, toast notifications, and a beautiful responsive design.</description>
+    </descriptive>
+    <descriptive locale="fr_FR">
+        <title>Modern.A</title>
+        <subtitle>Template E-commerce Moderne</subtitle>
+        <description>Un template e-commerce moderne et élégant avec Tailwind CSS et Alpine.js. Inclut panier, wishlist, notifications toast et un design responsive magnifique.</description>
+    </descriptive>
+    <languages>
+        <language>en_US</language>
+        <language>fr_FR</language>
+    </languages>
+    <version>1.0.0</version>
+    <authors>
+        <author>
+            <name>Thelia team</name>
+            <email>contact@thelia.net</email>
+            <website>https://thelia.net</website>
+        </author>
+    </authors>
+    <thelia>2.6.0</thelia>
+    <stability>prod</stability>
+    <assets>dist</assets>
+</template>

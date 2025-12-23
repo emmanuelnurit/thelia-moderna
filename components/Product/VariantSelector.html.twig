@@ -1,0 +1,212 @@
+{#
+  Variant Selector Component
+  For color/size selection like in the design reference
+#}
+{% set attributeGroups = {} %}
+
+{# Group PSEs by attribute type #}
+{% for pse in pses %}
+    {% for av in pse.attributeCombinations %}
+        {% set attrId = av.attribute.id %}
+        {% set attrTitle = av.attribute.i18ns.title %}
+        {% set avId = av.attributeAv.id %}
+        {% set avTitle = av.attributeAv.i18ns.title %}
+
+        {% if attributeGroups[attrId] is not defined %}
+            {% set attributeGroups = attributeGroups|merge({(attrId): {
+                id: attrId,
+                title: attrTitle,
+                values: {}
+            }}) %}
+        {% endif %}
+
+        {% if attributeGroups[attrId].values[avId] is not defined %}
+            {% set attributeGroups = attributeGroups|merge({(attrId): attributeGroups[attrId]|merge({
+                values: attributeGroups[attrId].values|merge({(avId): {
+                    id: avId,
+                    title: avTitle,
+                    pseId: pse.id,
+                    image: pse.images|first.url|default(null),
+                    inStock: pse.quantity > 0
+                }})
+            })}) %}
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+
+<div class="variant-selector">
+    {% for attrId, attr in attributeGroups %}
+        <div class="variant-group" x-data="{ selectedValue: null }">
+            <div class="variant-label">
+                <span class="variant-labelTitle">{{ attr.title }}</span>
+                <span class="variant-labelValue" x-show="selectedValue" x-text="selectedValue" x-cloak></span>
+            </div>
+
+            <div class="variant-options {% if attr.title|lower == 'color' or attr.title|lower == 'couleur' %}variant-options--color{% else %}variant-options--size{% endif %}">
+                {% for avId, av in attr.values %}
+                    {% if attr.title|lower == 'color' or attr.title|lower == 'couleur' %}
+                        {# Color Swatch #}
+                        <button
+                            type="button"
+                            class="variant-color"
+                            :class="{ 'is-active': selectedPseId === {{ av.pseId }} }"
+                            @click="selectedValue = '{{ av.title }}'; selectVariant({{ av.pseId }})"
+                            title="{{ av.title }}"
+                            {% if not av.inStock %}disabled{% endif %}
+                        >
+                            {% if av.image %}
+                                <img src="{{ av.image }}" alt="{{ av.title }}">
+                            {% else %}
+                                <span class="variant-colorSwatch" style="background-color: {{ av.title|lower }};"></span>
+                            {% endif %}
+                        </button>
+                    {% else %}
+                        {# Size Button #}
+                        <button
+                            type="button"
+                            class="variant-size"
+                            :class="{ 'is-active': selectedPseId === {{ av.pseId }} }"
+                            @click="selectedValue = '{{ av.title }}'; selectVariant({{ av.pseId }})"
+                            {% if not av.inStock %}disabled{% endif %}
+                        >
+                            {{ av.title }}
+                        </button>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {# Size Guide Link #}
+            {% if attr.title|lower == 'size' or attr.title|lower == 'taille' %}
+                <a href="#" class="variant-sizeGuide">{{ 'Size guide'|trans }}</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+.variant-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.variant-group {
+    /* Group container */
+}
+
+.variant-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 0.875rem;
+}
+
+.variant-labelTitle {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.variant-labelValue {
+    color: var(--color-text-muted);
+}
+
+.variant-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Color Swatches */
+.variant-options--color {
+    gap: 12px;
+}
+
+.variant-color {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--color-white);
+    transition: border-color var(--transition-fast);
+
+    &:hover:not(:disabled) {
+        border-color: var(--color-text-muted);
+    }
+
+    &.is-active {
+        border-color: var(--color-primary);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.variant-colorSwatch {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Size Buttons */
+.variant-options--size {
+    gap: 8px;
+}
+
+.variant-size {
+    min-width: 56px;
+    height: 48px;
+    padding: 0 16px;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:hover:not(:disabled) {
+        border-color: var(--color-primary);
+    }
+
+    &.is-active {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: var(--color-white);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
+.variant-sizeGuide {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    text-decoration: underline;
+
+    &:hover {
+        color: var(--color-text);
+    }
+}
+
+[x-cloak] {
+    display: none !important;
+}
+</style>
