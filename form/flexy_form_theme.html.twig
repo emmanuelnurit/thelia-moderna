@@ -1,0 +1,187 @@
+{% use 'form_div_layout.html.twig' %}
+
+
+{%- block form_label -%}
+    {% if label and not hideLabel %}
+        <div class="FieldInput-header">
+            {%- set label_attr = label_attr|merge({ class: label_attr.class|default(label_class|default('FieldInput-label')) }) -%}
+            {{- parent() -}}
+            {% if not required %}<span class="paragraph-5 mr-auto ml-2">({{ 'optional'|trans }})</span>{% endif %}
+            {% if tooltip %}
+                {% include '@components/Molecules/Tooltip/Tooltip.html.twig' with {tooltip: tooltip, position: 'bottom'} %}
+            {% endif %}
+            {{- form_help(form) -}}
+        </div>
+    {% endif %}
+{%- endblock form_label -%}
+
+{% block form_help -%}
+    {%- if help -%}
+        {% include '@components/Molecules/Tooltip/Tooltip.html.twig' with {tooltip: help, position: 'bottom'} %}
+    {%- endif -%}
+{%- endblock form_help %}
+
+
+{# WIDGET #}
+
+{%- block form_widget_simple -%}
+  {%- set type = type|default('text') -%}
+
+  {% if  type in ['range','file','hidden'] %}
+      <input type="{{ type }}" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}" {% endif %}/>
+  {% else %}
+      {% include "@components/Molecules/Fields/FieldInput/FieldInput.html.twig" %}
+  {% endif %}
+{%- endblock form_widget_simple -%}
+
+{%- block password_widget -%}
+    {% set attr = attr|merge({
+        type: "password",
+        'data-password-target' : "input",
+        'data-action' : 'input->password#control'
+    }) %}
+    <div {{ stimulus_controller('password') }}>
+        {% include "@components/Molecules/Fields/FieldInput/FieldInput.html.twig"%}
+        {% if attr.password_control %}
+            {% include "@components/Molecules/PasswordControls/PasswordControls.html.twig" %}
+        {% endif %}
+    </div>
+{%- endblock password_widget -%}
+
+{%- block textarea_widget -%}
+    {% include "@components/Molecules/Fields/FieldTextArea/FieldTextArea.html.twig" %}
+{%- endblock textarea_widget -%}
+
+{%- block money_widget -%}
+    {% include "@components/Molecules/Fields/FieldInput/FieldInput.html.twig" with {unit: '€'} %}
+{%- endblock money_widget -%}
+
+{%- block percent_widget -%}
+    {% include "@components/Molecules/Fields/FieldInput/FieldInput.html.twig" with {unit: '%'} %}
+{%- endblock percent_widget -%}
+
+{%- block choice_widget_collapsed -%}
+    {% include "@components/Molecules/Fields/FieldSelect/FieldSelect.html.twig" %}
+{%- endblock choice_widget_collapsed -%}
+
+{%- block choice_widget_expanded -%}
+    {% set attr = attr|merge({'class' : "flex flex-col gap-2"}) %}
+    <div {{ block('widget_container_attributes') }}>
+        {%- for child in form %}
+            {{- form_row(child) -}}
+        {% endfor -%}
+    </div>
+{%- endblock choice_widget_expanded -%}
+
+{%- block radio_widget -%}
+    {% include "@components/Atoms/Form/Radio.html.twig"  %}
+{%- endblock radio_widget -%}
+
+{%- block range_widget -%}
+    {% set attr = attr|merge({'class' : "FieldRange"}) %}
+    {% set type = "range" %}
+    {{- block('form_widget_simple') -}}
+{%- endblock range_widget %}
+
+{%- block file_widget -%}
+    {% set attr = attr|merge({'class' : 'FieldFile'}) %}
+    {{- block('form_widget_simple') -}}
+{%- endblock file_widget %}
+
+{% block pill_widget %}
+    {% include '@formTwig/fields/pill.html.twig' %}
+{% endblock %}
+
+{% block submit_widget %}
+    {{ component('Flexy:Button', attr|merge({
+        type: 'submit',
+        text: label,
+        size: 'large',
+        class: attr.class,
+    })) }}
+{% endblock %}
+
+{# ROW #}
+
+{%- block form_row -%}
+    {%- set default_attr = {} -%}
+    {% set row_attr = row_attr|merge({class :'FieldWrapper flex flex-col gap-1'}) %}
+
+    {%- if help -%}
+        {%- set default_attr = default_attr|merge({'aria-describedby': id ~"_help"}) -%}
+    {%- endif -%}
+
+    <div{% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
+        {{- form_label(form) -}}
+        {{- form_widget(form, {attr: default_attr}) -}}
+        {{- form_errors(form) -}}
+    </div>
+{%- endblock form_row -%}
+
+{%- block checkbox_row -%}
+    {% include "@components/Atoms/Form/Checkbox.html.twig"  %}
+{%- endblock checkbox_row -%}
+
+{%- block code_group_row -%}
+    {% set attr = attr|merge({class : 'flex justify-center gap-[10px] lg:gap-4'}) %}
+    <div {{ block('attributes') }}>
+        {%- for child in form %}
+            {{- form_widget(child, {
+                attr: {
+                    class: "FieldInput-input--verificationCode",
+                    "data-register-validation-code-target" : 'input',
+                    "data-action" : "register-validation-code#input"
+                }}) -}}
+        {% endfor -%}
+    </div>
+{%- endblock code_group_row %}
+
+{% block fieldset_row %}
+    {% set attr = attr|merge({class : attr.class~' Fieldset'}) %}
+
+    <fieldset {{ block('attributes') }}>
+        {% if label %}
+            <legend class="Fieldset-legend {{ form.vars.label_attr.class|default('') }}">{{ label }}</legend>
+        {% endif %}
+        <ul class="Fieldset-group">
+            {% for child in form %}
+                <li>
+                    {{ form_row(child, {hideLabel: true}) }}
+                </li>
+            {% endfor %}
+        </ul>
+    </fieldset>
+{% endblock %}
+
+{% block range_group_row %}
+    {% include '@formTwig/fields/delta.html.twig' %}
+{% endblock range_group_row %}
+
+{% block range_filter_row %}
+    {% include '@formTwig/fields/range_filter.html.twig' %}
+{% endblock %}
+
+{% block form_errors %}
+    {% if errors|length > 0 %}
+        {% if compound %}
+            {% set content %}
+                <ul class="flex flex-col gap-2">
+                    {%- for error in errors -%}
+                        <li>{{ error.message }}</li>
+                    {%- endfor -%}
+                </ul>
+            {% endset %}
+
+            {% include "@components/Organisms/SnackBar/SnackBar.html.twig" with {
+                text: content,
+                variant: 'error',
+                withIcon: true,
+                size: "full"
+            } %}
+        {% else %}
+            {% for error in errors %}
+                <span class='FieldInput-error'>{{ error.message }}</span>
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+{% endblock form_errors %}

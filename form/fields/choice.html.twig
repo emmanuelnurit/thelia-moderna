@@ -1,0 +1,36 @@
+{% set choices = choices|default([]) %}
+{% set value = value|default(null) %}
+{% set title = title|default('') %}
+{% set name = name|default(null) %}
+{% set inDrawer = inDrawer|default(false) %}
+{% set isRounded = isRounded|default(false) %}
+
+{% set classes = '' %}
+{% if inDrawer %}
+    {% set classes = classes ~ 'FilterChoice--drawer' %}
+{% endif %}
+{% if isRounded %}
+    {% set classes = classes ~ 'FilterChoice--rounded' %}
+{% endif %}
+
+<div class="FilterChoice {{ classes }}" {{ stimulus_controller('drawer filter-choice') }}>
+    {% if title %}
+        <div class="FilterChoice-label" {% if inDrawer %} data-action="click->drawer#toggle" data-select-label="{{ title }}" data-filter-choice-target="label" {% endif %}>
+            {{ title }}
+        </div>
+    {% endif %}
+    <div class="{% if inDrawer %}MobileDrawer sm:reset-drawer{% endif %}" {% if inDrawer %} data-drawer-target="drawer" {% endif %}>
+        <div class="MobileDrawer-header lg:hidden">
+            <button class="MobileDrawer-close" type="button" data-action="drawer#close">
+                {{ ux_icon('close') }}
+            </button>
+        </div>
+        <ul class="FilterChoice-list">
+            {% for choice in choices %}
+                <li>
+                    {{ include('@components/Molecules/Filters/FilterPill/FilterPill.html.twig', {value: choice.value, customText: choice.label, inputType: 'radio', selected: value == choice.value, name: form.vars.full_name, inDrawer: inDrawer}) }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
