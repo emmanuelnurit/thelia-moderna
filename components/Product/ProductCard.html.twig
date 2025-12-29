@@ -22,11 +22,17 @@
             {% endif %}
         </a>
 
-        {# Badges #}
-        {% if defaultPse.promo and price.promoPrice > 0 %}
-            {% set discount = ((price.price - price.promoPrice) / price.price * 100)|round %}
+        {# Badges (New / Promo) #}
+        {% if defaultPse.newness or (defaultPse.promo and price.promoPrice > 0) %}
             <div class="product-card-badges">
-                <span class="product-card-badge product-card-badge--promo">-{{ discount }}%</span>
+                {% if defaultPse.newness %}
+                    <span class="product-card-badge product-card-badge--new">{{ 'New'|trans }}</span>
+                {% endif %}
+                {% if defaultPse.promo and price.promoPrice > 0 %}
+                    <span class="product-card-badge product-card-badge--promo">
+                        -{{ (((price.price - price.promoPrice) / price.price) * 100)|round }}%
+                    </span>
+                {% endif %}
             </div>
         {% endif %}
 
@@ -144,7 +150,7 @@
 }
 
 .product-card-badge--new {
-    background-color: var(--color-primary);
+    background-color: #10b981;
     color: white;
 }
 

@@ -412,6 +412,10 @@ And %count% more item(s): Et %count% article(s) de plus
 Only %count% left in stock: Plus que %count% en stock
 All available stock is in your cart: Tout le stock disponible est dans votre panier
 in stock: en stock
+including: dont
+in your cart: dans votre panier
+available: disponible
+all in your cart: tout dans votre panier
 Notify me: Me notifier
 Notification set!: Notification activée !
 You will be notified when this product is back in stock: Vous serez notifié quand ce produit sera de nouveau en stock
@@ -611,6 +615,8 @@ Remember your password?: Vous vous souvenez de votre mot de passe ?
 Back to sign in: Retour à la connexion
 
 # Wishlist page translations
+Already have an account?: Vous avez déjà un compte ?
+Sign in: Se connecter
 Add your first favorites: Ajoutez vos premiers favoris
 View and manage your favorite products: Consultez et gérez vos produits favoris
 Save your favorites: Sauvegardez vos favoris

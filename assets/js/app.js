@@ -47,7 +47,9 @@ Alpine.store('wishlist', {
   isSyncing: false,
 
   has(productId) {
-    return this.items.some(item => item.id === productId);
+    // Convert to string for comparison to handle both number and string IDs
+    const searchId = String(productId);
+    return this.items.some(item => String(item.id) === searchId);
   },
 
   toggle(product) {
@@ -73,8 +75,10 @@ Alpine.store('wishlist', {
   },
 
   remove(productId) {
-    this.items = this.items.filter(item => item.id !== productId);
-    window.dispatchEvent(new CustomEvent('wishlist:removed', { detail: { productId } }));
+    // Convert to string for comparison to handle both number and string IDs
+    const removeId = String(productId);
+    this.items = this.items.filter(item => String(item.id) !== removeId);
+    window.dispatchEvent(new CustomEvent('wishlist:removed', { detail: { productId: removeId } }));
 
     // Sync with server if authenticated
     if (this.isAuthenticated) {

@@ -5,7 +5,9 @@
 
 {# Fetch product data from API #}
 {% set product = resources('/api/front/products/' ~ productId) %}
-{% set productCategory = product.productCategories|filter(c => c.defaultCategory)|first.category %}
+{# Get product category: prioritize default category, fallback to first category #}
+{% set defaultCategoryRelation = product.productCategories|filter(c => c.defaultCategory)|first %}
+{% set productCategory = defaultCategoryRelation ? defaultCategoryRelation.category : (product.productCategories|first ? product.productCategories|first.category : null) %}
 
 {# Get current PSE (either default or from ref parameter) #}
 {% if app.request.get('ref') %}
@@ -185,81 +187,52 @@
                 {# Availability with real-time stock display (minus quantity in cart) #}
                 <div
                     class="product-availability"
-                    x-data="{
-                        totalStock: {{ currentPse.quantity }},
-                        pseId: {{ currentPse.id }},
-                        availableStock: {{ currentPse.quantity }},
-                        quantityInCart: 0,
-
-                        async init() {
-                            await this.calculateAvailableStock();
-                        },
-
-                        async calculateAvailableStock() {
-                            try {
-                                console.log('Calculating available stock for PSE:', this.pseId);
-                                const response = await fetch('/moderna-api/cart_items');
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    const cartItems = data.cart_items || [];
-                                    console.log('Cart items:', cartItems);
-
-                                    // Try to find the item - log each comparison
-                                    let cartItem = null;
-                                    for (const item of cartItems) {
-                                        // The PSE ID is in item.productSaleElements.id
-                                        const itemPseId = item.productSaleElements?.id;
-                                        console.log('Comparing PSE:', {
-                                            itemPseId: itemPseId,
-                                            lookingFor: this.pseId,
-                                            match: itemPseId == this.pseId
-                                        });
-                                        if (itemPseId == this.pseId) {
-                                            cartItem = item;
-                                            break;
-                                        }
-                                    }
-
-                                    this.quantityInCart = cartItem ? parseInt(cartItem.quantity) || 0 : 0;
-                                    this.availableStock = Math.max(0, this.totalStock - this.quantityInCart);
-                                    console.log('Available stock calculated:', {
-                                        totalStock: this.totalStock,
-                                        quantityInCart: this.quantityInCart,
-                                        availableStock: this.availableStock,
-                                        foundCartItem: cartItem
-                                    });
-                                }
-                            } catch (error) {
-                                console.error('Error fetching cart:', error);
-                            }
-                        }
-                    }"
-                    @stock-decreased.window="availableStock = Math.max(0, availableStock - $event.detail.quantity)"
+                    x-data="stockAvailability({ totalStock: {{ currentPse.quantity }}, pseId: {{ currentPse.id }} })"
+                    x-init="await fetchCartAndCalculate()"
+                    @stock-decreased.window="quantityInCart += $event.detail.quantity; availableStock = Math.max(0, totalStock - quantityInCart)"
                 >
-                    <template x-if="availableStock > 0">
+                    {# Case 1: Stock available and some items in cart - show detailed message #}
+                    <template x-if="availableStock > 0 && quantityInCart > 0">
+                        <span class="product-inStock product-inStock--detailed">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span>
+                                <span x-text="availableStock"></span> {{ 'article(s) en stock'|trans }}
+                                <span class="product-inCart">({{ 'et'|trans }} <span x-text="quantityInCart"></span> {{ 'dans votre panier !'|trans }})</span>
+                            </span>
+                        </span>
+                    </template>
+                    {# Case 2: Stock available, nothing in cart - simple message #}
+                    <template x-if="availableStock > 0 && quantityInCart === 0">
                         <span class="product-inStock">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="20 6 9 17 4 12"/>
                             </svg>
-                            <span x-text="availableStock + ' {{ 'in stock'|trans }}'"></span>
+                            <span x-text="availableStock + ' {{ 'article(s) en stock'|trans }}'"></span>
                         </span>
                     </template>
+                    {# Case 3: No stock available but items in cart #}
                     <template x-if="availableStock === 0 && quantityInCart > 0">
-                        <span class="product-inStock" style="color: #f59e0b;">
+                        <span class="product-inStock product-inStock--warning">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
                                 <path d="M3 6h18"/>
                             </svg>
-                            {{ 'All available stock is in your cart'|trans }}
+                            <span>
+                                {{ 'Stock épuisé'|trans }}
+                                <span class="product-inCart">({{ 'tout est dans votre panier !'|trans }})</span>
+                            </span>
                         </span>
                     </template>
+                    {# Case 4: Out of stock #}
                     <template x-if="availableStock === 0 && quantityInCart === 0">
                         <span class="product-outOfStock">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 6 6 18"/>
                                 <path d="m6 6 12 12"/>
                             </svg>
-                            {{ 'Out of stock'|trans }}
+                            {{ 'Rupture de stock'|trans }}
                         </span>
                     </template>
                 </div>
@@ -273,13 +246,15 @@
                         title: '{{ product.i18ns.title|e('js') }}',
                         price: {{ defaultPrice ? defaultPrice.price : 0 }},
                         promoPrice: {{ defaultPrice ? (defaultPrice.promoPrice|default(0)) : 0 }},
+                        formattedPrice: '{{ defaultPrice ? defaultPrice.price|format_currency('EUR') : '0,00 €' }}',
+                        formattedPromoPrice: '{{ (defaultPrice and currentPse.promo and defaultPrice.promoPrice > 0) ? defaultPrice.promoPrice|format_currency('EUR') : '' }}',
                         isPromo: {{ currentPse.promo ? 'true' : 'false' }},
                         imageId: {{ initialImageId }},
                         maxQuantity: {{ currentPse.quantity }},
                         totalStock: {{ currentPse.quantity }}
                     })"
                     x-init="await initMaxQuantity()"
-                    @stock-decreased.window="maxQuantity = Math.max(0, maxQuantity - $event.detail.quantity); if (maxQuantity === 0) quantity = 0;"
+                    @stock-decreased.window="maxQuantity = Math.max(0, maxQuantity - $event.detail.quantity); if (maxQuantity === 0) quantity = 0; else if (quantity > maxQuantity) quantity = maxQuantity; $nextTick(() => { if ($refs.quantityInput) { $refs.quantityInput.removeAttribute('max'); $refs.quantityInput.setAttribute('max', maxQuantity); } });"
                 >
                     {# Quantity selector #}
                     <div class="product-quantity" x-show="maxQuantity > 0">
@@ -289,6 +264,7 @@
                             <input
                                 type="number"
                                 x-model.number="quantity"
+                                x-ref="quantityInput"
                                 min="1"
                                 :max="maxQuantity"
                                 class="product-quantityInput"
@@ -303,11 +279,20 @@
                     <button
                         type="button"
                         class="btn btn-primary product-addBtn"
-                        :class="{ 'btn-notify': maxQuantity == 0 }"
-                        :disabled="loading"
+                        :class="{ 'btn-notify': maxQuantity == 0, 'btn-notify-active': isNotifyMeActive && maxQuantity == 0 }"
+                        :disabled="loading || (isNotifyMeActive && maxQuantity == 0)"
                         @click="maxQuantity == 0 ? addToWishlistForNotification() : addToCart()"
                     >
-                            <template x-if="maxQuantity == 0">
+                            <template x-if="maxQuantity == 0 && isNotifyMeActive">
+                                <span class="product-addBtn-content">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                    {{ 'Je serai notifié'|trans }}
+                                </span>
+                            </template>
+                            <template x-if="maxQuantity == 0 && !isNotifyMeActive">
                                 <span class="product-addBtn-content">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/>
@@ -831,6 +816,11 @@
     animation: slideInRightFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Wider variant for notify toast */
+.cart-toast--notify {
+    width: 440px;
+}
+
 .cart-toast.closing {
     animation: slideOutRight 0.3s cubic-bezier(0.7, 0, 0.84, 0) forwards;
 }
@@ -1033,11 +1023,6 @@ function productAttributeSelector(config) {
                         this.currentCombination = currentPse.combination;
                     }
 
-                    console.log('Product attributes loaded:', {
-                        attributes: this.availableAttributes,
-                        pses: this.allPses,
-                        current: this.currentCombination
-                    });
                 }
             } catch (error) {
                 console.error('Error loading product attributes:', error);
@@ -1100,8 +1085,6 @@ function productAttributeSelector(config) {
 
             // Change the main image to the first image of the PSE
             if (matchingPse.images && matchingPse.images.length > 0) {
-                console.log('Changing image to:', matchingPse.images[0]);
-
                 // Dispatch event to change the gallery image
                 window.dispatchEvent(new CustomEvent('change-product-image', {
                     detail: { imageId: matchingPse.images[0] }
@@ -1114,6 +1097,33 @@ function productAttributeSelector(config) {
             } else {
                 // No images, redirect immediately
                 window.location.href = '?view=product&product_id=' + this.productId + '&ref=' + matchingPse.ref;
+            }
+        }
+    };
+}
+
+// Stock availability component - calculates available stock accounting for cart items
+function stockAvailability(config) {
+    return {
+        totalStock: config.totalStock || 0,
+        pseId: config.pseId || 0,
+        availableStock: config.totalStock || 0,
+        quantityInCart: 0,
+
+        async fetchCartAndCalculate() {
+            try {
+                const response = await fetch('/moderna-api/cart_items');
+                if (response.ok) {
+                    const data = await response.json();
+                    const cartItems = data.cart_items || [];
+
+                    // Find cart item matching this PSE (API returns product_sale_elements_id)
+                    const cartItem = cartItems.find(item => item.product_sale_elements_id === this.pseId) || null;
+                    this.quantityInCart = cartItem ? parseInt(cartItem.quantity) || 0 : 0;
+                    this.availableStock = Math.max(0, this.totalStock - this.quantityInCart);
+                }
+            } catch (error) {
+                // Silently fail - stock display will use default values
             }
         }
     };
@@ -1174,29 +1184,23 @@ function addToCartForm(config) {
         title: config.title,
         price: config.price,
         promoPrice: config.promoPrice,
+        formattedPrice: config.formattedPrice,
+        formattedPromoPrice: config.formattedPromoPrice,
         isPromo: config.isPromo,
         imageId: config.imageId,
         maxQuantity: config.maxQuantity,
         totalStock: config.totalStock,
+        isNotifyMeActive: false,
 
         async initMaxQuantity() {
             try {
-                console.log('Initializing max quantity for PSE:', this.pseId);
                 const response = await fetch('/moderna-api/cart_items');
                 if (response.ok) {
                     const data = await response.json();
                     const cartItems = data.cart_items || [];
-                    console.log('Cart items for max quantity:', cartItems);
-                    // The PSE ID is in item.productSaleElements.id
-                    const cartItem = cartItems.find(item => item.productSaleElements?.id === this.pseId) || null;
+                    const cartItem = cartItems.find(item => item.product_sale_elements_id === this.pseId) || null;
                     const quantityInCart = cartItem ? parseInt(cartItem.quantity) || 0 : 0;
                     this.maxQuantity = Math.max(0, this.totalStock - quantityInCart);
-
-                    console.log('Max quantity calculated:', {
-                        totalStock: this.totalStock,
-                        quantityInCart: quantityInCart,
-                        maxQuantity: this.maxQuantity
-                    });
 
                     // If no stock available, reset quantity to 0
                     if (this.maxQuantity === 0) {
@@ -1204,6 +1208,13 @@ function addToCartForm(config) {
                     } else if (this.quantity > this.maxQuantity) {
                         this.quantity = this.maxQuantity;
                     }
+                }
+
+                // Check if product is already in wishlist with notifyMe enabled
+                if (window.Alpine && window.Alpine.store('wishlist')) {
+                    const store = window.Alpine.store('wishlist');
+                    const wishlistItem = store.items.find(item => item.id === this.productId);
+                    this.isNotifyMeActive = wishlistItem && wishlistItem.notifyMe === true;
                 }
             } catch (error) {
                 console.error('Error initializing max quantity:', error);
@@ -1239,6 +1250,9 @@ function addToCartForm(config) {
         async addToCart() {
             this.loading = true;
 
+            // Save the quantity being added BEFORE any events modify it
+            const quantityAdded = this.quantity;
+
             try {
                 // Add item to cart via Moderna CartController
                 const response = await fetch('/cart/add', {
@@ -1250,7 +1264,7 @@ function addToCartForm(config) {
                     credentials: 'same-origin',
                     body: JSON.stringify({
                         pseId: this.pseId,
-                        quantity: this.quantity,
+                        quantity: quantityAdded,
                         append: true,
                         newness: false
                     })
@@ -1274,16 +1288,14 @@ function addToCartForm(config) {
                         detail: { count: totalCount }
                     }));
 
-                    console.log('Cart updated, dispatching stock-decreased event');
-
                     // Dispatch event to decrease available stock
                     window.dispatchEvent(new CustomEvent('stock-decreased', {
-                        detail: { quantity: this.quantity }
+                        detail: { quantity: quantityAdded }
                     }));
                 }
 
-                // Show popup
-                this.showAddedPopup();
+                // Show popup with the quantity that was actually added
+                this.showAddedPopup(quantityAdded);
 
                 // Reset added state
                 setTimeout(() => {
@@ -1291,7 +1303,6 @@ function addToCartForm(config) {
                 }, 2000);
 
             } catch (error) {
-                console.error('Error adding to cart:', error);
                 this.loading = false;
                 alert('{{ 'Error adding item to cart. Please try again.'|trans }}');
             }
@@ -1305,8 +1316,8 @@ function addToCartForm(config) {
                     title: this.title,
                     publicUrl: window.location.pathname,
                     imageId: this.imageId,
-                    price: this.isPromo && this.promoPrice ? this.promoPrice : this.price,
-                    promoPrice: this.isPromo ? this.promoPrice : null,
+                    price: this.isPromo && this.formattedPromoPrice ? this.formattedPromoPrice : this.formattedPrice,
+                    promoPrice: this.isPromo ? this.formattedPromoPrice : null,
                     isPromo: this.isPromo,
                     notifyMe: true,
                     addedAt: Date.now()
@@ -1328,6 +1339,9 @@ function addToCartForm(config) {
                     }
                 }
 
+                // Update button state to show "Je serai notifié"
+                this.isNotifyMeActive = true;
+
                 // Show notification
                 this.showNotifyMePopup();
             } catch (error) {
@@ -1343,16 +1357,16 @@ function addToCartForm(config) {
 
             // Create toast
             const toast = document.createElement('div');
-            toast.className = 'cart-toast';
+            toast.className = 'cart-toast cart-toast--notify';
             toast.innerHTML = `
                 <div class="cart-toast-content">
                     ${this.imageId ? `<img src="/legacy-image-library/product_image_${this.imageId}/full/%5E*!80,80/0/default.webp" alt="${this.title}" class="cart-toast-image">` : ''}
                     <div class="cart-toast-info">
-                        <p class="cart-toast-title">{{ 'Notification set!'|trans }}</p>
+                        <p class="cart-toast-title">{{ 'Notification activée !'|trans }}</p>
                         <p class="cart-toast-product">${this.title}</p>
-                        <p class="cart-toast-qty">{{ 'You will be notified when this product is back in stock'|trans }}</p>
+                        <p class="cart-toast-qty">{{ 'Vous serez notifié dès que ce produit sera de nouveau disponible'|trans }}</p>
                     </div>
-                    <a href="/?view=wishlist" class="cart-toast-link">{{ 'View Wishlist'|trans }}</a>
+                    <a href="/?view=wishlist" class="cart-toast-link">{{ 'Voir la liste de souhaits'|trans }}</a>
                     <button class="cart-toast-close" onclick="this.parentElement.parentElement.remove()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 6 6 18"/>
@@ -1372,7 +1386,7 @@ function addToCartForm(config) {
             }, 5000);
         },
 
-        showAddedPopup() {
+        showAddedPopup(quantityAdded) {
             // Remove existing toast
             const existing = document.querySelector('.cart-toast');
             if (existing) existing.remove();
@@ -1386,7 +1400,7 @@ function addToCartForm(config) {
                     <div class="cart-toast-info">
                         <p class="cart-toast-title">{{ 'Added to cart!'|trans }}</p>
                         <p class="cart-toast-product">${this.title}</p>
-                        <p class="cart-toast-qty">{{ 'Quantity'|trans }}: ${this.quantity}</p>
+                        <p class="cart-toast-qty">{{ 'Quantity'|trans }}: ${quantityAdded}</p>
                     </div>
                     <a href="/?view=cart" class="cart-toast-link">{{ 'View Cart'|trans }}</a>
                 </div>

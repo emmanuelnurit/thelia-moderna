@@ -118,8 +118,9 @@
                             </svg>
                             {{ 'Create an account'|trans }}
                         </a>
+                        <p class="wishlist-guestLoginText">{{ 'Already have an account?'|trans }}</p>
                         <a href="/?view=login&redirect={{ app.request.uri|url_encode }}" class="btn btn-secondary wishlist-guestBtn">
-                            {{ 'Already have an account? Sign in'|trans }}
+                            {{ 'Sign in'|trans }}
                         </a>
                     </div>
                 </div>
@@ -201,6 +202,19 @@
                                 <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                             </svg>
                         </button>
+
+                        {# Notify Me Badge - shows bell icon for products with stock notification enabled #}
+                        <div
+                            class="wishlist-notifyBadge"
+                            x-show="item.notifyMe"
+                            x-cloak
+                            :title="'{{ 'Stock notification enabled'|trans }}'"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                        </div>
                     </div>
 
                     {# Content #}
@@ -218,6 +232,26 @@
                                 </template>
                                 <template x-if="!item.isPromo || !item.promoPrice">
                                     <span class="wishlist-priceRegular" x-text="item.price"></span>
+                                </template>
+                            </div>
+                            {# Stock indicator #}
+                            <div class="wishlist-cardStock" x-show="item.stockQuantity !== null">
+                                <template x-if="item.stockQuantity > 0">
+                                    <span class="wishlist-stockInStock">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 6 9 17l-5-5"/>
+                                        </svg>
+                                        {{ 'In stock'|trans }} (<span x-text="item.stockQuantity"></span>)
+                                    </span>
+                                </template>
+                                <template x-if="item.stockQuantity === 0">
+                                    <span class="wishlist-stockOutOfStock">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 6 6 18"/>
+                                            <path d="m6 6 12 12"/>
+                                        </svg>
+                                        {{ 'Out of stock'|trans }}
+                                    </span>
                                 </template>
                             </div>
                         </div>
@@ -282,22 +316,23 @@
                                 window.addEventListener('wishlist:cleared', () => this.checkWishlist());
                             },
                             checkWishlist() {
-                                if (window.Moderna && window.Moderna.wishlist) {
-                                    this.isInWishlist = window.Moderna.wishlist.has(displayedProduct.id);
+                                if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                                    this.isInWishlist = window.Alpine.store('wishlist').has(displayedProduct.id);
                                 }
                             },
                             toggleWishlist() {
-                                if (window.Moderna && window.Moderna.wishlist) {
+                                if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
                                     const product = {
                                         id: displayedProduct.id,
                                         title: displayedProduct.title,
                                         url: displayedProduct.publicUrl,
                                         image: displayedProduct.image,
+                                        imageId: displayedProduct.imageId || 0,
                                         price: displayedProduct.price || '',
                                         promoPrice: displayedProduct.promoPrice || '',
                                         isPromo: displayedProduct.isPromo || false
                                     };
-                                    const added = window.Moderna.wishlist.toggle(product);
+                                    const added = window.Alpine.store('wishlist').toggle(product);
                                     this.isInWishlist = added;
 
                                     // Replace this product in suggestions if it was added
@@ -582,6 +617,13 @@
     background: var(--color-surface);
 }
 
+.wishlist-guestLoginText {
+    margin: 16px 0 8px;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
 .wishlist-guestNote {
     display: flex;
     align-items: flex-start;
@@ -698,6 +740,66 @@
     margin: 0;
     padding-left: 16px;
     border-left: 1px solid var(--color-border);
+}
+
+/* Bell Badge */
+.wishlist-bellBadge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 50%;
+    animation: bellRing 2s ease-in-out infinite;
+}
+
+.wishlist-bellIcon {
+    color: #d97706;
+    width: 24px;
+    height: 24px;
+}
+
+.wishlist-bellCount {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    background-color: #ef4444;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes bellRing {
+    0% {
+        transform: rotate(0);
+    }
+    5% {
+        transform: rotate(15deg);
+    }
+    10% {
+        transform: rotate(-15deg);
+    }
+    15% {
+        transform: rotate(10deg);
+    }
+    20% {
+        transform: rotate(-10deg);
+    }
+    25% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(0);
+    }
 }
 
 /* Empty state */
@@ -879,6 +981,32 @@
     text-decoration: line-through;
 }
 
+.wishlist-cardStock {
+    margin-top: 4px;
+}
+
+.wishlist-stockInStock,
+.wishlist-stockOutOfStock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.wishlist-stockInStock {
+    color: #16a34a;
+}
+
+.wishlist-stockOutOfStock {
+    color: #dc2626;
+}
+
+.wishlist-stockInStock svg,
+.wishlist-stockOutOfStock svg {
+    flex-shrink: 0;
+}
+
 .wishlist-cardActions {
     display: flex;
     align-items: center;
@@ -935,6 +1063,28 @@
     background-color: #fee2e2;
     color: #dc2626;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Notify Me Badge */
+.wishlist-notifyBadge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background-color: #f59e0b;
+    border-radius: 50%;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+}
+
+.wishlist-notifyBadge svg {
+    width: 14px;
+    height: 14px;
 }
 
 /* Footer */
@@ -1185,19 +1335,37 @@ function wishlistPage() {
         },
 
         async loadItems() {
-            console.log('[WishlistPage] loadItems called');
             // Load items from Alpine store instead of localStorage
             if (window.Alpine && window.Alpine.store('wishlist')) {
                 const storeItems = window.Alpine.store('wishlist').items;
-                console.log('[WishlistPage] Store has', storeItems.length, 'items');
 
                 this.items = await Promise.all(storeItems.map(async (item) => {
                     // Build image URL from imageId if available
                     let imageUrl = item.image || '';
                     let imageId = item.imageId;
+                    let stockQuantity = null;
 
                     if (!imageUrl && imageId) {
                         imageUrl = `/legacy-image-library/product_image_${imageId}/full/%5E*!400,400/0/default.webp`;
+                    }
+
+                    // Fetch product data including stock from API
+                    if (item.id) {
+                        try {
+                            const productResponse = await fetch(`/api/front/products/${item.id}`);
+                            if (productResponse.ok) {
+                                const productData = await productResponse.json();
+                                // Get stock from default PSE
+                                if (productData.productSaleElements && productData.productSaleElements.length > 0) {
+                                    const defaultPse = productData.productSaleElements.find(pse => pse.isDefault) || productData.productSaleElements[0];
+                                    if (defaultPse) {
+                                        stockQuantity = defaultPse.quantity || 0;
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error loading product data:', error);
+                        }
                     }
 
                     // If still no image, try to fetch from API
@@ -1228,6 +1396,8 @@ function wishlistPage() {
                         promoPrice: item.promoPrice || '',
                         isPromo: item.isPromo || false,
                         imageId: imageId,
+                        notifyMe: item.notifyMe || false,
+                        stockQuantity: stockQuantity,
                         adding: false,
                         removing: false
                     };
@@ -1245,8 +1415,8 @@ function wishlistPage() {
 
                 // Wait for animation to complete, then actually remove using Alpine store
                 setTimeout(() => {
-                    if (window.Moderna && window.Moderna.wishlist) {
-                        window.Moderna.wishlist.remove(productId);
+                    if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                        window.Alpine.store('wishlist').remove(productId);
                         this.loadItems();
                     }
                 }, 300);
@@ -1259,8 +1429,8 @@ function wishlistPage() {
 
             // Wait for animation, then clear using Alpine store
             setTimeout(() => {
-                if (window.Moderna && window.Moderna.wishlist) {
-                    window.Moderna.wishlist.clear();
+                if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                    window.Alpine.store('wishlist').clear();
                     this.loadItems();
                 }
             }, 300);

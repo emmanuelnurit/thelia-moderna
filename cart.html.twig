@@ -2,7 +2,7 @@
 
 {# Cart Page - Modern.A Template #}
 
-{% block title %}{{ 'Shopping Cart'|trans }} - {{ parent() }}{% endblock %}
+{% block title %}{{ 'Panier'|trans }} - {{ parent() }}{% endblock %}
 
 {% block body_class %}cart-page{% endblock %}
 
@@ -12,8 +12,8 @@
         <div class="container mx-auto px-4 py-6">
             {% include 'components/UI/Breadcrumb.html.twig' with {
                 items: [
-                    { label: 'Home'|trans, url: '/' },
-                    { label: 'Shopping Cart'|trans, url: null }
+                    { label: 'Accueil'|trans, url: '/' },
+                    { label: 'Panier'|trans, url: null }
                 ]
             } only %}
         </div>
@@ -37,7 +37,7 @@
                     {# Sidebar - Cart Summary #}
                     <div class="lg:col-span-5">
                         <div class="cart-sidebar sticky top-4">
-                            <h2 class="text-2xl font-semibold mb-6">{{ 'Summary'|trans }}</h2>
+                            <h2 class="text-2xl font-semibold mb-6">{{ 'Récapitulatif'|trans }}</h2>
 
                             {# Promo Code Section #}
                             {% include 'components/Cart/PromoCode.html.twig' %}
@@ -50,7 +50,7 @@
 
                             {# Checkout Button #}
                             <a href="/?view=checkout-delivery" class="btn btn-primary w-full mt-6 inline-flex items-center justify-center">
-                                {{ 'Proceed to Checkout'|trans }}
+                                {{ 'Passer commande'|trans }}
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-2" style="display: inline-block; vertical-align: middle;">
                                     <path d="M5 12h14m-7-7 7 7-7 7"/>
                                 </svg>

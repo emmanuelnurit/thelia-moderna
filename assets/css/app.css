@@ -179,6 +179,26 @@ a {
   }
 }
 
+.btn-notify {
+  background-color: var(--color-text-muted);
+  color: var(--color-white);
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-text);
+  }
+}
+
+.btn-notify-active {
+  background-color: #22c55e;
+  color: var(--color-white);
+  cursor: default;
+
+  &:disabled {
+    opacity: 1;
+    background-color: #22c55e;
+  }
+}
+
 /* ============================================
    Form Elements
    ============================================ */

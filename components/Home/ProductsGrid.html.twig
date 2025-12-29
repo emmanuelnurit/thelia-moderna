@@ -41,11 +41,18 @@
                         {% endif %}
                     </a>
 
-                    {# Promo Badge #}
-                    {% if defaultPse.promo and price.promoPrice > 0 %}
-                        <span class="product-card-badge">
-                            -{{ (((price.price - price.promoPrice) / price.price) * 100)|round }}%
-                        </span>
+                    {# Badges (New / Promo) #}
+                    {% if defaultPse.newness or (defaultPse.promo and price.promoPrice > 0) %}
+                        <div class="product-card-badges">
+                            {% if defaultPse.newness %}
+                                <span class="product-card-badge product-card-badge--new">{{ 'New'|trans }}</span>
+                            {% endif %}
+                            {% if defaultPse.promo and price.promoPrice > 0 %}
+                                <span class="product-card-badge product-card-badge--promo">
+                                    -{{ (((price.price - price.promoPrice) / price.price) * 100)|round }}%
+                                </span>
+                            {% endif %}
+                        </div>
                     {% endif %}
 
                     {# Wishlist Button #}
@@ -194,17 +201,31 @@
     color: var(--color-border);
 }
 
-.product-card-badge {
+/* Badges container for stacking */
+.product-card-badges {
     position: absolute;
     top: 12px;
     left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10;
+}
+
+.product-card-badge {
     padding: 6px 12px;
-    background-color: #ef4444;
     color: white;
     font-size: 0.75rem;
     font-weight: 600;
     border-radius: var(--radius-md);
-    z-index: 10;
+}
+
+.product-card-badge--new {
+    background-color: #10b981;
+}
+
+.product-card-badge--promo {
+    background-color: #ef4444;
 }
 
 /* Wishlist Button */

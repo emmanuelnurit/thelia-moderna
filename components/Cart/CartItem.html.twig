@@ -33,7 +33,7 @@
 >
     {# Product Image #}
     <div class="cart-item-image">
-        <a href="/?view=product&product_id={{ product.id|default('') }}">
+        <a href="/?view=product&product_id={{ product.id|default('') }}&ref={{ pse.ref|default('') }}">
             {% if productImages|length > 0 %}
                 <img src="/legacy-image-library/product_image_{{ initialImageId }}/full/%5E*!120,120/0/default.webp"
                      alt="{{ product.i18ns.title|default('Product') }}"
@@ -55,7 +55,7 @@
         <div class="cart-item-header">
             <div>
                 <h3 class="cart-item-title">
-                    <a href="/?view=product&product_id={{ product.id|default('') }}">
+                    <a href="/?view=product&product_id={{ product.id|default('') }}&ref={{ pse.ref|default('') }}">
                         {{ product.i18ns.title|default('Product') }}
                     </a>
                 </h3>
@@ -99,7 +99,7 @@
                     @click="confirmDelete()"
                     :disabled="deleting"
                     aria-label="{{ 'Remove item'|trans }}"
-                    title="{{ 'Remove from cart'|trans }}"
+                    title="{{ 'Retirer du panier'|trans }}"
                     data-delete-url="/cart/delete/{{ item.id }}"
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -162,7 +162,7 @@
                     </div>
 
                     <div class="delete-popup-info">
-                        <p class="delete-popup-label">{{ 'Deleting...'|trans }}</p>
+                        <p class="delete-popup-label">{{ 'Suppression...'|trans }}</p>
                         <button
                             type="button"
                             class="delete-popup-cancel-compact"

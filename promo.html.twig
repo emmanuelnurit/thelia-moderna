@@ -418,10 +418,14 @@
             toggle() {
                 // Use Alpine store directly
                 if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                    // Build full image URL from imageId
+                    const imageUrl = this.imageId ? `/legacy-image-library/product_image_${this.imageId}/full/%5E*!400,400/0/default.webp` : '';
+
                     const product = {
                         id: this.id,
                         title: this.title,
-                        publicUrl: this.publicUrl,
+                        url: this.publicUrl,
+                        image: imageUrl,
                         imageId: this.imageId,
                         price: this.price,
                         promoPrice: this.promoPrice,
