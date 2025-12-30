@@ -140,10 +140,10 @@
                                         <h4 class="cart-empty-wishlist-name" x-text="item.title"></h4>
                                         <div class="cart-empty-wishlist-price">
                                             <template x-if="item.isPromo && item.promoPrice">
-                                                <span x-text="item.promoPrice + ' €'" class="promo"></span>
+                                                <span x-text="item.promoPrice" class="promo"></span>
                                             </template>
                                             <template x-if="!item.isPromo || !item.promoPrice">
-                                                <span x-text="item.price + ' €'"></span>
+                                                <span x-text="item.price"></span>
                                             </template>
                                         </div>
                                     </div>
