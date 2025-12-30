@@ -255,6 +255,7 @@
                     })"
                     x-init="await initMaxQuantity()"
                     @stock-decreased.window="maxQuantity = Math.max(0, maxQuantity - $event.detail.quantity); if (maxQuantity === 0) quantity = 0; else if (quantity > maxQuantity) quantity = maxQuantity; $nextTick(() => { if ($refs.quantityInput) { $refs.quantityInput.removeAttribute('max'); $refs.quantityInput.setAttribute('max', maxQuantity); } });"
+                    @wishlist:removed.window="if ($event.detail && String($event.detail.productId) === String(productId)) { isNotifyMeActive = false; }"
                 >
                     {# Quantity selector #}
                     <div class="product-quantity" x-show="maxQuantity > 0">
