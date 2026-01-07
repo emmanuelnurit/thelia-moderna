@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FlexyBundle\EventSubscriber;
+namespace ModernaBundle\EventSubscriber;
 
 use Propel\Runtime\Propel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;

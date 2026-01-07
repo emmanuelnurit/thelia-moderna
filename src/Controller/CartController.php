@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FlexyBundle\Controller;
+namespace ModernaBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;

@@ -1,6 +1,6 @@
 <?php
 
-namespace FlexyBundle\Twig;
+namespace ModernaBundle\Twig;
 
 use Propel\Runtime\Propel;
 use Twig\Extension\AbstractExtension;

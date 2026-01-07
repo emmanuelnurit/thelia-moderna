@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FlexyBundle\Api;
+namespace ModernaBundle\Api;
 
 use Propel\Runtime\Propel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

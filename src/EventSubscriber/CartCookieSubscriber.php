@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FlexyBundle\EventSubscriber;
+namespace ModernaBundle\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;

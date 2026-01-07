@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FlexyBundle\UiComponents\LangSelect;
+namespace ModernaBundle\UiComponents\LangSelect;
 
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
@@ -10,7 +10,7 @@ use Thelia\Api\Service\DataAccess\DataAccessService;
 use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Model\ConfigQuery;
 
-#[AsTwigComponent(name: 'Flexy:LangSelect', template: '@UiComponents/LangSelect/LangSelect.html.twig')]
+#[AsTwigComponent(name: 'Moderna:LangSelect', template: '@UiComponents/LangSelect/LangSelect.html.twig')]
 class LangSelect
 {
     #[ExposeInTemplate()]

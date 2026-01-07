@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Provides Twig extensions and UI components for the template
  */
 
-namespace FlexyBundle;
+namespace ModernaBundle;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -15,22 +15,27 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Thelia\Core\Template\TemplateDefinition;
 use Thelia\Model\ConfigQuery;
 
-class FlexyBundle extends AbstractBundle
+class ModernaBundle extends AbstractBundle
 {
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        // Only load services if moderna template is active
+        if ($this->getActiveTemplate() !== 'moderna') {
+            return;
+        }
+
         $serviceConfigurator = $container->services();
 
         $resourcePath = $this->getResourcePath();
         if (is_dir($resourcePath)) {
-            $serviceConfigurator->load('FlexyBundle\\', $resourcePath)
+            $serviceConfigurator->load('ModernaBundle\\', $resourcePath)
                 ->autowire()
                 ->autoconfigure();
         }
 
         $uiComponentsPath = $this->getUiComponentsPath();
         if (is_dir($uiComponentsPath)) {
-            $serviceConfigurator->load('FlexyBundle\\UiComponents\\', $uiComponentsPath)
+            $serviceConfigurator->load('ModernaBundle\\UiComponents\\', $uiComponentsPath)
                 ->autowire()
                 ->autoconfigure();
         }
@@ -39,6 +44,11 @@ class FlexyBundle extends AbstractBundle
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        // Only load config if moderna template is active
+        if ($this->getActiveTemplate() !== 'moderna') {
+            return;
+        }
+
         $configPath = $this->getConfigPath();
         if (is_dir($configPath)) {
             $container->import($configPath . '/*.yaml');
@@ -58,5 +68,10 @@ class FlexyBundle extends AbstractBundle
     private function getConfigPath(): string
     {
         return THELIA_TEMPLATE_DIR . TemplateDefinition::FRONT_OFFICE_SUBDIR . DS . ConfigQuery::read(TemplateDefinition::FRONT_OFFICE_CONFIG_NAME, 'default') . DS . 'config' . DS . 'packages';
+    }
+
+    private function getActiveTemplate(): string
+    {
+        return ConfigQuery::read(TemplateDefinition::FRONT_OFFICE_CONFIG_NAME, 'default');
     }
 }

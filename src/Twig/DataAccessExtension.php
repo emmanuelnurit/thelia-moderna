@@ -5,7 +5,7 @@
  * Provides resources(), loop(), loopCount() and attr() Twig functions
  */
 
-namespace FlexyBundle\Twig;
+namespace ModernaBundle\Twig;
 
 use Psr\Cache\InvalidArgumentException;
 use Thelia\Api\Service\DataAccess\AttributeAccessService;

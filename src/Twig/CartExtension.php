@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FlexyBundle\Twig;
+namespace ModernaBundle\Twig;
 
 use Thelia\Domain\Cart\CartFacade;
 use Thelia\Domain\Promotion\Coupon\Service\CouponManager;

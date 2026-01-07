@@ -4,35 +4,35 @@ services:
         autoconfigure: true
         public: false
 
-    FlexyBundle\Controller\:
+    ModernaBundle\Controller\:
         resource: '../../src/Controller'
         tags: ['controller.service_arguments']
 
     # API controllers
-    FlexyBundle\Api\:
+    ModernaBundle\Api\:
         resource: '../../src/Api'
         tags: ['controller.service_arguments']
 
     # Twig extensions
-    FlexyBundle\Twig\CartExtension:
+    ModernaBundle\Twig\CartExtension:
         tags: ['twig.extension']
 
-    FlexyBundle\Twig\CartIsolationExtension:
+    ModernaBundle\Twig\CartIsolationExtension:
         tags: ['twig.extension']
 
-    FlexyBundle\Twig\TaxedPriceExtension:
+    ModernaBundle\Twig\TaxedPriceExtension:
         tags: ['twig.extension']
 
-    FlexyBundle\Twig\HeaderHighlightsExtension:
+    ModernaBundle\Twig\HeaderHighlightsExtension:
         tags: ['twig.extension']
 
-    FlexyBundle\Twig\LanguageExtension:
+    ModernaBundle\Twig\LanguageExtension:
         tags: ['twig.extension']
 
     # Event subscribers
-    FlexyBundle\EventSubscriber\LanguagePersistenceSubscriber:
+    ModernaBundle\EventSubscriber\LanguagePersistenceSubscriber:
         tags: ['kernel.event_subscriber']
 
     # UI Components
-    FlexyBundle\UiComponents\LangSelect\LangSelect:
+    ModernaBundle\UiComponents\LangSelect\LangSelect:
         tags: ['twig.component']
