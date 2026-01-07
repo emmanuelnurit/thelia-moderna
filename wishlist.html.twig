@@ -916,17 +916,25 @@
     display: block;
     border-radius: 8px;
     border: 1px solid var(--color-border);
+    transition: border-color 0.3s ease;
+}
+
+.wishlist-card:hover .wishlist-cardImage {
+    border-color: rgba(0, 0, 0, 0.3);
 }
 
 .wishlist-cardImage img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform var(--transition-slow);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    transition: transform var(--transition-slow), border-color 0.3s ease;
 }
 
 .wishlist-card:hover .wishlist-cardImage img {
     transform: scale(1.05);
+    border-color: rgba(0, 0, 0, 0.3);
 }
 
 .wishlist-cardContent {
