@@ -1,0 +1,16 @@
+{#
+  Badge Component
+  Usage: {{ component('Moderna:Badge', { type: 'new' }) }}
+#}
+<span class="{{ this.cssClass }}">
+    {% if this.hasIcon %}
+        <span class="badge-icon"></span>
+    {% endif %}
+    <span class="badge-text">
+        {% if type == 'new' or type == 'default' %}
+            {{ this.text|trans }}
+        {% else %}
+            {{ this.text }}
+        {% endif %}
+    </span>
+</span>
