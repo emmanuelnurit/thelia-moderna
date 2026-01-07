@@ -16,7 +16,7 @@ class Badge
 {
     /** Type de badge: 'new', 'promo', 'default', 'status' */
     #[ExposeInTemplate]
-    public string $type;
+    public string $type = 'default';
 
     /** Texte custom optionnel pour le badge */
     #[ExposeInTemplate]
@@ -49,6 +49,15 @@ class Badge
         'default' => 'gray',
     ];
 
+    /**
+     * Resolves the color variant based on badge type and status code.
+     *
+     * For 'status' type badges, maps the statusCode to a color variant.
+     * For other types ('new', 'promo', 'default'), uses the type mapping.
+     * Falls back to 'gray' for unknown types or status codes.
+     *
+     * @return string Color variant name (e.g., 'green', 'blue', 'red', 'amber', 'gray')
+     */
     public function getColor(): string
     {
         // For status type, use status code mapping
