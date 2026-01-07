@@ -48,4 +48,15 @@ class Badge
         'promo' => 'red',
         'default' => 'gray',
     ];
+
+    public function getColor(): string
+    {
+        // For status type, use status code mapping
+        if ($this->type === 'status' && $this->statusCode !== null) {
+            return self::STATUS_COLOR_MAP[$this->statusCode] ?? 'gray';
+        }
+
+        // For other types, use type mapping
+        return self::TYPE_COLOR_MAP[$this->type] ?? 'gray';
+    }
 }
