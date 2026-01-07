@@ -1,0 +1,74 @@
+{#
+  ProductCard Component
+  Usage: {{ component('Moderna:ProductCard', { product: product }) }}
+#}
+<article class="product-card product-card--{{ variant }}">
+    {# Image container #}
+    <div class="product-card-image">
+        <a href="{{ product.publicUrl }}" class="product-card-imageLink">
+            {% if this.firstImage %}
+                <img src="{{ this.imageUrl }}"
+                     alt="{{ product.i18ns.title }}"
+                     loading="lazy"
+                     class="product-card-img">
+            {% else %}
+                <div class="product-card-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                        <path d="M3 6h18"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                </div>
+            {% endif %}
+        </a>
+
+        {# Badges #}
+        {% if this.isNew or this.hasPromo %}
+            <div class="product-card-badges">
+                {% if this.isNew %}
+                    <span class="product-card-badge product-card-badge--new">
+                        {{ 'New'|trans }}
+                    </span>
+                {% endif %}
+                {% if this.hasPromo %}
+                    <span class="product-card-badge product-card-badge--promo">
+                        -{{ this.promoPercentage }}%
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {# Wishlist button #}
+        {% if showWishlist %}
+            <button type="button"
+                    class="product-card-wishlistBtn"
+                    {{ this.wishlistAttributesHtml|raw }}
+                    :title="isInWishlist ? '{{ 'Remove from wishlist'|trans }}' : '{{ 'Add to wishlist'|trans }}'">
+                <svg width="20" height="20" viewBox="0 0 24 24" :fill="isInWishlist ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                </svg>
+            </button>
+        {% endif %}
+    </div>
+
+    {# Content #}
+    <div class="product-card-content">
+        <h3 class="product-card-title">
+            <a href="{{ product.publicUrl }}">{{ product.i18ns.title }}</a>
+        </h3>
+        <div class="product-card-price">
+            {% if this.hasPromo %}
+                <span class="product-card-pricePromo">
+                    {{ this.price.promoPrice|format_currency('EUR') }}
+                </span>
+                <span class="product-card-priceOriginal">
+                    {{ this.price.price|format_currency('EUR') }}
+                </span>
+            {% else %}
+                <span class="product-card-priceRegular">
+                    {{ this.price.price|format_currency('EUR') }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</article>
