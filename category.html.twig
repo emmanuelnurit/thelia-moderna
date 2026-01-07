@@ -48,7 +48,13 @@
         {% if categoryProducts is iterable and categoryProducts|length > 0 %}
         <div class="products-grid">
             {% for product in categoryProducts %}
-                {% include 'components/Product/ProductCard.html.twig' with { product: product } %}
+                {# Populate product images for the component #}
+                {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
+                {% set productWithImages = product|merge({'productImages': productImages}) %}
+
+                {{ component('Moderna:ProductCard', {
+                    product: productWithImages
+                }) }}
             {% endfor %}
         </div>
         {% else %}
