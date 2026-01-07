@@ -86,4 +86,18 @@ class ProductCard
         $pse = $this->getDefaultPse();
         return $pse ? ($pse['newness'] ?? false) : false;
     }
+
+    public function getImageUrl(): string
+    {
+        $image = $this->getFirstImage();
+
+        if (!$image || !isset($image['id'])) {
+            return '';
+        }
+
+        return sprintf(
+            '/legacy-image-library/product_image_%d/full/%%5E*!400,400/0/default.webp',
+            $image['id']
+        );
+    }
 }
