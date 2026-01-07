@@ -94,4 +94,15 @@ class Badge
             default => '',
         };
     }
+
+    public function getCssClass(): string
+    {
+        return "badge badge--{$this->getColor()}";
+    }
+
+    public function hasIcon(): bool
+    {
+        // Icon (dot) only for status badges
+        return $this->type === 'status';
+    }
 }
