@@ -20,11 +20,6 @@
     background-color: currentColor;
 }
 
-/* Badge text */
-.badge-text {
-    /* Inherits font styles from .badge */
-}
-
 /* Color variants */
 .badge--green {
     background-color: #10b981;
@@ -42,7 +37,7 @@
 }
 
 .badge--amber {
-    background-color: #f59e0b;
+    background-color: #d97706;
     color: white;
 }
 
