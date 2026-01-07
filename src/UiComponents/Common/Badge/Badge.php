@@ -69,6 +69,15 @@ class Badge
         return self::TYPE_COLOR_MAP[$this->type] ?? 'gray';
     }
 
+    /**
+     * Resolves the badge text based on type and custom text.
+     *
+     * Priority: custom text > type-based generation.
+     * For 'promo' type, formats the value as a percentage (e.g., "-25%").
+     * Returns empty string for 'status' type and unknown types.
+     *
+     * @return string Badge display text
+     */
     public function getText(): string
     {
         // If custom text provided, use it
@@ -77,7 +86,7 @@ class Badge
         }
 
         // Generate text based on type
-        return match($this->type) {
+        return match ($this->type) {
             'new' => 'New',
             'promo' => $this->value !== null ? "-{$this->value}%" : '',
             'default' => 'Default',
