@@ -241,7 +241,7 @@
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M20 6 9 17l-5-5"/>
                                         </svg>
-                                        {{ 'In stock'|trans }} (<span x-text="item.stockQuantity"></span>)
+                                        <span x-text="'{{ 'In stock'|trans }} (' + item.stockQuantity + ')'"></span>
                                     </span>
                                 </template>
                                 <template x-if="item.stockQuantity === 0">
@@ -399,18 +399,21 @@
                 {% set price = defaultPse.productPrices|first %}
                 {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
                 {% set imageUrl = productImages|length > 0 ? '/legacy-image-library/product_image_' ~ productImages|first.id ~ '/full/%5E*!400,400/0/default.webp' : '' %}
+                {# Calculate taxed prices (TTC) #}
+                {% set taxedPrice = get_taxed_price(defaultPse.id, price.price) %}
+                {% set taxedPromoPrice = defaultPse.promo and price.promoPrice > 0 ? get_taxed_promo_price(defaultPse.id, price.promoPrice) : 0 %}
                 {
                     id: {{ product.id }},
                     title: "{{ product.i18ns.title|escape('js') }}",
                     publicUrl: "{{ product.publicUrl }}",
                     image: "{{ imageUrl }}",
-                    price: "{{ defaultPse.promo and price.promoPrice > 0 ? price.promoPrice|format_currency('EUR') : price.price|format_currency('EUR') }}",
+                    price: "{{ taxedPromoPrice > 0 ? taxedPromoPrice|format_currency('EUR') : taxedPrice|format_currency('EUR') }}",
                     priceHtml: `
-                        {% if defaultPse.promo and price.promoPrice > 0 %}
-                            <span class="product-card-pricePromo">{{ price.promoPrice|format_currency('EUR') }}</span>
-                            <span class="product-card-priceOriginal">{{ price.price|format_currency('EUR') }}</span>
+                        {% if taxedPromoPrice > 0 %}
+                            <span class="product-card-pricePromo">{{ taxedPromoPrice|format_currency('EUR') }}</span>
+                            <span class="product-card-priceOriginal">{{ taxedPrice|format_currency('EUR') }}</span>
                         {% else %}
-                            <span class="product-card-priceRegular">{{ price.price|format_currency('EUR') }}</span>
+                            <span class="product-card-priceRegular">{{ taxedPrice|format_currency('EUR') }}</span>
                         {% endif %}
                     `,
                     fading: false
@@ -1344,22 +1347,49 @@ function wishlistPage() {
                     let imageUrl = item.image || '';
                     let imageId = item.imageId;
                     let stockQuantity = null;
+                    let price = item.price || '';
+                    let promoPrice = item.promoPrice || '';
+                    let isPromo = item.isPromo || false;
 
                     if (!imageUrl && imageId) {
                         imageUrl = `/legacy-image-library/product_image_${imageId}/full/%5E*!400,400/0/default.webp`;
                     }
 
-                    // Fetch product data including stock from API
+                    // Fetch product data including stock and prices from API
                     if (item.id) {
                         try {
                             const productResponse = await fetch(`/api/front/products/${item.id}`);
                             if (productResponse.ok) {
                                 const productData = await productResponse.json();
-                                // Get stock from default PSE
+                                // Get stock and prices from default PSE
                                 if (productData.productSaleElements && productData.productSaleElements.length > 0) {
                                     const defaultPse = productData.productSaleElements.find(pse => pse.isDefault) || productData.productSaleElements[0];
                                     if (defaultPse) {
                                         stockQuantity = defaultPse.quantity || 0;
+
+                                        // Get taxed prices from PSE
+                                        if (defaultPse.productPrices && defaultPse.productPrices.length > 0) {
+                                            const priceObj = defaultPse.productPrices[0];
+
+                                            // Fetch taxed prices from API
+                                            try {
+                                                const taxedPriceResponse = await fetch(`/moderna-api/data/taxed-price/${defaultPse.id}`);
+                                                if (taxedPriceResponse.ok) {
+                                                    const taxedPriceData = await taxedPriceResponse.json();
+                                                    price = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(taxedPriceData.price);
+                                                    if (defaultPse.promo && taxedPriceData.promoPrice > 0) {
+                                                        promoPrice = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(taxedPriceData.promoPrice);
+                                                        isPromo = true;
+                                                    } else {
+                                                        promoPrice = '';
+                                                        isPromo = false;
+                                                    }
+                                                }
+                                            } catch (error) {
+                                                console.error('Error loading taxed prices:', error);
+                                                // Fallback: keep stored prices if API fails
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1392,9 +1422,9 @@ function wishlistPage() {
                         title: item.title,
                         url: item.url || item.publicUrl || '#',
                         image: imageUrl,
-                        price: item.price || '',
-                        promoPrice: item.promoPrice || '',
-                        isPromo: item.isPromo || false,
+                        price: price,
+                        promoPrice: promoPrice,
+                        isPromo: isPromo,
                         imageId: imageId,
                         notifyMe: item.notifyMe || false,
                         stockQuantity: stockQuantity,

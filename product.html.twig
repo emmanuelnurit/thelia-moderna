@@ -334,9 +334,9 @@
                         title: '{{ product.i18ns.title|e('js') }}',
                         publicUrl: '{{ product.publicUrl|e('js') }}',
                         imageId: {{ initialImageId }},
-                        price: '{{ defaultPrice ? (defaultPrice.price|format_currency('EUR')) : '0,00 €' }}',
-                        promoPrice: {{ (defaultPrice and currentPse.promo and defaultPrice.promoPrice > 0) ? '\'' ~ defaultPrice.promoPrice|format_currency('EUR') ~ '\'' : 'null' }},
-                        isPromo: {{ (defaultPrice and currentPse.promo and defaultPrice.promoPrice > 0) ? 'true' : 'false' }}
+                        price: '{{ taxedPrice ? (taxedPrice|format_currency('EUR')) : '0,00 €' }}',
+                        promoPrice: {{ (taxedPromoPrice > 0) ? '\'' ~ taxedPromoPrice|format_currency('EUR') ~ '\'' : 'null' }},
+                        isPromo: {{ (taxedPromoPrice > 0) ? 'true' : 'false' }}
                     })"
                     @click="toggle()"
                     @wishlist:added.window="checkWishlist()"
