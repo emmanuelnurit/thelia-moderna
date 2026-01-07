@@ -95,11 +95,27 @@ class Badge
         };
     }
 
+    /**
+     * Generates the CSS class string for the badge element.
+     *
+     * Combines the base "badge" class with a color-specific modifier class.
+     * Example output: "badge badge--green" or "badge badge--red".
+     *
+     * @return string Space-separated CSS class names
+     */
     public function getCssClass(): string
     {
         return "badge badge--{$this->getColor()}";
     }
 
+    /**
+     * Determines whether the badge should display an icon (status dot).
+     *
+     * Icons are only shown for 'status' type badges to visually indicate
+     * order or item status (e.g., paid, delivered, canceled).
+     *
+     * @return bool True if badge should display an icon, false otherwise
+     */
     public function hasIcon(): bool
     {
         // Icon (dot) only for status badges
