@@ -68,4 +68,21 @@ class Badge
         // For other types, use type mapping
         return self::TYPE_COLOR_MAP[$this->type] ?? 'gray';
     }
+
+    public function getText(): string
+    {
+        // If custom text provided, use it
+        if ($this->text !== null) {
+            return $this->text;
+        }
+
+        // Generate text based on type
+        return match($this->type) {
+            'new' => 'New',
+            'promo' => $this->value !== null ? "-{$this->value}%" : '',
+            'default' => 'Default',
+            'status' => '',
+            default => '',
+        };
+    }
 }
