@@ -100,4 +100,40 @@ class ProductCard
             $image['id']
         );
     }
+
+    public function getWishlistData(): array
+    {
+        $price = $this->getPrice();
+        $image = $this->getFirstImage();
+
+        return [
+            'id' => $this->product['id'] ?? 0,
+            'title' => $this->product['i18ns']['title'] ?? '',
+            'publicUrl' => $this->product['publicUrl'] ?? '',
+            'imageId' => $image['id'] ?? 0,
+            'price' => $price['price'] ?? 0,
+            'promoPrice' => $this->hasPromo() ? ($price['promoPrice'] ?? 0) : 0,
+            'isPromo' => $this->hasPromo(),
+        ];
+    }
+
+    public function getWishlistAttributesHtml(): string
+    {
+        $data = $this->getWishlistData();
+
+        $jsonData = json_encode([
+            'id' => $data['id'],
+            'title' => $data['title'],
+            'publicUrl' => $data['publicUrl'],
+            'imageId' => $data['imageId'],
+            'price' => number_format($data['price'], 2) . ' €',
+            'promoPrice' => $data['promoPrice'] > 0 ? number_format($data['promoPrice'], 2) . ' €' : '',
+            'isPromo' => $data['isPromo'],
+        ], JSON_HEX_QUOT | JSON_HEX_APOS);
+
+        return sprintf(
+            'x-data="wishlistButton(%s)" @click.prevent="toggle()" :class="{ \'is-active\': isInWishlist }"',
+            htmlspecialchars($jsonData, ENT_QUOTES)
+        );
+    }
 }
