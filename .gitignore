@@ -27,3 +27,6 @@ coverage
 *.tmp
 *.temp
 TRANSLATION_MAPPING.md
+
+# Git worktrees
+.worktrees/
