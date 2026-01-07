@@ -1,0 +1,52 @@
+/* Badge Component */
+
+/* Base styles */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    line-height: 1;
+}
+
+/* Badge icon (dot for status badges) */
+.badge-icon {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+/* Badge text */
+.badge-text {
+    /* Inherits font styles from .badge */
+}
+
+/* Color variants */
+.badge--green {
+    background-color: #10b981;
+    color: white;
+}
+
+.badge--red {
+    background-color: #ef4444;
+    color: white;
+}
+
+.badge--blue {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.badge--amber {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.badge--gray {
+    background-color: #6b7280;
+    color: white;
+}
