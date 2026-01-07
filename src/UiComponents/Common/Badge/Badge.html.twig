@@ -2,15 +2,15 @@
   Badge Component
   Usage: {{ component('Moderna:Badge', { type: 'new' }) }}
 #}
-<span class="{{ this.cssClass }}">
+<span class="{{ this.cssClass|e('html_attr') }}"{% if this.hasIcon %} role="status"{% endif %}>
     {% if this.hasIcon %}
-        <span class="badge-icon"></span>
+        <span class="badge-icon" aria-hidden="true"></span>
     {% endif %}
     <span class="badge-text">
         {% if type == 'new' or type == 'default' %}
-            {{ this.text|trans }}
+            {{ this.text|trans|e }}
         {% else %}
-            {{ this.text }}
+            {{ this.text|e }}
         {% endif %}
     </span>
 </span>
