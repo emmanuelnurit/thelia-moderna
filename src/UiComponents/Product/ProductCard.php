@@ -10,7 +10,7 @@ use Thelia\Model\ProductSaleElementsQuery;
 use Thelia\Model\Country;
 use Thelia\Domain\Taxation\TaxEngine\Calculator;
 
-#[AsTwigComponent(name: 'Moderna:Product:ProductCard')]
+#[AsTwigComponent(name: 'Moderna:Product:ProductCard', template: '@UiComponents/Product/ProductCard.html.twig')]
 class ProductCard
 {
     #[ExposeInTemplate]
