@@ -26,6 +26,9 @@ Thumbs.db
 .env.backup
 .auto-claude/.env
 **/.env
+# Exception: Allow .env.example files as templates (must come after ignore patterns)
+!.env.example
+!**/.env.example
 
 # Logs
 *.log
