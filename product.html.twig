@@ -376,6 +376,13 @@
             </div>
         </section>
         {% endif %}
+
+        {# Recently Viewed Products #}
+        {% include 'components/Product/RecentlyViewed.html.twig' with {
+            excludeProductId: product.id,
+            maxItems: 6,
+            title: 'Recently Viewed'|trans
+        } %}
     </div>
 </div>
 
