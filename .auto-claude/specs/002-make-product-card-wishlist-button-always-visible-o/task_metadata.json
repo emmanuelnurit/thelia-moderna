@@ -1,0 +1,13 @@
+{
+  "sourceType": "ideation",
+  "ideationType": "ui_ux_improvements",
+  "ideaId": "uiux-002",
+  "rationale": "Touch device users cannot see or interact with the wishlist button since :hover doesn't trigger on tap. This breaks a key e-commerce feature for a significant user segment.",
+  "category": "ui_ux",
+  "uiuxCategory": "accessibility",
+  "affectedFiles": [
+    "assets/css/components/_product-card.css",
+    "src/UiComponents/Product/ProductCard.html.twig"
+  ],
+  "problemSolved": "In _product-card.css (lines 94-111), .product-card-wishlistBtn has opacity: 0 by default and only becomes visible on .product-card:hover (lines 114-117). On touch devices, this button never appears."
+}

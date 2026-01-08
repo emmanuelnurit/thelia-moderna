@@ -1,0 +1,78 @@
+{
+  "feature": "Make Product Card Wishlist Button Always Visible on Touch",
+  "description": "The wishlist button on product cards has opacity: 0 by default and only appears on hover. This makes it inaccessible on touch devices where there's no hover state.",
+  "created_at": "2026-01-08T22:01:58.848Z",
+  "updated_at": "2026-01-08T22:07:00.000Z",
+  "status": "in_progress",
+  "planStatus": "in_progress",
+  "phases": [
+    {
+      "phase_id": "phase-1",
+      "name": "Implementation",
+      "description": "Add touch device support for wishlist button visibility",
+      "subtasks": [
+        {
+          "subtask_id": "1.1",
+          "title": "Add media query for touch devices",
+          "description": "Add @media (hover: none) rule to _product-card.css to make the wishlist button always visible on touch devices. This media query targets devices that don't support hover (primarily touch devices).",
+          "file_path": "assets/css/components/_product-card.css",
+          "status": "completed",
+          "acceptance_criteria": [
+            "Media query @media (hover: none) is added to the CSS file",
+            "Within the media query, .product-card-wishlistBtn has opacity: 1 and transform: scale(1)",
+            "The media query is placed after the existing hover rules for proper CSS cascade"
+          ],
+          "estimated_complexity": "low",
+          "notes": "Added @media (hover: none) media query to _product-card.css. The media query sets opacity: 1 and transform: scale(1) for .product-card-wishlistBtn, making the wishlist button always visible on touch devices. Placed after existing hover rules for proper CSS cascade."
+        }
+      ]
+    },
+    {
+      "phase_id": "phase-2",
+      "name": "Verification",
+      "description": "Verify the implementation works correctly",
+      "subtasks": [
+        {
+          "subtask_id": "2.1",
+          "title": "Verify CSS syntax and placement",
+          "description": "Ensure the CSS is syntactically correct and properly integrated with the existing styles",
+          "file_path": "assets/css/components/_product-card.css",
+          "status": "pending",
+          "acceptance_criteria": [
+            "CSS file has no syntax errors",
+            "Media query is properly structured",
+            "No conflicts with existing styles"
+          ],
+          "estimated_complexity": "low"
+        }
+      ]
+    }
+  ],
+  "workflow_type": "development",
+  "services_involved": [
+    "CSS/Styling"
+  ],
+  "technical_details": {
+    "files_to_modify": [
+      {
+        "path": "assets/css/components/_product-card.css",
+        "change_type": "modify",
+        "description": "Add @media (hover: none) query to show wishlist button on touch devices"
+      }
+    ],
+    "css_approach": "Using @media (hover: none) media query which targets devices without hover capability. This is the modern, standards-based approach supported by all major browsers.",
+    "alternative_considered": "@media (pointer: coarse) was also considered, but @media (hover: none) is more semantically accurate for this use case since we specifically want to handle the absence of hover support."
+  },
+  "final_acceptance": [
+    "Wishlist button is visible on touch devices without needing hover",
+    "Wishlist button still shows on hover for desktop devices",
+    "Active state (is-active) styling is preserved",
+    "No visual regressions on desktop browsers"
+  ],
+  "qa_status": {
+    "status": "not_started",
+    "tests_passed": [],
+    "issues": []
+  },
+  "spec_file": "spec.md"
+}

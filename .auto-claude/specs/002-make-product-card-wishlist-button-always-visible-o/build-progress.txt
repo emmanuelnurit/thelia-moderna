@@ -1,0 +1,32 @@
+# Build Progress: Make Product Card Wishlist Button Always Visible on Touch
+
+## Status: Implementation in Progress
+
+## Summary
+Implementation started. Added media query to make wishlist button visible on touch devices.
+
+## Problem Analysis
+- File: `assets/css/components/_product-card.css`
+- The `.product-card-wishlistBtn` has `opacity: 0` by default (line 107)
+- It only becomes visible on `.product-card:hover` (lines 114-117)
+- Touch devices don't support `:hover`, making the button inaccessible
+
+## Solution
+Add a CSS media query `@media (hover: none)` to always show the button on touch devices.
+
+## Phases
+### Phase 1: Implementation
+- [completed] 1.1: Add media query for touch devices
+  - Added `@media (hover: none)` media query to _product-card.css
+  - Sets `.product-card-wishlistBtn` to `opacity: 1` and `transform: scale(1)`
+  - Placed after existing hover rules for proper CSS cascade
+  - Commit: f1b7bc5
+
+### Phase 2: Verification
+- [pending] 2.1: Verify CSS syntax and placement
+
+## Next Steps
+Execute Phase 2, Subtask 2.1 - Verify CSS syntax and placement
+
+---
+Last updated: 2026-01-08
