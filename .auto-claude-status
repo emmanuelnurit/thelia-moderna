@@ -1,0 +1,25 @@
+{
+  "active": true,
+  "spec": "002-critical-remove-exposed-github-token-from-env-file",
+  "state": "building",
+  "subtasks": {
+    "completed": 1,
+    "total": 4,
+    "in_progress": 1,
+    "failed": 0
+  },
+  "phase": {
+    "current": "Security Remediation",
+    "id": null,
+    "total": 2
+  },
+  "workers": {
+    "active": 0,
+    "max": 1
+  },
+  "session": {
+    "number": 3,
+    "started_at": "2026-01-08T16:05:05.082252"
+  },
+  "last_update": "2026-01-08T16:08:36.419528"
+}
