@@ -1,0 +1,14 @@
+{
+  "sourceType": "ideation",
+  "ideationType": "code_improvements",
+  "ideaId": "ci-001",
+  "rationale": "The wishlist store pattern in app.js demonstrates a fully working local persistence mechanism with Alpine.$persist. This same pattern can be directly applied to track recently viewed products. The product data structure already exists (id, title, url, image, imageId, price, promoPrice, isPromo) from wishlistButton component.",
+  "category": "feature",
+  "estimatedEffort": "small",
+  "complexity": "small",
+  "affectedFiles": [
+    "assets/js/app.js",
+    "components/Product/ProductGallery.html.twig",
+    "product.html.twig"
+  ]
+}

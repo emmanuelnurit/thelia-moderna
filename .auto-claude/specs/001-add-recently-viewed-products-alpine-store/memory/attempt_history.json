@@ -1,0 +1,21 @@
+{
+  "subtasks": {
+    "1.1": {
+      "attempts": [
+        {
+          "session": 2,
+          "timestamp": "2026-01-08T16:10:10.868967",
+          "approach": "Implemented: Add a new Alpine store 'recentlyViewed' following the wishlist store pattern. The store should:\n- Us",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    }
+  },
+  "stuck_subtasks": [],
+  "metadata": {
+    "created_at": "2026-01-08T16:04:02.923679",
+    "last_updated": "2026-01-08T16:10:10.869115"
+  }
+}

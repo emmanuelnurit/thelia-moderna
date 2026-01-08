@@ -1,0 +1,120 @@
+{
+  "spec_id": "001-add-recently-viewed-products-alpine-store",
+  "title": "Add Recently Viewed Products Alpine Store",
+  "description": "Create a new Alpine.js store to track and persist recently viewed products, allowing users to see their browsing history across sessions. The store will follow the exact same pattern as the existing wishlist store with local persistence using Alpine's $persist plugin.",
+  "created_at": "2025-01-08T14:59:11.941Z",
+  "updated_at": "2025-01-08T16:05:00.000Z",
+  "status": "in_progress",
+  "planStatus": "approved",
+  "workflow_type": "development",
+  "spec_file": "spec.md",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Core Store Implementation",
+      "description": "Create the Alpine.js recentlyViewed store with persistence and core functionality",
+      "subtasks": [
+        {
+          "id": "1.1",
+          "title": "Create recentlyViewed Alpine store in app.js",
+          "description": "Add a new Alpine store 'recentlyViewed' following the wishlist store pattern. The store should:\n- Use Alpine.$persist([]).as('moderna_recently_viewed') for persistence\n- Store product data: id, title, url, image, imageId, price, promoPrice, isPromo, viewedAt\n- Implement methods: add(), remove(), clear(), has(), getAll()\n- Implement maxItems limit (default 12 products)\n- Automatically remove oldest items when limit is exceeded\n- Dispatch events: recentlyviewed:added, recentlyviewed:removed, recentlyviewed:cleared",
+          "status": "completed",
+          "notes": "Successfully implemented recentlyViewed Alpine store with Alpine.$persist for localStorage persistence. Store includes all required methods (add, remove, clear, has, getAll), maxItems limit enforcement, automatic timestamp updates for duplicate views, and proper event dispatching.",
+          "updated_at": "2026-01-08T15:09:31.617646+00:00"
+        },
+        {
+          "id": "1.2",
+          "title": "Add recentlyViewed helpers to window.Moderna",
+          "description": "Expose recentlyViewed store methods via window.Moderna object for easy access from templates and other scripts, following the wishlist helpers pattern:\n- Moderna.recentlyViewed.add(product)\n- Moderna.recentlyViewed.remove(productId)\n- Moderna.recentlyViewed.clear()\n- Moderna.recentlyViewed.has(productId)\n- Moderna.recentlyViewed.items()\n- Moderna.recentlyViewed.count()",
+          "status": "completed",
+          "notes": "Added window.Moderna.recentlyViewed helpers following the wishlist pattern. Exposed methods: has(), add(), remove(), clear(), items(), and count() for easy access from templates and other scripts.",
+          "updated_at": "2026-01-08T15:09:31.698447+00:00"
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Product Page Tracking Integration",
+      "description": "Automatically track product views when users visit a product page",
+      "subtasks": [
+        {
+          "id": "2.1",
+          "title": "Add product view tracking to product.html.twig",
+          "description": "Add Alpine.js x-init or script block to product.html.twig that automatically records the current product to the recentlyViewed store when the page loads. Use the same product data structure as wishlistButton:\n- id: product.id\n- title: product.i18ns.title\n- url: product.publicUrl\n- imageId: initialImageId\n- price: taxedPrice formatted\n- promoPrice: taxedPromoPrice formatted (if applicable)\n- isPromo: boolean\n- viewedAt: Date.now()",
+          "status": "pending",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Display Component",
+      "description": "Create a reusable recently viewed products display component",
+      "subtasks": [
+        {
+          "id": "3.1",
+          "title": "Create RecentlyViewed component template",
+          "description": "Create a new Twig component at components/Product/RecentlyViewed.html.twig that:\n- Uses x-data with Alpine to read from the recentlyViewed store\n- Displays products in a responsive grid (similar to wishlist suggestions)\n- Shows product image, title, price, and promo price\n- Includes link to product page\n- Has empty state when no recently viewed products (hidden by default)\n- Uses x-show to hide section entirely if empty\n- Supports excluding the current product (for product page usage)",
+          "status": "pending",
+          "notes": ""
+        },
+        {
+          "id": "3.2",
+          "title": "Add CSS styles for RecentlyViewed component",
+          "description": "Add CSS styles for the RecentlyViewed component inline in the component. Styles should:\n- Match the existing product card styling from wishlist/category pages\n- Be responsive with proper grid columns (2-4-5 pattern)\n- Include hover effects and transitions\n- Support the existing design system variables",
+          "status": "pending",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "phase-4",
+      "name": "Page Integration",
+      "description": "Add the recently viewed products section to relevant pages",
+      "subtasks": [
+        {
+          "id": "4.1",
+          "title": "Add RecentlyViewed to product.html.twig",
+          "description": "Include the RecentlyViewed component on the product page, placed below the product description section. Pass the current product ID to exclude it from the display. The section should show 'Recently Viewed' with up to 4-6 products.",
+          "status": "pending",
+          "notes": ""
+        },
+        {
+          "id": "4.2",
+          "title": "Add RecentlyViewed to index.html.twig (homepage)",
+          "description": "Include the RecentlyViewed component on the homepage, positioned after featured products. Show 'Recently Viewed' heading with up to 4-8 products. Only visible when there are products to display.",
+          "status": "pending",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "phase-5",
+      "name": "Testing and Verification",
+      "description": "Verify the implementation works correctly across all scenarios",
+      "subtasks": [
+        {
+          "id": "5.1",
+          "title": "Manual testing and edge cases",
+          "description": "Test the following scenarios:\n- Viewing products adds them to recently viewed\n- Products persist across page refreshes and browser sessions\n- Maximum limit is enforced (oldest removed when limit exceeded)\n- Duplicate views update the viewedAt timestamp (move to front)\n- Clear functionality works\n- Display component shows/hides correctly\n- Current product is excluded on product page\n- Responsive layout works on all screen sizes\n- No JavaScript errors in console",
+          "status": "pending",
+          "notes": ""
+        },
+        {
+          "id": "5.2",
+          "title": "Build verification",
+          "description": "Run npm build to ensure the JavaScript compiles without errors and all assets are generated correctly. Verify the recently viewed functionality works in the built version.",
+          "status": "pending",
+          "notes": ""
+        }
+      ]
+    }
+  ],
+  "qa_signoff": {
+    "status": "pending",
+    "tests_passed": "",
+    "issues": ""
+  },
+  "estimated_effort": "3-4 hours",
+  "last_updated": "2026-01-08T15:09:31.698462+00:00"
+}

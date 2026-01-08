@@ -1,0 +1,25 @@
+{
+  "discovered_files": {
+    "assets/js/app.js": {
+      "description": "Alpine.js store pattern with persistence: Uses Alpine.$persist([]).as('store_name') for local storage. Wishlist store (lines 47-220) is the reference implementation with methods: has(), toggle(), add(), remove(), clear(), count getter. Events dispatched: wishlist:added, wishlist:removed, wishlist:cleared. Exposed via window.Moderna object for template access.",
+      "category": "pattern",
+      "discovered_at": "2026-01-08T15:06:48.810424+00:00"
+    },
+    "product.html.twig": {
+      "description": "Product page has all data needed for recently viewed tracking: product.id, product.i18ns.title, product.publicUrl, initialImageId, taxedPrice, taxedPromoPrice, currentPse.promo. wishlistButton component at line 329 shows exact data structure pattern to follow.",
+      "category": "data-structure",
+      "discovered_at": "2026-01-08T15:06:48.871260+00:00"
+    },
+    "wishlist.html.twig": {
+      "description": "Reference for displaying products from Alpine store: uses x-data with Alpine functions, template x-for loops, product cards with responsive grid. wishlistPage() and productSuggestions() Alpine components show patterns for loading items and reactive updates.",
+      "category": "pattern",
+      "discovered_at": "2026-01-08T15:06:48.926374+00:00"
+    },
+    "./assets/js/app.js": {
+      "description": "Implemented recentlyViewed Alpine store following the established wishlist pattern. The store uses Alpine.$persist for localStorage persistence with key 'moderna_recently_viewed'. Key features include: duplicate product handling (updates viewedAt timestamp and moves to front), maxItems limit enforcement (12 products), sorted getAll() method, and comprehensive event dispatching (recentlyviewed:added, removed, cleared).",
+      "category": "alpine-store",
+      "discovered_at": "2026-01-08T15:09:39.445315+00:00"
+    }
+  },
+  "last_updated": "2026-01-08T15:09:39.445348+00:00"
+}
