@@ -446,11 +446,12 @@ function cartItemComponent(itemId, initialQuantity, maxStock, isInStock) {
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     position: relative;
-    transition: all 0.2s ease;
+    transition: all 0.2s ease, background-color 0.3s ease;
 }
 
 .cart-item:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background-color: #fafafa;
 }
 
 .cart-item.out-of-stock {
@@ -466,6 +467,11 @@ function cartItemComponent(itemId, initialQuantity, maxStock, isInStock) {
     background-color: white;
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 8px;
+    transition: border-color 0.3s ease;
+}
+
+.cart-item:hover .cart-item-image {
+    border-color: rgba(0, 0, 0, 0.5);
 }
 
 .cart-item-image img {
@@ -475,7 +481,7 @@ function cartItemComponent(itemId, initialQuantity, maxStock, isInStock) {
     transition: transform 0.2s;
 }
 
-.cart-item-image:hover img {
+.cart-item:hover .cart-item-image img {
     transform: scale(1.05);
 }
 
