@@ -137,6 +137,14 @@
     stroke: #ef4444;
 }
 
+/* Touch device support - make wishlist button always visible on touch devices */
+@media (hover: none) {
+    .product-card-wishlistBtn {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 /* Content */
 .product-card-content {
     padding: 16px;
