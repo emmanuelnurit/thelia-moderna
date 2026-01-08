@@ -41,8 +41,9 @@
           "id": "2.1",
           "title": "Add product view tracking to product.html.twig",
           "description": "Add Alpine.js x-init or script block to product.html.twig that automatically records the current product to the recentlyViewed store when the page loads. Use the same product data structure as wishlistButton:\n- id: product.id\n- title: product.i18ns.title\n- url: product.publicUrl\n- imageId: initialImageId\n- price: taxedPrice formatted\n- promoPrice: taxedPromoPrice formatted (if applicable)\n- isPromo: boolean\n- viewedAt: Date.now()",
-          "status": "pending",
-          "notes": ""
+          "status": "completed",
+          "notes": "Successfully added product view tracking to product.html.twig. The script automatically records products to the recentlyViewed store when the page loads, using the same data structure as wishlistButton (id, title, url, imageId, price, promoPrice, isPromo). The viewedAt timestamp is automatically added by the store's add() method. The code waits for DOMContentLoaded and Alpine initialization before tracking.",
+          "updated_at": "2026-01-08T15:11:51.864669+00:00"
         }
       ]
     },
@@ -55,15 +56,17 @@
           "id": "3.1",
           "title": "Create RecentlyViewed component template",
           "description": "Create a new Twig component at components/Product/RecentlyViewed.html.twig that:\n- Uses x-data with Alpine to read from the recentlyViewed store\n- Displays products in a responsive grid (similar to wishlist suggestions)\n- Shows product image, title, price, and promo price\n- Includes link to product page\n- Has empty state when no recently viewed products (hidden by default)\n- Uses x-show to hide section entirely if empty\n- Supports excluding the current product (for product page usage)",
-          "status": "pending",
-          "notes": ""
+          "status": "completed",
+          "notes": "Successfully created RecentlyViewed Twig component at components/Product/RecentlyViewed.html.twig. The component uses Alpine.js to read from the recentlyViewed store, displays products in a responsive grid (2-3-4-5 columns), shows product image/title/price/promo price, includes links to product pages, uses x-show to hide when empty, and supports excludeProductId parameter to exclude current product. Follows existing patterns from wishlist page with inline CSS matching the design system.",
+          "updated_at": "2026-01-08T15:28:06.744273+00:00"
         },
         {
           "id": "3.2",
           "title": "Add CSS styles for RecentlyViewed component",
           "description": "Add CSS styles for the RecentlyViewed component inline in the component. Styles should:\n- Match the existing product card styling from wishlist/category pages\n- Be responsive with proper grid columns (2-4-5 pattern)\n- Include hover effects and transitions\n- Support the existing design system variables",
-          "status": "pending",
-          "notes": ""
+          "status": "completed",
+          "notes": "CSS styles for the RecentlyViewed component were already implemented inline during subtask 3.1. Verified all requirements are met: responsive grid (2-3-4-5 columns), matches wishlist card styling patterns, uses design system variables (--color-*, --radius-*, --transition-*), includes hover effects and transitions (box-shadow, image scale transform 1.05, border color transitions), proper price display with promo support. Component is ready for page integration.",
+          "updated_at": "2026-01-08T15:31:39.332826+00:00"
         }
       ]
     },
@@ -116,5 +119,5 @@
     "issues": ""
   },
   "estimated_effort": "3-4 hours",
-  "last_updated": "2026-01-08T15:09:31.698462+00:00"
+  "last_updated": "2026-01-08T15:31:39.332843+00:00"
 }
