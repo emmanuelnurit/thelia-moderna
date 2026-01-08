@@ -161,6 +161,16 @@
     </section>
     {% endif %}
 
+    {# Recently Viewed Products #}
+    <section class="recently-viewed-homepage">
+        <div class="container">
+            {% include 'components/Product/RecentlyViewed.html.twig' with {
+                maxItems: 8,
+                title: 'Recently Viewed'|trans
+            } %}
+        </div>
+    </section>
+
     {# Promo Banner #}
     <section class="promo-banner">
         <div class="container">
@@ -475,6 +485,12 @@
 .new-arrivals {
     padding: 64px 0;
     background-color: var(--color-white);
+}
+
+/* Recently Viewed */
+.recently-viewed-homepage {
+    padding: 64px 0;
+    background-color: var(--color-surface);
 }
 
 /* Promo Banner */
