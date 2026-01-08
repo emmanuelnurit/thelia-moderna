@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ModernaBundle\UiComponents\Product\ProductCard;
+namespace ModernaBundle\UiComponents\Product;
 
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;

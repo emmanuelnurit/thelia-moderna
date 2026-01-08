@@ -36,3 +36,6 @@ services:
     # UI Components
     ModernaBundle\UiComponents\LangSelect\LangSelect:
         tags: ['twig.component']
+
+    ModernaBundle\UiComponents\Product\ProductCard:
+        tags: ['twig.component']
