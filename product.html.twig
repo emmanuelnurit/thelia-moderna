@@ -1428,23 +1428,29 @@ function addToCartForm(config) {
 }
 
 // Track product view - automatically add to recently viewed when page loads
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Wait for Alpine and Moderna to be fully initialized
-    setTimeout(() => {
-        if (window.Moderna && window.Moderna.recentlyViewed) {
-            const product = {
-                id: '{{ product.id }}',
-                title: '{{ product.i18ns.title|e('js') }}',
-                url: '{{ product.publicUrl|e('js') }}',
-                imageId: {{ initialImageId }},
-                price: '{{ taxedPrice ? (taxedPrice|format_currency('EUR')) : '0,00 €' }}',
-                promoPrice: {{ (taxedPromoPrice > 0) ? '\'' ~ taxedPromoPrice|format_currency('EUR') ~ '\'' : 'null' }},
-                isPromo: {{ (taxedPromoPrice > 0) ? 'true' : 'false' }}
-            };
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-            window.Moderna.recentlyViewed.add(product);
+    if (window.Moderna && window.Moderna.recentlyViewed) {
+        // Check authentication status first to ensure server tracking works
+        const store = window.Alpine?.store('recentlyViewed');
+        if (store && !store.isAuthenticated) {
+            await store.checkAuth();
         }
-    }, 100);
+
+        const product = {
+            id: '{{ product.id }}',
+            title: '{{ product.i18ns.title|e('js') }}',
+            url: '{{ product.publicUrl|e('js') }}',
+            imageId: {{ initialImageId }},
+            price: '{{ taxedPrice ? (taxedPrice|format_currency('EUR')) : '0,00 €' }}',
+            promoPrice: {{ (taxedPromoPrice > 0) ? '\'' ~ taxedPromoPrice|format_currency('EUR') ~ '\'' : 'null' }},
+            isPromo: {{ (taxedPromoPrice > 0) ? 'true' : 'false' }}
+        };
+
+        window.Moderna.recentlyViewed.add(product);
+    }
 });
 </script>
 {% endblock %}
