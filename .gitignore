@@ -15,6 +15,21 @@ Thumbs.db
 # Claude Code config
 .claude
 
+# Environment files (contains sensitive data)
+.env
+.env.*
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+.env.backup
+.auto-claude/.env
+**/.env
+# Exception: Allow .env.example files as templates (must come after ignore patterns)
+!.env.example
+!**/.env.example
+
 # Logs
 *.log
 npm-debug.log*

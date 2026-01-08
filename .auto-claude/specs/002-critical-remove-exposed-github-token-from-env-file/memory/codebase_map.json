@@ -1,0 +1,10 @@
+{
+  "discovered_files": {
+    ".gitignore": {
+      "description": "The .gitignore file exists but does not include rules for .env files or .auto-claude directory secrets. It only ignores .claude but not .auto-claude.",
+      "category": "configuration",
+      "discovered_at": "2026-01-08T15:07:14.646546+00:00"
+    }
+  },
+  "last_updated": "2026-01-08T15:07:14.646561+00:00"
+}

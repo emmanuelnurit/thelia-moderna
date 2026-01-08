@@ -1,0 +1,112 @@
+# Build Progress: Remove Exposed GitHub Token
+
+## Status: Implementation Plan Created
+
+### Date: 2026-01-08
+
+---
+
+## Investigation Findings
+
+1. **The `.auto-claude/.env` file does NOT currently exist** in the repository or git history
+2. The token mentioned in the spec appears only in the spec documentation files
+3. The current `.gitignore` does NOT protect against `.env` files being committed
+4. The `.auto-claude` directory is NOT ignored in `.gitignore`
+
+---
+
+## Implementation Plan Summary
+
+### Phase 1: Security Remediation
+- [x] 1.1: Update .gitignore with .env protection rules
+- [x] 1.2: Verify no .env files are tracked in git
+
+### Phase 2: Documentation and Templates
+- [x] 2.1: Create .env.example template in .auto-claude directory
+
+### Phase 3: Token Revocation Reminder
+- [x] 3.1: Add security advisory note
+
+---
+
+## Completed Tasks
+
+### Subtask 1.1: Update .gitignore with .env protection rules ✅
+**Completed:** 2026-01-08
+
+Added comprehensive .gitignore entries to protect against .env files:
+- `.env` (base pattern)
+- `.env.*` (all variants)
+- `.env.local`, `.env.*.local`
+- `.env.development`, `.env.production`, `.env.test`
+- `.env.backup`
+- `.auto-claude/.env` (specific path)
+- `**/.env` (all nested directories)
+
+### Subtask 1.2: Verify no .env files are tracked in git ✅
+**Completed:** 2026-01-08
+
+**Verification Results:**
+
+1. **git ls-files check:** ✅ PASSED
+   - No .env files are currently tracked in the repository
+   - Command: `git ls-files | grep -E '\.env'` returned no results
+
+2. **git check-ignore test:** ✅ PASSED
+   - All .env patterns are correctly ignored by .gitignore
+   - Tested patterns:
+     - `.env` → ignored by `.gitignore:28:**/.env`
+     - `.auto-claude/.env` → ignored by `.gitignore:28:**/.env`
+     - `.env.local` → ignored by `.gitignore:21:.env.local`
+     - `.env.development` → ignored by `.gitignore:23:.env.development`
+     - `.env.production` → ignored by `.gitignore:24:.env.production`
+     - `some/nested/path/.env` → ignored by `.gitignore:28:**/.env`
+
+**Conclusion:** All acceptance criteria met. The .gitignore rules are effective and no .env files are tracked in the repository.
+
+### Subtask 2.1: Create .env.example template in .auto-claude directory ✅
+**Completed:** 2026-01-08
+
+Created `.auto-claude/.env.example` template file with:
+- GITHUB_TOKEN placeholder (not a real token)
+- Comprehensive documentation and comments
+- Token generation instructions
+- Required scopes information
+- Security best practices
+
+Updated `.gitignore` to allow `.env.example` files while maintaining protection for actual `.env` files.
+
+**Verification:** All acceptance criteria met. Template file exists with proper documentation and placeholder values.
+
+### Subtask 3.1: Add security advisory note ✅
+**Completed:** 2026-01-08
+
+Added "CRITICAL SECURITY ADVISORY" section to build-progress.txt documenting:
+- The exposed GitHub token ([REDACTED_TOKEN])
+- Step-by-step instructions for revoking the token in GitHub
+- Explanation of why immediate revocation is critical
+- Context that the token is exposed in spec documentation
+
+**Verification:** All acceptance criteria met. Advisory contains clear instructions for token revocation and explains the security implications.
+
+---
+
+## CRITICAL SECURITY ADVISORY
+
+⚠️ **IMMEDIATE ACTION REQUIRED** ⚠️
+
+The GitHub token `[REDACTED_TOKEN]` has been exposed in the spec documentation. This token MUST be revoked immediately:
+
+1. Go to GitHub Settings → Developer Settings → Personal Access Tokens
+2. Find the token starting with `gho_9dUl...`
+3. Click "Revoke" to invalidate the token
+4. Generate a new token if needed
+
+**Why this is critical:** Even though the `.env` file doesn't exist in the repo, the token value is now visible in the spec.md and other documentation files. Anyone with read access to this repository can see and use this token.
+
+---
+
+## Next Steps
+
+1. Begin implementing Phase 1 (Security Remediation)
+2. Token holder should revoke the exposed token immediately

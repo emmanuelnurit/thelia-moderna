@@ -1,0 +1,155 @@
+{
+  "feature": "Critical: Remove exposed GitHub token from .env file",
+  "description": "The file `.auto-claude/.env` contains a hardcoded GitHub token (`GITHUB_TOKEN=[REDACTED_TOKEN]`). This token is committed to version control and exposed in the codebase, allowing anyone with access to the repository to impersonate the token owner and access/modify GitHub resources.",
+  "created_at": "2026-01-08T15:02:03.956Z",
+  "updated_at": "2026-01-08T16:10:00.000Z",
+  "status": "in_progress",
+  "planStatus": "approved",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Security Remediation",
+      "description": "Add .gitignore rules to prevent .env files from being committed to version control",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "1.1",
+          "title": "Update .gitignore with .env protection rules",
+          "description": "Add comprehensive .gitignore entries to prevent .env files from being committed. Include patterns for .auto-claude/.env and all .env files in general.",
+          "status": "completed",
+          "acceptance_criteria": [
+            ".gitignore contains entry for .auto-claude/.env",
+            ".gitignore contains entry for *.env pattern or .env files",
+            "The ignore patterns are properly formatted"
+          ],
+          "estimated_minutes": 5,
+          "files_to_modify": [
+            ".gitignore"
+          ],
+          "notes": "Added comprehensive .gitignore entries including .env, .env.*, .env.local, .env.*.local, .env.development, .env.production, .env.test, .env.backup, .auto-claude/.env, and **/.env patterns to prevent all environment files from being committed.",
+          "updated_at": "2026-01-08T15:08:17.114766+00:00"
+        },
+        {
+          "id": "1.2",
+          "title": "Verify no .env files are tracked in git",
+          "description": "Confirm that no .env files are currently tracked in the git repository and that the new .gitignore rules are effective.",
+          "status": "completed",
+          "acceptance_criteria": [
+            "git ls-files shows no .env files",
+            "git check-ignore correctly ignores .env files"
+          ],
+          "estimated_minutes": 3,
+          "files_to_modify": [],
+          "notes": "Verified that no .env files are tracked in git repository and all .gitignore rules are effective. Tested with git ls-files (no .env files found) and git check-ignore (all patterns correctly ignored). All acceptance criteria met.",
+          "updated_at": "2026-01-08T15:09:58.034962+00:00"
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Documentation and Templates",
+      "description": "Create template file and documentation for proper secret management",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "2.1",
+          "title": "Create .env.example template in .auto-claude directory",
+          "description": "Create a .env.example file that shows the expected environment variables without real secrets. This serves as documentation for developers.",
+          "status": "completed",
+          "acceptance_criteria": [
+            ".auto-claude/.env.example file exists",
+            "File contains placeholder values (not real tokens)",
+            "File includes comments explaining each variable"
+          ],
+          "estimated_minutes": 5,
+          "files_to_modify": [
+            ".auto-claude/.env.example"
+          ],
+          "notes": "Created .auto-claude/.env.example with GITHUB_TOKEN placeholder and comprehensive documentation including token generation instructions and required scopes. Updated .gitignore to allow .env.example files while maintaining protection for actual .env files.",
+          "updated_at": "2026-01-08T15:26:47.279965+00:00"
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Token Revocation Reminder",
+      "description": "Document the need to revoke the exposed token",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "3.1",
+          "title": "Add security advisory note",
+          "description": "Create a note in build-progress.txt documenting that the exposed token ([REDACTED_TOKEN]) must be revoked in GitHub since it was exposed in the spec documentation.",
+          "status": "completed",
+          "acceptance_criteria": [
+            "build-progress.txt contains advisory about token revocation",
+            "Advisory includes instructions for revoking tokens in GitHub"
+          ],
+          "estimated_minutes": 3,
+          "files_to_modify": [
+            ".auto-claude/specs/002-critical-remove-exposed-github-token-from-env-file/build-progress.txt"
+          ],
+          "notes": "Added comprehensive security advisory section to build-progress.txt documenting the exposed GitHub token ([REDACTED_TOKEN]) and providing step-by-step instructions for token revocation in GitHub. The advisory explains why immediate revocation is critical and provides context about the token exposure in spec documentation. All acceptance criteria met.",
+          "updated_at": "2026-01-08T15:28:52.442849+00:00"
+        }
+      ]
+    }
+  ],
+  "workflow_type": "development",
+  "services_involved": [
+    "git",
+    "github"
+  ],
+  "final_acceptance": [
+    ".gitignore updated to prevent .env files from being committed",
+    "No .env files currently tracked in repository",
+    ".env.example template created for reference",
+    "Security advisory documented for token revocation"
+  ],
+  "spec_file": "spec.md",
+  "notes": "The .auto-claude/.env file mentioned in the spec does not currently exist in the repository or git history. This implementation focuses on preventative measures (gitignore rules) and documentation. IMPORTANT: The actual GitHub token exposed in the spec file ([REDACTED_TOKEN]) should be revoked immediately via GitHub settings as a security measure.",
+  "last_updated": "2026-01-08T15:28:52.442868+00:00",
+  "qa_iteration_history": [
+    {
+      "iteration": 1,
+      "status": "error",
+      "timestamp": "2026-01-08T15:32:28.704700+00:00",
+      "issues": [
+        {
+          "title": "QA error",
+          "description": "QA agent did not update implementation_plan.json"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "status": "error",
+      "timestamp": "2026-01-08T15:32:35.051035+00:00",
+      "issues": [
+        {
+          "title": "QA error",
+          "description": "QA agent did not update implementation_plan.json (No tools were used by agent)"
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "status": "error",
+      "timestamp": "2026-01-08T15:32:45.272713+00:00",
+      "issues": [
+        {
+          "title": "QA error",
+          "description": "QA agent did not update implementation_plan.json (No tools were used by agent)"
+        }
+      ]
+    }
+  ],
+  "qa_stats": {
+    "total_iterations": 3,
+    "last_iteration": 3,
+    "last_status": "error",
+    "issues_by_type": {
+      "unknown": 3
+    }
+  }
+}
