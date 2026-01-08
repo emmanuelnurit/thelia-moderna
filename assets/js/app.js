@@ -223,6 +223,8 @@ Alpine.store('wishlist', {
 Alpine.store('recentlyViewed', {
   items: Alpine.$persist([]).as('moderna_recently_viewed'),
   maxItems: 12,
+  isAuthenticated: false,
+  isSyncing: false,
 
   has(productId) {
     // Convert to string for comparison to handle both number and string IDs
@@ -258,6 +260,11 @@ Alpine.store('recentlyViewed', {
 
       window.dispatchEvent(new CustomEvent('recentlyviewed:added', { detail: productWithTimestamp }));
     }
+
+    // Track on server if authenticated
+    if (this.isAuthenticated) {
+      this.addToServer(product.id);
+    }
   },
 
   remove(productId) {
@@ -284,6 +291,84 @@ Alpine.store('recentlyViewed', {
 
   get count() {
     return this.items.length;
+  },
+
+  // Server sync methods
+  async addToServer(productId) {
+    try {
+      await fetch('/moderna-api/recently-viewed/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ product_id: productId })
+      });
+    } catch (error) {
+      console.error('Failed to track product view on server:', error);
+    }
+  },
+
+  // Sync local recently viewed with server (merge)
+  async syncWithServer() {
+    if (this.isSyncing) return;
+    this.isSyncing = true;
+
+    try {
+      // Get current local items before sync
+      const localItems = [...this.items];
+
+      const response = await fetch('/moderna-api/recently-viewed/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ items: localItems })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data.success && data.items) {
+          // Clear current items and add merged ones
+          // Use while loop to ensure all items are removed
+          while (this.items.length > 0) {
+            this.items.pop();
+          }
+
+          // Add all server items
+          for (const serverItem of data.items) {
+            this.items.push(serverItem);
+          }
+
+          // Also manually update localStorage as backup for Alpine $persist
+          try {
+            localStorage.setItem('_x_moderna_recently_viewed', JSON.stringify(this.items));
+          } catch (e) {
+            console.error('[RecentlyViewed] Failed to save to localStorage:', e);
+          }
+
+          // Dispatch event after a small delay to ensure DOM is updated
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('recentlyviewed:synced', { detail: { items: [...this.items] } }));
+          }, 100);
+        }
+      }
+    } catch (error) {
+      console.error('[RecentlyViewed] Failed to sync with server:', error);
+    } finally {
+      this.isSyncing = false;
+    }
+  },
+
+  // Check authentication status
+  async checkAuth() {
+    try {
+      const response = await fetch('/moderna-api/auth/check', { credentials: 'include' });
+      const data = await response.json();
+      this.isAuthenticated = data.authenticated === true;
+      return this.isAuthenticated;
+    } catch (error) {
+      this.isAuthenticated = false;
+      return false;
+    }
   }
 });
 
@@ -347,6 +432,8 @@ window.Moderna = {
     clear: () => Alpine.store('recentlyViewed').clear(),
     items: () => Alpine.store('recentlyViewed').items,
     count: () => Alpine.store('recentlyViewed').count,
+    sync: () => Alpine.store('recentlyViewed').syncWithServer(),
+    isAuthenticated: () => Alpine.store('recentlyViewed').isAuthenticated,
   },
   cart: {
     updateCount: (count) => Alpine.store('cart').updateCount(count),
