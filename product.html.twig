@@ -1419,5 +1419,25 @@ function addToCartForm(config) {
         }
     };
 }
+
+// Track product view - automatically add to recently viewed when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for Alpine and Moderna to be fully initialized
+    setTimeout(() => {
+        if (window.Moderna && window.Moderna.recentlyViewed) {
+            const product = {
+                id: '{{ product.id }}',
+                title: '{{ product.i18ns.title|e('js') }}',
+                url: '{{ product.publicUrl|e('js') }}',
+                imageId: {{ initialImageId }},
+                price: '{{ taxedPrice ? (taxedPrice|format_currency('EUR')) : '0,00 €' }}',
+                promoPrice: {{ (taxedPromoPrice > 0) ? '\'' ~ taxedPromoPrice|format_currency('EUR') ~ '\'' : 'null' }},
+                isPromo: {{ (taxedPromoPrice > 0) ? 'true' : 'false' }}
+            };
+
+            window.Moderna.recentlyViewed.add(product);
+        }
+    }, 100);
+});
 </script>
 {% endblock %}

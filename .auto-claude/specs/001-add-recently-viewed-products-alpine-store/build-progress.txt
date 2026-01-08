@@ -1,0 +1,67 @@
+# Recently Viewed Products Alpine Store - Build Progress
+
+## Status: In Progress - Phase 1 Complete
+Last Updated: 2025-01-08
+
+---
+
+## Implementation Plan Created
+
+### Phase 1: Core Store Implementation ✅
+- [✅] 1.1 Create recentlyViewed Alpine store in app.js
+- [✅] 1.2 Add recentlyViewed helpers to window.Moderna
+
+**Completed:** Both subtasks implemented in commit d5bad89
+- Created Alpine.store('recentlyViewed') with Alpine.$persist
+- Implements all required methods: add(), remove(), clear(), has(), getAll()
+- MaxItems limit (12 products) with automatic oldest item removal
+- Handles duplicate views by updating viewedAt and moving to front
+- Dispatches events: recentlyviewed:added, recentlyviewed:removed, recentlyviewed:cleared
+- Added window.Moderna.recentlyViewed helpers for template access
+
+### Phase 2: Product Page Tracking Integration  
+- [ ] 2.1 Add product view tracking to product.html.twig
+
+### Phase 3: Display Component
+- [ ] 3.1 Create RecentlyViewed component template
+- [ ] 3.2 Add CSS styles for RecentlyViewed component
+
+### Phase 4: Page Integration
+- [ ] 4.1 Add RecentlyViewed to product.html.twig
+- [ ] 4.2 Add RecentlyViewed to index.html.twig (homepage)
+
+### Phase 5: Testing and Verification
+- [ ] 5.1 Manual testing and edge cases
+- [ ] 5.2 Build verification
+
+---
+
+## Key Discoveries
+
+### Existing Patterns to Follow:
+1. **Wishlist Store Pattern** (assets/js/app.js lines 47-220):
+   - Uses `Alpine.$persist([]).as('moderna_wishlist')` for local persistence
+   - Product data structure: id, title, url, image, imageId, price, promoPrice, isPromo
+   - Methods: has(), toggle(), add(), remove(), clear(), count getter
+   - Dispatches events: wishlist:added, wishlist:removed, wishlist:cleared
+   - Exposed via window.Moderna.wishlist helpers
+
+2. **Product Data Available** (product.html.twig):
+   - product.id, product.i18ns.title, product.publicUrl
+   - initialImageId for image reference
+   - taxedPrice, taxedPromoPrice for formatted prices
+   - currentPse.promo for promo status
+
+3. **Component Patterns** (components/Product/, wishlist.html.twig):
+   - Twig components with inline styles
+   - Alpine.js x-data for state management
+   - Responsive grid layouts
+   - Event listeners for store changes
+
+---
+
+## Notes
+- Implementation should follow exact same pattern as wishlist store
+- Max 12 products in recently viewed (configurable)
+- Products should be ordered by viewedAt (most recent first)
+- Duplicate views should update timestamp and move to front
