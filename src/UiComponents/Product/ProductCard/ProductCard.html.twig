@@ -1,6 +1,6 @@
 {#
   ProductCard Component
-  Usage: {{ component('Moderna:ProductCard', { product: product }) }}
+  Usage: {{ component('Moderna:Product:ProductCard', { product: product }) }}
 #}
 <article class="product-card product-card--{{ variant }}">
     {# Image container #}
@@ -32,7 +32,7 @@
                 {% endif %}
                 {% if this.hasPromo %}
                     <span class="product-card-badge product-card-badge--promo">
-                        -{{ this.promoPercentage }}%
+                        -{{ this.taxedPromoPercentage }}%
                     </span>
                 {% endif %}
             </div>
@@ -59,14 +59,14 @@
         <div class="product-card-price">
             {% if this.hasPromo %}
                 <span class="product-card-pricePromo">
-                    {{ this.price.promoPrice|format_currency('EUR') }}
+                    {{ this.taxedPromoPriceFormatted }}
                 </span>
                 <span class="product-card-priceOriginal">
-                    {{ this.price.price|format_currency('EUR') }}
+                    {{ this.taxedPriceFormatted }}
                 </span>
             {% else %}
                 <span class="product-card-priceRegular">
-                    {{ this.price.price|format_currency('EUR') }}
+                    {{ this.taxedPriceFormatted }}
                 </span>
             {% endif %}
         </div>

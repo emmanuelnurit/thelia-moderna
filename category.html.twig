@@ -52,7 +52,7 @@
                 {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
                 {% set productWithImages = product|merge({'productImages': productImages}) %}
 
-                {{ component('Moderna:ProductCard', {
+                {{ component('Moderna:Product:ProductCard', {
                     product: productWithImages
                 }) }}
             {% endfor %}
