@@ -8,6 +8,9 @@ import '../css/app.css';
 // Cart synchronization
 import './cart-sync.js';
 
+// Wishlist button component
+import { wishlistButton } from './wishlist-button.js';
+
 // Stimulus
 import { startStimulusApp } from '@symfony/stimulus-bridge';
 
@@ -253,6 +256,9 @@ Alpine.store('search', {
 
 // Expose Alpine to window before starting
 window.Alpine = Alpine;
+
+// Expose wishlistButton to window for use in components
+window.wishlistButton = wishlistButton;
 
 // Expose helpers to window for LiveComponents
 window.Moderna = {
