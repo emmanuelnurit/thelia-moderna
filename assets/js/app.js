@@ -219,6 +219,74 @@ Alpine.store('wishlist', {
   }
 });
 
+// Recently Viewed store
+Alpine.store('recentlyViewed', {
+  items: Alpine.$persist([]).as('moderna_recently_viewed'),
+  maxItems: 12,
+
+  has(productId) {
+    // Convert to string for comparison to handle both number and string IDs
+    const searchId = String(productId);
+    return this.items.some(item => String(item.id) === searchId);
+  },
+
+  add(product) {
+    // Convert ID to string for consistent comparison
+    const productId = String(product.id);
+
+    // Check if product already exists
+    const existingIndex = this.items.findIndex(item => String(item.id) === productId);
+
+    if (existingIndex !== -1) {
+      // Product already exists - update viewedAt and move to front
+      const existingProduct = this.items[existingIndex];
+      existingProduct.viewedAt = Date.now();
+      this.items.splice(existingIndex, 1);
+      this.items.unshift(existingProduct);
+    } else {
+      // New product - add to front with viewedAt timestamp
+      const productWithTimestamp = {
+        ...product,
+        viewedAt: Date.now()
+      };
+      this.items.unshift(productWithTimestamp);
+
+      // Enforce max items limit - remove oldest items if exceeded
+      if (this.items.length > this.maxItems) {
+        this.items = this.items.slice(0, this.maxItems);
+      }
+
+      window.dispatchEvent(new CustomEvent('recentlyviewed:added', { detail: productWithTimestamp }));
+    }
+  },
+
+  remove(productId) {
+    // Convert to string for comparison to handle both number and string IDs
+    const removeId = String(productId);
+    const initialLength = this.items.length;
+    this.items = this.items.filter(item => String(item.id) !== removeId);
+
+    // Only dispatch event if something was actually removed
+    if (this.items.length < initialLength) {
+      window.dispatchEvent(new CustomEvent('recentlyviewed:removed', { detail: { productId: removeId } }));
+    }
+  },
+
+  clear() {
+    this.items = [];
+    window.dispatchEvent(new CustomEvent('recentlyviewed:cleared'));
+  },
+
+  getAll() {
+    // Return items sorted by viewedAt (newest first)
+    return [...this.items].sort((a, b) => (b.viewedAt || 0) - (a.viewedAt || 0));
+  },
+
+  get count() {
+    return this.items.length;
+  }
+});
+
 // Mobile menu store
 Alpine.store('mobileMenu', {
   open: false,
@@ -271,6 +339,14 @@ window.Moderna = {
     items: () => Alpine.store('wishlist').items,
     sync: () => Alpine.store('wishlist').syncWithServer(),
     isAuthenticated: () => Alpine.store('wishlist').isAuthenticated,
+  },
+  recentlyViewed: {
+    has: (productId) => Alpine.store('recentlyViewed').has(productId),
+    add: (product) => Alpine.store('recentlyViewed').add(product),
+    remove: (productId) => Alpine.store('recentlyViewed').remove(productId),
+    clear: () => Alpine.store('recentlyViewed').clear(),
+    items: () => Alpine.store('recentlyViewed').items,
+    count: () => Alpine.store('recentlyViewed').count,
   },
   cart: {
     updateCount: (count) => Alpine.store('cart').updateCount(count),
