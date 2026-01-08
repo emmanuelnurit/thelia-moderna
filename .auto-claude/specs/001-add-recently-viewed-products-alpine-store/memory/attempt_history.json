@@ -374,6 +374,30 @@
         }
       ],
       "status": "completed"
+    },
+    "4.2": {
+      "attempts": [
+        {
+          "session": 52,
+          "timestamp": "2026-01-08T16:44:52.308174",
+          "approach": "Implemented: Include the RecentlyViewed component on the homepage, positioned after featured products. Show 'Rece",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "5.1": {
+      "attempts": [
+        {
+          "session": 53,
+          "timestamp": "2026-01-08T16:50:44.349055",
+          "approach": "Implemented: Test the following scenarios:\n- Viewing products adds them to recently viewed\n- Products persist acr",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
     }
   },
   "stuck_subtasks": [
@@ -386,6 +410,6 @@
   ],
   "metadata": {
     "created_at": "2026-01-08T16:04:02.923679",
-    "last_updated": "2026-01-08T16:41:42.148393"
+    "last_updated": "2026-01-08T16:50:44.349121"
   }
 }
