@@ -87,8 +87,9 @@
           "id": "4.2",
           "title": "Add RecentlyViewed to index.html.twig (homepage)",
           "description": "Include the RecentlyViewed component on the homepage, positioned after featured products. Show 'Recently Viewed' heading with up to 4-8 products. Only visible when there are products to display.",
-          "status": "pending",
-          "notes": ""
+          "status": "completed",
+          "notes": "Successfully included the RecentlyViewed component on the homepage (index.html.twig) positioned after the New Arrivals section. The component is configured to:\n- Show up to 8 recently viewed products (maxItems: 8)\n- Display 'Recently Viewed' heading with proper translation\n- Auto-hide when no products are available using x-show (built into the component)\n- Use the existing RecentlyViewed component from components/Product/RecentlyViewed.html.twig\n- Match existing page design pattern with proper section styling and background color",
+          "updated_at": "2026-01-08T15:43:48.456897+00:00"
         }
       ]
     },
@@ -120,5 +121,5 @@
     "issues": ""
   },
   "estimated_effort": "3-4 hours",
-  "last_updated": "2026-01-08T15:41:02.700245+00:00"
+  "last_updated": "2026-01-08T15:43:48.456912+00:00"
 }
