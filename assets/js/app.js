@@ -459,6 +459,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     wishlistStore.syncWithServer();
   }
 
+  // Check authentication and sync recently viewed if authenticated
+  const recentlyViewedStore = Alpine.store('recentlyViewed');
+  const isAuthRecentlyViewed = await recentlyViewedStore.checkAuth();
+  if (isAuthRecentlyViewed) {
+    recentlyViewedStore.syncWithServer();
+  }
+
   // Listen for auth changes (login/logout)
   window.addEventListener('auth-changed', async (event) => {
     const { isLogout } = event.detail || {};
@@ -466,10 +473,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isLogout) {
       // User logged out - keep local wishlist, mark as not authenticated
       wishlistStore.isAuthenticated = false;
+      // User logged out - keep local recently viewed, mark as not authenticated
+      recentlyViewedStore.isAuthenticated = false;
     } else {
       // User logged in - sync wishlist with server (merge)
       wishlistStore.isAuthenticated = true;
       await wishlistStore.syncWithServer();
+      // User logged in - sync recently viewed with server (merge)
+      recentlyViewedStore.isAuthenticated = true;
+      await recentlyViewedStore.syncWithServer();
     }
   });
 });
