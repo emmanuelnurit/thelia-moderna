@@ -108,5 +108,48 @@
   ],
   "spec_file": "spec.md",
   "notes": "The .auto-claude/.env file mentioned in the spec does not currently exist in the repository or git history. This implementation focuses on preventative measures (gitignore rules) and documentation. IMPORTANT: The actual GitHub token exposed in the spec file ([REDACTED_TOKEN]) should be revoked immediately via GitHub settings as a security measure.",
-  "last_updated": "2026-01-08T15:28:52.442868+00:00"
+  "last_updated": "2026-01-08T15:28:52.442868+00:00",
+  "qa_iteration_history": [
+    {
+      "iteration": 1,
+      "status": "error",
+      "timestamp": "2026-01-08T15:32:28.704700+00:00",
+      "issues": [
+        {
+          "title": "QA error",
+          "description": "QA agent did not update implementation_plan.json"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "status": "error",
+      "timestamp": "2026-01-08T15:32:35.051035+00:00",
+      "issues": [
+        {
+          "title": "QA error",
+          "description": "QA agent did not update implementation_plan.json (No tools were used by agent)"
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "status": "error",
+      "timestamp": "2026-01-08T15:32:45.272713+00:00",
+      "issues": [
+        {
+          "title": "QA error",
+          "description": "QA agent did not update implementation_plan.json (No tools were used by agent)"
+        }
+      ]
+    }
+  ],
+  "qa_stats": {
+    "total_iterations": 3,
+    "last_iteration": 3,
+    "last_status": "error",
+    "issues_by_type": {
+      "unknown": 3
+    }
+  }
 }
