@@ -22,10 +22,10 @@
 - [x] 1.2: Verify no .env files are tracked in git
 
 ### Phase 2: Documentation and Templates
-- [ ] 2.1: Create .env.example template in .auto-claude directory
+- [x] 2.1: Create .env.example template in .auto-claude directory
 
 ### Phase 3: Token Revocation Reminder
-- [ ] 3.1: Add security advisory note
+- [x] 3.1: Add security advisory note
 
 ---
 
@@ -63,6 +63,31 @@ Added comprehensive .gitignore entries to protect against .env files:
      - `some/nested/path/.env` → ignored by `.gitignore:28:**/.env`
 
 **Conclusion:** All acceptance criteria met. The .gitignore rules are effective and no .env files are tracked in the repository.
+
+### Subtask 2.1: Create .env.example template in .auto-claude directory ✅
+**Completed:** 2026-01-08
+
+Created `.auto-claude/.env.example` template file with:
+- GITHUB_TOKEN placeholder (not a real token)
+- Comprehensive documentation and comments
+- Token generation instructions
+- Required scopes information
+- Security best practices
+
+Updated `.gitignore` to allow `.env.example` files while maintaining protection for actual `.env` files.
+
+**Verification:** All acceptance criteria met. Template file exists with proper documentation and placeholder values.
+
+### Subtask 3.1: Add security advisory note ✅
+**Completed:** 2026-01-08
+
+Added "CRITICAL SECURITY ADVISORY" section to build-progress.txt documenting:
+- The exposed GitHub token ([REDACTED_TOKEN])
+- Step-by-step instructions for revoking the token in GitHub
+- Explanation of why immediate revocation is critical
+- Context that the token is exposed in spec documentation
+
+**Verification:** All acceptance criteria met. Advisory contains clear instructions for token revocation and explains the security implications.
 
 ---
 

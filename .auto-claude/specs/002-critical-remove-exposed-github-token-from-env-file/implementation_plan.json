@@ -55,7 +55,7 @@
           "id": "2.1",
           "title": "Create .env.example template in .auto-claude directory",
           "description": "Create a .env.example file that shows the expected environment variables without real secrets. This serves as documentation for developers.",
-          "status": "pending",
+          "status": "completed",
           "acceptance_criteria": [
             ".auto-claude/.env.example file exists",
             "File contains placeholder values (not real tokens)",
@@ -64,7 +64,9 @@
           "estimated_minutes": 5,
           "files_to_modify": [
             ".auto-claude/.env.example"
-          ]
+          ],
+          "notes": "Created .auto-claude/.env.example with GITHUB_TOKEN placeholder and comprehensive documentation including token generation instructions and required scopes. Updated .gitignore to allow .env.example files while maintaining protection for actual .env files.",
+          "updated_at": "2026-01-08T15:26:47.279965+00:00"
         }
       ]
     },
@@ -78,7 +80,7 @@
           "id": "3.1",
           "title": "Add security advisory note",
           "description": "Create a note in build-progress.txt documenting that the exposed token ([REDACTED_TOKEN]) must be revoked in GitHub since it was exposed in the spec documentation.",
-          "status": "pending",
+          "status": "completed",
           "acceptance_criteria": [
             "build-progress.txt contains advisory about token revocation",
             "Advisory includes instructions for revoking tokens in GitHub"
@@ -86,7 +88,9 @@
           "estimated_minutes": 3,
           "files_to_modify": [
             ".auto-claude/specs/002-critical-remove-exposed-github-token-from-env-file/build-progress.txt"
-          ]
+          ],
+          "notes": "Added comprehensive security advisory section to build-progress.txt documenting the exposed GitHub token ([REDACTED_TOKEN]) and providing step-by-step instructions for token revocation in GitHub. The advisory explains why immediate revocation is critical and provides context about the token exposure in spec documentation. All acceptance criteria met.",
+          "updated_at": "2026-01-08T15:28:52.442849+00:00"
         }
       ]
     }
@@ -104,5 +108,5 @@
   ],
   "spec_file": "spec.md",
   "notes": "The .auto-claude/.env file mentioned in the spec does not currently exist in the repository or git history. This implementation focuses on preventative measures (gitignore rules) and documentation. IMPORTANT: The actual GitHub token exposed in the spec file ([REDACTED_TOKEN]) should be revoked immediately via GitHub settings as a security measure.",
-  "last_updated": "2026-01-08T15:09:58.034978+00:00"
+  "last_updated": "2026-01-08T15:28:52.442868+00:00"
 }
