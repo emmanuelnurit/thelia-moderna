@@ -5,9 +5,12 @@
 {% block meta_description %}{{ 'The page you are looking for does not exist.'|trans }}{% endblock %}
 
 {% block body %}
-<div class="error-page">
+<main class="error-page" role="main" aria-labelledby="error-title">
+    {# Skip to search for accessibility #}
+    <a href="#error-search-input" class="error-skip-link">{{ 'Skip to search'|trans }}</a>
+
     {# Hero Section - Error Message #}
-    <section class="error-hero">
+    <header class="error-hero">
         <div class="container">
             <div class="error-content">
                 {# Error Icon #}
@@ -24,7 +27,7 @@
                 <h1 class="error-code">404</h1>
 
                 {# Error Title #}
-                <h2 class="error-title">{{ 'Page Not Found'|trans }}</h2>
+                <h2 id="error-title" class="error-title">{{ 'Page Not Found'|trans }}</h2>
 
                 {# Error Description #}
                 <p class="error-text">
@@ -36,8 +39,8 @@
 
                 {# Primary CTA #}
                 <div class="error-actions">
-                    <a href="{{ path('index') }}" class="error-btn error-btn--primary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <a href="{{ path('index') }}" class="error-btn error-btn--primary" aria-label="{{ 'Back to Home'|trans }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                             <polyline points="9 22 9 12 15 12 15 22"/>
                         </svg>
@@ -46,14 +49,14 @@
                 </div>
             </div>
         </div>
-    </section>
+    </header>
 
     {# Search Section #}
-    <section class="error-section error-search-section">
+    <section class="error-section error-search-section" aria-labelledby="search-section-title">
         <div class="container">
             <div class="error-search">
                 {# Section Header #}
-                <h3 class="error-search-title">{{ 'Looking for something specific?'|trans }}</h3>
+                <h3 id="search-section-title" class="error-search-title">{{ 'Looking for something specific?'|trans }}</h3>
                 <p class="error-search-subtitle">{{ 'Use the search to find what you need.'|trans }}</p>
 
                 {# Search Form #}
@@ -67,12 +70,13 @@
                         <input
                             type="search"
                             name="q"
+                            id="error-search-input"
                             placeholder="{{ 'Search for products, categories...'|trans }}"
                             class="error-search-input"
                             autocomplete="off"
-                            aria-label="{{ 'Search'|trans }}"
+                            aria-label="{{ 'Search for products'|trans }}"
                         >
-                        <button type="submit" class="error-search-submit" aria-label="{{ 'Search'|trans }}">
+                        <button type="submit" class="error-search-submit" aria-label="{{ 'Submit search'|trans }}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                                 <polyline points="12 5 19 12 12 19"/>
@@ -109,11 +113,11 @@
     {% set recommendedProducts = promoProducts|merge(filteredNewProducts)|slice(0, 8) %}
 
     {% if recommendedProducts is iterable and recommendedProducts|length > 0 %}
-    <section class="error-section error-products-section">
+    <section class="error-section error-products-section" aria-labelledby="products-section-title">
         <div class="container">
             <div class="error-section-header">
-                <h3 class="error-section-title">{{ 'Discover our products'|trans }}</h3>
-                <a href="/?view=category&category_id=1" class="error-section-link">
+                <h3 id="products-section-title" class="error-section-title">{{ 'Discover our products'|trans }}</h3>
+                <a href="/?view=category&category_id=1" class="error-section-link" aria-label="{{ 'Browse all products'|trans }}">
                     {{ 'Browse all'|trans }}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M5 12h14m-7-7 7 7-7 7"/>
@@ -121,7 +125,7 @@
                 </a>
             </div>
 
-            <div class="error-products-grid">
+            <div class="error-products-grid" role="list">
                 {% for product in recommendedProducts %}
                     {# Fetch product images for the component #}
                     {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
@@ -154,16 +158,17 @@
         x-data="errorWishlistSection()"
         x-show="items.length > 0"
         x-cloak
+        aria-labelledby="wishlist-section-title"
     >
         <div class="container">
             <div class="error-section-header">
-                <h3 class="error-section-title">
+                <h3 id="wishlist-section-title" class="error-section-title">
                     <svg class="error-wishlist-icon" width="24" height="24" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" aria-hidden="true">
                         <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
                     </svg>
                     {{ 'Your favorites'|trans }}
                 </h3>
-                <a href="/?view=wishlist" class="error-section-link">
+                <a href="/?view=wishlist" class="error-section-link" aria-label="{{ 'View all wishlist items'|trans }}">
                     {{ 'View all'|trans }}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M5 12h14m-7-7 7 7-7 7"/>
@@ -171,11 +176,11 @@
                 </a>
             </div>
 
-            <div class="error-wishlist-grid">
+            <div class="error-wishlist-grid" role="list">
                 <template x-for="item in items.slice(0, 4)" :key="item.id">
                     <article class="error-wishlist-card">
                         {# Image #}
-                        <a :href="item.url || '#'" class="error-wishlist-cardImage">
+                        <a :href="item.url || '#'" class="error-wishlist-cardImage" :aria-label="'{{ 'View'|trans }}: ' + item.title">
                             <img
                                 :src="getImageUrl(item)"
                                 :alt="item.title"
@@ -220,8 +225,8 @@
 
             {# Show count if more items exist #}
             <div class="error-wishlist-more" x-show="items.length > 4">
-                <a href="/?view=wishlist" class="error-wishlist-moreLink">
-                    <span x-text="'+ ' + (items.length - 4) + ' {{ 'more items'|trans }}'"></span>
+                <a href="/?view=wishlist" class="error-wishlist-moreLink" aria-label="{{ 'View all wishlist items'|trans }}">
+                    <span>+ <span x-text="items.length - 4"></span> {{ 'more items'|trans }}</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M5 12h14m-7-7 7 7-7 7"/>
                     </svg>
@@ -266,10 +271,10 @@
     </script>
 
     {# Quick Navigation Section - Helpful links to main areas #}
-    <section class="error-section error-navigation-section">
+    <section class="error-section error-navigation-section" aria-labelledby="navigation-section-title">
         <div class="container">
             <div class="error-section-header">
-                <h3 class="error-section-title">
+                <h3 id="navigation-section-title" class="error-section-title">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="12" cy="12" r="10"/>
                         <path d="M12 16v-4"/>
@@ -353,13 +358,36 @@
             </nav>
         </div>
     </section>
-</div>
+</main>
 
 <style>
 /* Error Page Base */
 .error-page {
     min-height: 100vh;
     background-color: var(--color-background, #fafafa);
+}
+
+/* Skip Link for Accessibility */
+.error-skip-link {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-text, #1a1a1a);
+    color: var(--color-white, #fff);
+    padding: 12px 24px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--radius-md, 8px);
+    z-index: 100;
+    transition: top 0.2s ease;
+}
+
+.error-skip-link:focus {
+    top: 16px;
+    outline: 2px solid var(--color-white, #fff);
+    outline-offset: 2px;
 }
 
 /* Hero Section */
@@ -462,6 +490,20 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.error-btn--primary:focus {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+.error-btn--primary:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.error-btn--primary:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
 .error-btn--secondary {
     background-color: var(--color-surface, #f5f5f5);
     color: var(--color-text, #1a1a1a);
@@ -470,6 +512,11 @@
 
 .error-btn--secondary:hover {
     background-color: var(--color-surface-dark, #eee);
+}
+
+.error-btn--secondary:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
 }
 
 /* Section Base */
@@ -509,6 +556,12 @@
 
 .error-section-link:hover {
     opacity: 0.7;
+}
+
+.error-section-link:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 4px);
 }
 
 /* Container */
@@ -646,6 +699,11 @@
     transform: translateY(-1px);
 }
 
+.error-search-suggestion:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
 .error-search-suggestion--highlight {
     background-color: #c9a227;
     color: white;
@@ -653,6 +711,11 @@
 
 .error-search-suggestion--highlight:hover {
     background-color: #b8922a;
+}
+
+.error-search-suggestion--highlight:focus-visible {
+    outline: 2px solid #c9a227;
+    outline-offset: 2px;
 }
 
 /* Products Section */
@@ -841,6 +904,17 @@
     text-decoration: underline;
 }
 
+.error-wishlist-cardTitle a:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 4px);
+}
+
+.error-wishlist-cardImage:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
 .error-wishlist-cardPrice {
     display: flex;
     align-items: baseline;
@@ -886,6 +960,11 @@
 .error-wishlist-moreLink:hover {
     background-color: var(--color-surface-dark, #eee);
     transform: translateY(-1px);
+}
+
+.error-wishlist-moreLink:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
 }
 
 /* Alpine x-cloak - hide elements before Alpine initializes */
