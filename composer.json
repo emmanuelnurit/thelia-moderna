@@ -1,0 +1,51 @@
+{
+  "name": "thelia/moderna",
+  "type": "thelia-frontoffice-template",
+  "description": "Modern.A - Modern e-commerce template for Thelia 3.x with Alpine.js, Tailwind CSS and Stimulus",
+  "keywords": [
+    "thelia-frontoffice-template",
+    "thelia",
+    "e-commerce",
+    "tailwindcss",
+    "alpinejs"
+  ],
+  "license": "LGPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Emmanuel Nurit",
+      "email": "emmanuel@nurit.fr"
+    }
+  ],
+  "require": {
+    "php": ">=8.2",
+    "symfony/webpack-encore-bundle": "^2.1",
+    "symfony/ux-twig-component": "^2.19",
+    "symfony/stimulus-bundle": "^2.19",
+    "symfony/ux-icons": "^2.21",
+    "symfony/ux-live-component": "^2.19",
+    "symfony/twig-bundle": "^6.4",
+    "symfony/http-client": "*",
+    "thelia/front-module": "^2.5",
+    "thelia/thelia-library-module": "dev-twig",
+    "thelia/thelia-blocks-module": "dev-twig",
+    "thelia/twig-engine-module": "dev-twig",
+    "thelia/recently-viewed-module": "dev-twig",
+    "thelia/seone-module": "dev-main",
+    "thelia/open-api-module": "*",
+    "thelia/installer": "~1.1",
+    "twig/extra-bundle": "^3.17",
+    "twig/intl-extra": "^3.17",
+    "twig/html-extra": "^3.12"
+  },
+  "autoload": {
+    "psr-4": {
+      "ModernaBundle\\": "src/"
+    }
+  },
+  "extra": {
+    "installer-name": "moderna"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}
