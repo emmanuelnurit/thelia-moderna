@@ -29,7 +29,7 @@
     "thelia/thelia-library-module": "dev-twig",
     "thelia/thelia-blocks-module": "dev-twig",
     "thelia/twig-engine-module": "dev-twig",
-    "thelia/recently-viewed-module": "dev-twig",
+    "thelia/recently-viewed-moderna": "^1.0",
     "thelia/seone-module": "dev-main",
     "thelia/open-api-module": "*",
     "thelia/installer": "~1.1",

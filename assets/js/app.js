@@ -296,7 +296,7 @@ Alpine.store('recentlyViewed', {
   // Server sync methods
   async addToServer(productId) {
     try {
-      await fetch('/moderna-api/recently-viewed/track', {
+      await fetch('/api/recently-viewed/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -316,7 +316,7 @@ Alpine.store('recentlyViewed', {
       // Get current local items before sync
       const localItems = [...this.items];
 
-      const response = await fetch('/moderna-api/recently-viewed/sync', {
+      const response = await fetch('/api/recently-viewed/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
