@@ -96,12 +96,46 @@
         </div>
     </section>
 
-    {# Product Suggestions Section - Placeholder for 3.1 #}
+    {# Product Suggestions Section #}
+    {% set promoProducts = resources('/api/front/products', {'productSaleElements.promo': true, 'limit': 4}) %}
+    {% set newProducts = resources('/api/front/products', {'limit': 8}) %}
+    {# Exclude promo products from new products to avoid duplicates #}
+    {% set promoIds = [] %}
+    {% for product in promoProducts %}
+        {% set promoIds = promoIds|merge([product.id]) %}
+    {% endfor %}
+    {% set filteredNewProducts = newProducts|filter(p => p.id not in promoIds)|slice(0, 4) %}
+    {# Combine promo and new products for a mix #}
+    {% set recommendedProducts = promoProducts|merge(filteredNewProducts)|slice(0, 8) %}
+
+    {% if recommendedProducts is iterable and recommendedProducts|length > 0 %}
     <section class="error-section error-products-section">
         <div class="container">
-            {# Product recommendations will be added in subtask 3.1 #}
+            <div class="error-section-header">
+                <h3 class="error-section-title">{{ 'Discover our products'|trans }}</h3>
+                <a href="/?view=category&category_id=1" class="error-section-link">
+                    {{ 'Browse all'|trans }}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+
+            <div class="error-products-grid">
+                {% for product in recommendedProducts %}
+                    {# Fetch product images for the component #}
+                    {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
+                    {% set productWithImages = product|merge({'productImages': productImages}) %}
+
+                    {{ component('Moderna:Product:ProductCard', {
+                        product: productWithImages,
+                        showWishlist: true
+                    }) }}
+                {% endfor %}
+            </div>
         </div>
     </section>
+    {% endif %}
 
     {# Recently Viewed Section - Placeholder for 3.2 #}
     <section class="error-section error-recently-viewed-section">
@@ -425,6 +459,29 @@
     background-color: #b8922a;
 }
 
+/* Products Section */
+.error-products-section {
+    background-color: var(--color-white, #fff);
+}
+
+.error-products-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+@media (min-width: 640px) {
+    .error-products-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .error-products-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .error-hero {
@@ -475,6 +532,16 @@
 
     .error-search-input {
         font-size: 1rem;
+    }
+
+    .error-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .error-products-grid {
+        gap: 16px;
     }
 }
 
