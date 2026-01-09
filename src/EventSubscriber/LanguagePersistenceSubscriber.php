@@ -40,15 +40,17 @@ class LanguagePersistenceSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            // Priority 200: run BEFORE KernelListener (128) which initializes language
-            KernelEvents::REQUEST => ['onKernelRequest', 200],
+            // Priority 64: run AFTER KernelListener (128) to override language from cookie
+            // Higher priority = runs first, so 64 < 128 means we run after
+            KernelEvents::REQUEST => ['onKernelRequest', 64],
             // Priority -10: run after everything to save language state
             KernelEvents::RESPONSE => ['onKernelResponse', -10],
         ];
     }
 
     /**
-     * On request: restore language from cookie if session differs.
+     * On request: restore language from cookie, overriding Thelia's default.
+     * This runs AFTER Thelia's KernelListener (priority 64 < 128).
      */
     public function onKernelRequest(RequestEvent $event): void
     {
@@ -65,9 +67,10 @@ class LanguagePersistenceSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
 
         // Check if user is explicitly changing language via URL parameter
+        // In this case, let Thelia handle it and we'll save the new lang in response
         if ($request->query->has('lang') || $request->query->has('locale')) {
             $this->userChangedLanguage = true;
-            return; // Let Thelia handle the language change, we'll save it in response
+            return;
         }
 
         // Check if cookie exists
@@ -79,7 +82,7 @@ class LanguagePersistenceSubscriber implements EventSubscriberInterface
             return;
         }
 
-        // Get session
+        // Get session (should be available now since we run after KernelListener)
         if (!$request->hasSession()) {
             return;
         }
@@ -89,14 +92,21 @@ class LanguagePersistenceSubscriber implements EventSubscriberInterface
             return;
         }
 
-        // Always restore from cookie - cookie is the source of truth
-        // This handles cases where MailerFactory or other processes changed the session
+        // Find language from cookie
         $langFromCookie = LangQuery::create()
             ->filterByActive(true)
             ->filterByLocale($savedLocale)
             ->findOne();
 
-        if ($langFromCookie instanceof Lang) {
+        if (!$langFromCookie instanceof Lang) {
+            return;
+        }
+
+        // Check if session lang matches cookie lang
+        $sessionLang = $session->getLang(false);
+
+        // Override session language with cookie value (cookie is source of truth)
+        if (!$sessionLang instanceof Lang || $sessionLang->getLocale() !== $langFromCookie->getLocale()) {
             $session->setLang($langFromCookie);
             // Sync Symfony's request locale for |trans filter
             $request->setLocale($langFromCookie->getLocale());

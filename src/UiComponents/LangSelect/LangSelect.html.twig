@@ -34,7 +34,7 @@
     >
         {% for lang in langs %}
             <a
-                href="{{ attr('config', 'url_site') }}?lang={{ lang.locale }}"
+                href="/moderna-api/language/switch/{{ lang.locale }}"
                 class="header-langOption {% if currentLang.code == lang.code %}header-langOption--active{% endif %}"
                 @click="isOpen = false"
             >
