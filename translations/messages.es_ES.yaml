@@ -60,6 +60,21 @@ Wishlist: Lista de Deseos
 Account: Cuenta
 My account: Mi cuenta
 My Account: Mi Cuenta
+My Profile: Mi Perfil
+My Orders: Mis Pedidos
+My Addresses: Mis Direcciones
+Personal Information: Información Personal
+Manage your account settings and preferences: Gestiona los ajustes y preferencias de tu cuenta
+Manage your delivery addresses: Gestiona tus direcciones de envío
+View and track your orders: Consulta y sigue tus pedidos
+Welcome back,: Bienvenido de nuevo,
+Change Password: Cambiar Contraseña
+Current Password: Contraseña Actual
+New Password: Nueva Contraseña
+Confirm Password: Confirmar Contraseña
+Update Password: Actualizar Contraseña
+Profile updated successfully: Perfil actualizado con éxito
+Updating...: Actualizando...
 Cart: Carrito
 Menu: Menú
 Subtotal: Subtotal
@@ -335,7 +350,7 @@ Your cart is waiting: Tu carrito te espera
 Add items you love and make them yours: Añade los artículos que te gustan
 Amazing deals you don't want to miss: Ofertas increíbles que no querrás perderte
 Terms of Service: Términos de servicio
-Shipping and taxes calculated at checkout: Envío e impuestos calculados al finalizar la compra
+Shipping and taxes calculated at checkout: Envío e impuestos calculados al finalizar
 Popular searches: Búsquedas populares
 Have a promo code?: ¿Tienes un código promocional?
 Order Summary: Resumen del pedido
@@ -344,376 +359,116 @@ Shopping Cart: Carrito de compras
 Proceed to Checkout: Proceder al pago
 Quality Guaranteed: Calidad garantizada
 Free Returns: Devoluciones gratuitas
-Taxes and shipping calculated at checkout: Impuestos y envío calculados al finalizar la compra
-Enter promo code: Introducir código promocional
-Promo code applied! Reloading...: ¡Código promocional aplicado! Recargando...
+Taxes and shipping calculated at checkout: Impuestos y envío calculados al finalizar
+Enter promo code: Introduce código promocional
+Promo code applied! Reloading...: ¡Código promo aplicado! Recargando...
 Remove code: Eliminar código
-Invalid promo code: Código promocional inválido
-Error applying promo code: Error al aplicar código promocional
-Please enter a promo code: Por favor, introduce un código promocional
-This promo code does not exist: Este código promocional no existe
-This promo code is not valid or does not meet the conditions: Este código promocional no es válido o no cumple las condiciones
-Promo code applied successfully: Código promocional aplicado con éxito
-Continue Shopping: Seguir comprando
+Invalid promo code: Código promo inválido
+Error applying promo code: Error al aplicar el código promo
+Please enter a promo code: Por favor, introduce un código promo
+This promo code is not valid or does not meet the conditions: Este código promo no es válido o no cumple las condiciones
+Promo code applied successfully: Código promo aplicado con éxito
+Your item has been added to your cart: Tu artículo ha sido añadido al carrito
+We recommend you to add this item to your cart: Te recomendamos añadir este artículo
 Secure Payment: Pago seguro
-Redirecting to login...: Redirigiendo al inicio de sesión...
-Default Address: Dirección predeterminada
-Loading addresses...: Cargando direcciones...
-Add New Address: Añadir nueva dirección
-You have no saved addresses.: No tienes direcciones guardadas.
-Add Your First Address: Añade tu primera dirección
-Delivery Method: Método de entrega
-Loading delivery options...: Cargando opciones de entrega...
-No delivery methods available for this address.: No hay métodos de entrega disponibles para esta dirección.
-Same as delivery address: Igual que la dirección de entrega
-Back to Cart: Volver al carrito
-Please select an address and delivery method: Por favor, selecciona una dirección y método de entrega
-Continue to Payment: Continuar al pago
-Error loading addresses: Error al cargar direcciones
-Error selecting address: Error al seleccionar dirección
-Error selecting delivery method: Error al seleccionar método de entrega
-New Delivery Address: Nueva dirección de entrega
-First Name: Nombre
-Last Name: Apellido
-Company: Empresa
-Optional: Opcional
-Street address: Dirección
-Address Line 2: Línea de dirección 2
-Apartment, suite, etc. (optional): Apartamento, piso, etc. (opcional)
-Postal Code: Código postal
-City: Ciudad
-Country: País
-Select a country: Selecciona un país
-Phone: Teléfono
-Landline (optional): Fijo (opcional)
-Mobile: Móvil
-Mobile (optional): Móvil (opcional)
-Address Label: Etiqueta de dirección
-e.g., Home, Office: ej. Casa, Oficina
-Set as default address: Establecer como dirección predeterminada
-Save Address: Guardar dirección
-Saving...: Guardando...
-Delivery Address: Dirección de entrega
-Billing Address: Dirección de facturación
-Payment Method: Método de pago
-Loading payment methods...: Cargando métodos de pago...
-No payment methods available.: No hay métodos de pago disponibles.
-Change: Cambiar
-No billing address selected. Please go back to the delivery page.: No se ha seleccionado dirección de facturación. Por favor, vuelve a la página de entrega.
-Order Review: Resumen del pedido
-I have read and accept the: He leído y acepto los
-Back to Delivery: Volver a la entrega
-Please select a payment method: Por favor, selecciona un método de pago
-Please accept the terms and conditions: Por favor, acepta los términos y condiciones
-Place Order: Realizar pedido
-Error loading payment methods: Error al cargar métodos de pago
-Error selecting payment method: Error al seleccionar método de pago
-And %count% more item(s): Y %count% artículo(s) más
-Only %count% left in stock: Solo quedan %count% en stock
-All available stock is in your cart: Todo el stock disponible está en tu carrito
-in stock: en stock
-Notify me: Notificarme
-Notification set!: ¡Notificación activada!
-You will be notified when this product is back in stock: Serás notificado cuando este producto vuelva a estar en stock
-Order Confirmed: Pedido confirmado
-Thank you for your order!: ¡Gracias por tu pedido!
-Your payment has been confirmed and your order is being processed.: Tu pago ha sido confirmado y tu pedido está siendo procesado.
-Order Reference: Referencia del pedido
-A confirmation email has been sent to your email address with your order details.: Se ha enviado un email de confirmación a tu dirección con los detalles de tu pedido.
-What's next?: ¿Qué sigue?
-Order Processing: Procesamiento del pedido
-We are preparing your order for shipment.: Estamos preparando tu pedido para el envío.
-You will receive a tracking number once your order is shipped.: Recibirás un número de seguimiento una vez que tu pedido sea enviado.
-Enjoy your purchase!: ¡Disfruta de tu compra!
-View My Orders: Ver mis pedidos
-View and track all your orders: Consulta y sigue todos tus pedidos
-orders: pedidos
-order: pedido
-at: a las
-No products: Sin productos
-View Order: Ver pedido
-No orders yet: Sin pedidos todavía
-You haven't placed any orders yet. Start shopping to see your orders here.: Aún no has realizado ningún pedido. Comienza a comprar para ver tus pedidos aquí.
-Start Shopping: Empezar a comprar
-My Orders: Mis pedidos
-My Profile: Mi perfil
-My Addresses: Mis direcciones
-Order Details: Detalles del pedido
-Placed on: Realizado el
-Items: Artículos
-Ref: Ref
-Qty: Cant
-each: cada uno
-No items in this order: Sin artículos en este pedido
-Payment confirmed: Pago confirmado
-No delivery address: Sin dirección de entrega
-No billing address: Sin dirección de facturación
-Download Invoice: Descargar factura
-Need Help?: ¿Necesitas ayuda?
-Back to orders: Volver a pedidos
-Back to order: Volver al pedido
-Print Invoice: Imprimir factura
-Thank you for your purchase!: ¡Gracias por tu compra!
-Order Timeline: Línea temporal del pedido
-Order placed: Pedido realizado
-Shipped: Enviado
-Delivered: Entregado
-Welcome back,: Bienvenido de nuevo,
-Manage your account settings and preferences: Gestiona la configuración y preferencias de tu cuenta
-Personal Information: Información personal
-Edit: Editar
-Change Password: Cambiar contraseña
-Current Password: Contraseña actual
-New Password: Nueva contraseña
-Confirm Password: Confirmar contraseña
-Update Password: Actualizar contraseña
-Updating...: Actualizando...
-Profile updated successfully: Perfil actualizado con éxito
-View and track your orders: Consulta y sigue tus pedidos
-Manage your delivery addresses: Gestiona tus direcciones de entrega
-Passwords do not match: Las contraseñas no coinciden
-Password must be at least 8 characters: La contraseña debe tener al menos 8 caracteres
-Password updated successfully: Contraseña actualizada con éxito
-(dont TVA): (IVA incl.)
-Your Cart: Tu carrito
-Close cart: Cerrar carrito
-Start shopping: Empezar a comprar
-Added to cart!: ¡Añadido al carrito!
-added to cart!: ¡añadido al carrito!
-Adding...: Añadiendo...
-Added!: ¡Añadido!
-Product added to cart!: ¡Producto añadido al carrito!
-View Cart: Ver carrito
-Quantity: Cantidad
-
-# Additional translations
-Based on 42 reviews: Basado en 42 reseñas
-Mr.: Sr.
-Mrs.: Sra.
-Miss: Srta.
-Bill To: Facturar a
-Ship To: Enviar a
-1 month ago: Hace 1 mes
-2 weeks ago: Hace 2 semanas
-Today: Hoy
-Yesterday: Ayer
-404 - Page Not Found: 404 - Página no encontrada
-The page you are looking for doesn't exist or has been moved.: La página que buscas no existe o ha sido movida.
-Back to Home: Volver al inicio
-Oops! Page not found: ¡Ups! Página no encontrada
-Contact Support: Contactar soporte
-No active promotions at the moment.: No hay promociones activas en este momento.
-Check back soon for new offers!: ¡Vuelve pronto para nuevas ofertas!
-Discover Premium Style: Descubre el estilo premium
-Shop Now: Comprar ahora
-Shop by Category: Comprar por categoría
-Featured Product: Producto destacado
-Sale: Oferta
-Special Offers: Ofertas especiales
-Discover our best deals and exclusive discounts on premium products.: Descubre nuestras mejores ofertas y descuentos exclusivos en productos premium.
-products on sale: productos en oferta
-product on sale: producto en oferta
-No products on sale at the moment: No hay productos en oferta en este momento
-View All Special Offers: Ver todas las ofertas especiales
-New Arrivals: Novedades
-View All: Ver todo
-Limited Time: Tiempo limitado
-Up to 50% Off: Hasta 50% de descuento
-Shop our exclusive sale collection with amazing discounts on premium items.: Descubre nuestra colección exclusiva en oferta con increíbles descuentos en artículos premium.
-Shop Sale: Ver ofertas
-Join Our Newsletter: Únete a nuestro newsletter
-Subscribe: Suscribirse
-Subscribe to our newsletter: Suscríbete a nuestro newsletter
-Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.: Suscríbete para recibir ofertas especiales, regalos y ofertas únicas.
-Subscribe to get special offers, free giveaways, and new arrivals.: Suscríbete para recibir ofertas especiales, regalos y novedades.
-Enter your email: Introduce tu email
-Breadcrumb: Breadcrumb
-Additional Info: Información adicional
-Curated collections for the modern lifestyle. Quality meets elegance.: Colecciones seleccionadas para el estilo de vida moderno. La calidad encuentra la elegancia.
-Discover premium products curated for modern lifestyle.: Descubre productos premium seleccionados para el estilo de vida moderno.
-
-# Footer translations
+Continue Shopping: Seguir comprando
 Shop: Tienda
+Sale: Ofertas
 Help: Ayuda
-FAQs: FAQ
+FAQs: Preguntas frecuentes
 Shipping Info: Info de envío
 Returns: Devoluciones
 Size Guide: Guía de tallas
+Company: Empresa
 About Us: Sobre nosotros
 Careers: Empleo
 Press: Prensa
 Sustainability: Sostenibilidad
+Enter your email: Introduce tu email
 All rights reserved.: Todos los derechos reservados.
 Privacy Policy: Política de privacidad
 Cookie Policy: Política de cookies
-Follow Us: Síguenos
-Customer Service: Servicio al cliente
-Help Center: Centro de ayuda
-
-# Header translations
-Sign In: Iniciar sesión
-Sign Out: Cerrar sesión
-Sign up: Registrarse
-Log in: Iniciar sesión
-Log out: Cerrar sesión
-Create an account: Crear una cuenta
-Already a member?: ¿Ya eres miembro?
-
-# Login page translations
-Welcome to: Bienvenido a
-Discover our exclusive collection and enjoy a personalized shopping experience.: Descubre nuestra colección exclusiva y disfruta de una experiencia de compra personalizada.
-Your account was created successfully. Please sign in.: Tu cuenta ha sido creada con éxito. Por favor, inicia sesión.
-Email address: Dirección de email
-your@email.com: tu@email.com
-Remember me: Recuérdame
-Signing in...: Iniciando sesión...
-New here?: ¿Nuevo aquí?
-By signing in, you accept our: Al iniciar sesión, aceptas nuestros
-Terms and Conditions: Términos y condiciones
-and our: y nuestra
-Email is required: El email es obligatorio
-Password is required: La contraseña es obligatoria
-An error occurred. Please try again.: Ha ocurrido un error. Por favor, inténtalo de nuevo.
-Enter your credentials to access your account: Introduce tus credenciales para acceder a tu cuenta
-
-# Register page translations
-Sign in to my account: Iniciar sesión en mi cuenta
-Create my account: Crear mi cuenta
-Join: Únete a
-Create your account and enjoy exclusive benefits, order tracking and personalized recommendations.: Crea tu cuenta y disfruta de beneficios exclusivos, seguimiento de pedidos y recomendaciones personalizadas.
-Fast checkout: Pago rápido
-Track your orders easily: Sigue tus pedidos fácilmente
-Exclusive member offers: Ofertas exclusivas para miembros
-Fill in your information to get started: Rellena tu información para empezar
-Account created successfully! Redirecting...: ¡Cuenta creada con éxito! Redirigiendo...
-John: Juan
-Doe: García
-Minimum 8 characters: Mínimo 8 caracteres
-I accept the: Acepto los
-and the: y la
-Creating account...: Creando cuenta...
+Discover premium products curated for modern lifestyle.: Descubre productos premium seleccionados para un estilo de vida moderno.
+Subscribe to get special offers, free giveaways, and new arrivals.: Suscríbete para recibir ofertas especiales, regalos y novedades.
+Redirecting to login...: Redirigiendo al inicio de sesión...
+Default Address: Dirección predeterminada
+Default: Predeterminada
+Add New Address: Añadir nueva dirección
+You have no saved addresses.: No tienes direcciones guardadas.
+Add Your First Address: Añade tu primera dirección
+Delivery Method: Método de envío
+Loading delivery options...: Cargando opciones de envío...
+Loading addresses...: Cargando direcciones...
+No delivery methods available for this address.: No hay métodos de envío disponibles para esta dirección.
+Same as delivery address: Igual que la dirección de envío
+Back to Cart: Volver al carrito
+Please select an address and delivery method: Por favor, selecciona una dirección y método de envío
+Continue to Payment: Continuar al pago
+Error loading addresses: Error al cargar las direcciones
+Error selecting address: Error al seleccionar la dirección
+Error selecting delivery method: Error al seleccionar el método de envío
+Address: Dirección
+Delivery Address: Dirección de entrega
+Order Review: Resumen del pedido
+Your delivery address: Tu dirección de entrega
+No delivery address: Sin dirección de entrega
+New Delivery Address: Nueva dirección de entrega
+Quantity: Cantidad
+Billing Address: Dirección de facturación
+No payment methods available.: No hay métodos de pago disponibles.
+I have read and accept the: He leído y acepto los
+Place Order: Realizar pedido
+Country: País
+Select a country: Seleccionar un país
+Phone: Teléfono
+Landline (optional): Fijo (opcional)
+Mobile: Móvil
+Mobile (optional): Móvil (opcional)
+Set as default address: Establecer como dirección predeterminada
+Save Address: Guardar dirección
+Country is required: El país es obligatorio
+Address Label: Etiqueta de dirección
+First Name: Nombre
+Last Name: Apellido
+Address Line 2: Línea de dirección 2
+Postal Code: Código postal
+City: Ciudad
 First name is required: El nombre es obligatorio
 Last name is required: El apellido es obligatorio
-You must accept the terms and conditions: Debes aceptar los términos y condiciones
-I want to receive news and exclusive offers by email: Quiero recibir noticias y ofertas exclusivas por email
-
-# Password forgotten page translations
-Send new password: Enviar nueva contraseña
-Sending...: Enviando...
-Resending...: Reenviando...
-Enter your email address and we will send you a new password.: Introduce tu dirección de email y te enviaremos una nueva contraseña.
-If your email address exists in our database, you will receive a password recovery link in a few minutes.: Si tu dirección de email existe en nuestra base de datos, recibirás un enlace de recuperación de contraseña en unos minutos.
-Don't worry, it happens. We'll help you recover access to your account.: No te preocupes, pasa. Te ayudaremos a recuperar el acceso a tu cuenta.
-A new email has been sent. Please check your inbox.: Se ha enviado un nuevo email. Por favor, revisa tu bandeja de entrada.
-Didn't receive the email? Resend: ¿No recibiste el email? Reenviar
-Please enter a valid email address: Por favor, introduce una dirección de email válida
-Remember your password?: ¿Recuerdas tu contraseña?
-Back to sign in: Volver a iniciar sesión
-
-# Wishlist page translations
-Add your first favorites: Añade tus primeros favoritos
-You might also like: También te podría gustar
-My favorites: Mis favoritos
-View and manage your favorite products: Consulta y gestiona tus productos favoritos
-Save your favorites: Guarda tus favoritos
-Sync your favorites across all your devices: Sincroniza tus favoritos en todos tus dispositivos
-Your current list is saved locally in your browser. Create an account to never lose it!: Tu lista actual se guarda localmente en tu navegador. ¡Crea una cuenta para no perderla nunca!
-Remove all: Eliminar todo
-Add your favorite products by clicking on the heart icon: Añade tus productos favoritos haciendo clic en el icono del corazón
-Already have an account? Sign in: ¿Ya tienes cuenta? Inicia sesión
-Create an account to save your list and access it from any device.: Crea una cuenta para guardar tu lista y acceder desde cualquier dispositivo.
-Get notified about promotions: Recibe notificaciones sobre promociones
-Track your order history: Sigue el historial de tus pedidos
-Order faster: Pide más rápido
-
-# Address page translations
-Manage your delivery and billing addresses: Gestiona tus direcciones de entrega y facturación
-No addresses yet: Sin direcciones todavía
-You haven't added any addresses yet. Add your first address to speed up checkout.: Aún no has añadido ninguna dirección. Añade tu primera dirección para acelerar el pago.
-
-# Cart translations
-This combination is not available: Esta combinación no está disponible
-This variant is out of stock: Esta variante está agotada
-An error occurred: Ha ocurrido un error
-
-# API error translations
-Email address is required: La dirección de email es obligatoria
-Invalid email or password. Please try again.: Email o contraseña incorrectos. Por favor, inténtalo de nuevo.
-Your account is not yet confirmed. Please check your email for the confirmation link.: Tu cuenta aún no está confirmada. Por favor, revisa tu email para el enlace de confirmación.
-Login successful: Inicio de sesión exitoso
-Logout successful: Cierre de sesión exitoso
-If your email address exists in our database, you will receive a new password in a few minutes.: Si tu dirección de email existe en nuestra base de datos, recibirás una nueva contraseña en unos minutos.
-
-# Address form page translations
-Back to addresses: Volver a direcciones
-Add Address: Añadir dirección
-Fill in your delivery details: Rellena tus datos de entrega
-Address Name: Nombre de la dirección
-e.g. Home, Work, Parents...: ej. Casa, Trabajo, Padres...
-Give this address a name for easy identification: Dale un nombre a esta dirección para identificarla fácilmente
-Recipient: Destinatario
-Company name: Nombre de empresa
-Street Address: Dirección
-Number and street name: Número y nombre de calle
-Apartment, suite, floor, building...: Apartamento, piso, edificio...
-Phone Number: Número de teléfono
-For delivery notifications: Para notificaciones de entrega
-This address will be pre-selected at checkout: Esta dirección será preseleccionada al pagar
-Your delivery address: Tu dirección de entrega
-Add your address to enjoy fast and secure delivery to your doorstep.: Añade tu dirección para disfrutar de una entrega rápida y segura a tu puerta.
-Secure & encrypted: Seguro y encriptado
-Multiple addresses: Múltiples direcciones
-Edit Address: Editar dirección
-Update your delivery details: Actualiza tus datos de entrega
-Save Changes: Guardar cambios
-Update your address: Actualizar tu dirección
-Keep your delivery information up to date for a smooth shopping experience.: Mantén tu información de entrega actualizada para una experiencia de compra fluida.
-Instant updates: Actualizaciones instantáneas
-Always accurate: Siempre preciso
-Current address: Dirección actual
-Default: Predeterminada
-Set as Default: Establecer como predeterminada
-Delete Address: Eliminar dirección
-Are you sure you want to delete this address? This action cannot be undone.: ¿Estás seguro de que quieres eliminar esta dirección? Esta acción no se puede deshacer.
-Failed to set address as default: Error al establecer la dirección como predeterminada
-Address: Dirección
-
-# Contact page translations
-Contact our team for any questions about our products, orders or services.: Contacta con nuestro equipo para cualquier pregunta sobre nuestros productos, pedidos o servicios.
-Get in Touch: Contacta con nosotros
-We'd love to hear from you. Send us a message and we'll respond as soon as possible.: Nos encantaría saber de ti. Envíanos un mensaje y te responderemos lo antes posible.
-Opening Hours: Horario de atención
-Mon - Fri: Lun - Vie
-Saturday: Sábado
-Sunday: Domingo
-Closed: Cerrado
-Our location: Nuestra ubicación
-France: Francia
-Send us a message: Envíanos un mensaje
-Full Name: Nombre completo
-Your name: Tu nombre
-Subject: Asunto
-Select a subject: Selecciona un asunto
-Product question: Pregunta sobre producto
-Order tracking: Seguimiento de pedido
-Return / Refund: Devolución / Reembolso
-Other: Otro
-Message: Mensaje
-How can we help you?: ¿Cómo podemos ayudarte?
-Send message: Enviar mensaje
-Thank you for your message! We will get back to you as soon as possible.: ¡Gracias por tu mensaje! Te responderemos lo antes posible.
-Message Sent: Mensaje enviado
-Thank you!: ¡Gracias!
-Your message has been sent successfully. We will get back to you as soon as possible.: Tu mensaje ha sido enviado con éxito. Te responderemos lo antes posible.
-Send another message: Enviar otro mensaje
-
-# Language selector
-Select language: Seleccionar idioma
-
-# Navigation
-Main navigation: Navegación principal
-
-# Recently Viewed Products
-Recently viewed: Productos vistos recientemente
-product: producto
-products: productos
+Postal code is required: El código postal es obligatorio
+City is required: La ciudad es obligatoria
+Change: Cambiar
+Order Confirmed: Pedido confirmado
+Thank you for your order!: ¡Gracias por su pedido!
+Your payment has been confirmed and your order is being processed.: Su pago ha sido confirmado y su pedido está siendo procesado.
+Order Reference: Referencia del pedido
+A confirmation email has been sent to your email address with your order details.: Se ha enviado un email de confirmación a su dirección de correo con los detalles de su pedido.
+What's next?: ¿Qué sigue?
+Order Processing: Procesando el pedido
+We are preparing your order for shipment.: Estamos preparando su pedido para el envío.
+You will receive a tracking number once your order is shipped.: Recibirá un número de seguimiento una vez que su pedido sea enviado.
+Enjoy your purchase!: ¡Disfrute de su compra!
+View My Orders: Ver mis pedidos
+View and track all your orders: Ver y seguir todos sus pedidos
+View order: Ver pedido
+Order Details: Detalles del pedido
+Back to orders: Volver a pedidos
+Placed on: Realizado el
+at: a las
+Items: Artículos
+Ref: Ref
+Qty: Cant
+each: unidad
+No items in this order: No hay artículos en este pedido
+Order Timeline: Seguimiento del pedido
+Order placed: Pedido realizado
+Payment confirmed: Pago confirmado
+Shipped: Enviado
+Delivered: Entregado
+No billing address: Sin dirección de facturación
+Details: Detalles
+Download Invoice: Descargar factura
+Need Help?: ¿Necesita ayuda?
+Order not found: Pedido no encontrado
+This order does not exist or you do not have access to it.: Este pedido no existe o no tiene acceso a él.
+Back to my orders: Volver a mis pedidos

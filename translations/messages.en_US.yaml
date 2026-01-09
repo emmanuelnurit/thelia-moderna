@@ -60,6 +60,21 @@ Wishlist: Wishlist
 Account: Account
 My account: My account
 My Account: My Account
+My Profile: My Profile
+My Orders: My Orders
+My Addresses: My Addresses
+Personal Information: Personal Information
+Manage your account settings and preferences: Manage your account settings and preferences
+Manage your delivery addresses: Manage your delivery addresses
+View and track your orders: View and track your orders
+Welcome back,: Welcome back,
+Change Password: Change Password
+Current Password: Current Password
+New Password: New Password
+Confirm Password: Confirm Password
+Update Password: Update Password
+Profile updated successfully: Profile updated successfully
+Updating...: Updating...
 Cart: Cart
 Menu: Menu
 Subtotal: Subtotal
@@ -353,16 +368,37 @@ Error applying promo code: Error applying promo code
 Please enter a promo code: Please enter a promo code
 This promo code is not valid or does not meet the conditions: This promo code is not valid or does not meet the conditions
 Promo code applied successfully: Promo code applied successfully
-Continue Shopping: Continue Shopping
+Your item has been added to your cart: Your item has been added to your cart
+We recommend you to add this item to your cart: We recommend you to add this item to your cart
 Secure Payment: Secure Payment
+Continue Shopping: Continue Shopping
+Shop: Shop
+Sale: Sale
+Help: Help
+FAQs: FAQs
+Shipping Info: Shipping Info
+Returns: Returns
+Size Guide: Size Guide
+Company: Company
+About Us: About Us
+Careers: Careers
+Press: Press
+Sustainability: Sustainability
+Enter your email: Enter your email
+All rights reserved.: All rights reserved.
+Privacy Policy: Privacy Policy
+Cookie Policy: Cookie Policy
+Discover premium products curated for modern lifestyle.: Discover premium products curated for modern lifestyle.
+Subscribe to get special offers, free giveaways, and new arrivals.: Subscribe to get special offers, free giveaways, and new arrivals.
 Redirecting to login...: Redirecting to login...
 Default Address: Default Address
-Loading addresses...: Loading addresses...
+Default: Default
 Add New Address: Add New Address
 You have no saved addresses.: You have no saved addresses.
 Add Your First Address: Add Your First Address
 Delivery Method: Delivery Method
 Loading delivery options...: Loading delivery options...
+Loading addresses...: Loading addresses...
 No delivery methods available for this address.: No delivery methods available for this address.
 Same as delivery address: Same as delivery address
 Back to Cart: Back to Cart
@@ -371,49 +407,37 @@ Continue to Payment: Continue to Payment
 Error loading addresses: Error loading addresses
 Error selecting address: Error selecting address
 Error selecting delivery method: Error selecting delivery method
+Address: Address
+Delivery Address: Delivery Address
+Order Review: Order Review
+Your delivery address: Your delivery address
+No delivery address: No delivery address
 New Delivery Address: New Delivery Address
-First Name: First Name
-Last Name: Last Name
-Company: Company
-Optional: Optional
-Street address: Street address
-Address Line 2: Address Line 2
-Apartment, suite, etc. (optional): Apartment, suite, etc. (optional)
-Postal Code: Postal Code
-City: City
+Quantity: Quantity
+Billing Address: Billing Address
+No payment methods available.: No payment methods available.
+I have read and accept the: I have read and accept the
+Place Order: Place Order
 Country: Country
 Select a country: Select a country
 Phone: Phone
 Landline (optional): Landline (optional)
 Mobile: Mobile
 Mobile (optional): Mobile (optional)
-Address Label: Address Label
-e.g., Home, Office: e.g., Home, Office
 Set as default address: Set as default address
 Save Address: Save Address
-Saving...: Saving...
-Delivery Address: Delivery Address
-Billing Address: Billing Address
-Payment Method: Payment Method
-Loading payment methods...: Loading payment methods...
-No payment methods available.: No payment methods available.
+Country is required: Country is required
+Address Label: Address Label
+First Name: First Name
+Last Name: Last Name
+Address Line 2: Address Line 2
+Postal Code: Postal Code
+City: City
+First name is required: First name is required
+Last name is required: Last name is required
+Postal code is required: Postal code is required
+City is required: City is required
 Change: Change
-No billing address selected. Please go back to the delivery page.: No billing address selected. Please go back to the delivery page.
-Order Review: Order Review
-I have read and accept the: I have read and accept the
-Back to Delivery: Back to Delivery
-Please select a payment method: Please select a payment method
-Please accept the terms and conditions: Please accept the terms and conditions
-Place Order: Place Order
-Error loading payment methods: Error loading payment methods
-Error selecting payment method: Error selecting payment method
-And %count% more item(s): And %count% more item(s)
-Only %count% left in stock: Only %count% left in stock
-All available stock is in your cart: All available stock is in your cart
-in stock: in stock
-Notify me: Notify me
-Notification set!: Notification set!
-You will be notified when this product is back in stock: You will be notified when this product is back in stock
 Order Confirmed: Order Confirmed
 Thank you for your order!: Thank you for your order!
 Your payment has been confirmed and your order is being processed.: Your payment has been confirmed and your order is being processed.
@@ -426,345 +450,25 @@ You will receive a tracking number once your order is shipped.: You will receive
 Enjoy your purchase!: Enjoy your purchase!
 View My Orders: View My Orders
 View and track all your orders: View and track all your orders
-orders: orders
-order: order
-at: at
-No products: No products
-View Order: View Order
-No orders yet: No orders yet
-You haven't placed any orders yet. Start shopping to see your orders here.: You haven't placed any orders yet. Start shopping to see your orders here.
-Start Shopping: Start Shopping
-My Orders: My Orders
-My Profile: My Profile
-My Addresses: My Addresses
+View order: View order
 Order Details: Order Details
+Back to orders: Back to orders
 Placed on: Placed on
+at: at
 Items: Items
 Ref: Ref
 Qty: Qty
 each: each
 No items in this order: No items in this order
-Payment confirmed: Payment confirmed
-No delivery address: No delivery address
-No billing address: No billing address
-Download Invoice: Download Invoice
-Need Help?: Need Help?
-Back to orders: Back to orders
-Back to order: Back to order
-Print Invoice: Print Invoice
-Thank you for your purchase!: Thank you for your purchase!
 Order Timeline: Order Timeline
 Order placed: Order placed
+Payment confirmed: Payment confirmed
 Shipped: Shipped
 Delivered: Delivered
-Welcome back,: Welcome back,
-Manage your account settings and preferences: Manage your account settings and preferences
-Personal Information: Personal Information
-Edit: Edit
-Change Password: Change Password
-Current Password: Current Password
-New Password: New Password
-Confirm Password: Confirm Password
-Update Password: Update Password
-Updating...: Updating...
-Profile updated successfully: Profile updated successfully
-View and track your orders: View and track your orders
-Manage your delivery addresses: Manage your delivery addresses
-Passwords do not match: Passwords do not match
-Password must be at least 8 characters: Password must be at least 8 characters
-Password updated successfully: Password updated successfully
-(dont TVA): (incl. VAT)
-Your Cart: Your Cart
-Close cart: Close cart
-Start shopping: Start shopping
-Added to cart!: Added to cart!
-added to cart!: added to cart!
-Adding...: Adding...
-Added!: Added!
-Product added to cart!: Product added to cart!
-View Cart: View Cart
-Quantity: Quantity
-
-# Additional translations from i18n
-Based on 42 reviews: Based on 42 reviews
-Mr.: Mr.
-Mrs.: Mrs.
-Miss: Miss
-Bill To: Bill To
-Ship To: Ship To
-1 month ago: 1 month ago
-2 weeks ago: 2 weeks ago
-Today: Today
-Yesterday: Yesterday
-404 - Page Not Found: 404 - Page Not Found
-The page you are looking for doesn't exist or has been moved.: The page you are looking for doesn't exist or has been moved.
-Back to Home: Back to Home
-Oops! Page not found: Oops! Page not found
-Contact Support: Contact Support
-No active promotions at the moment.: No active promotions at the moment.
-Check back soon for new offers!: Check back soon for new offers!
-Discover Premium Style: Discover Premium Style
-Shop Now: Shop Now
-Shop by Category: Shop by Category
-Featured Product: Featured Product
-Sale: Sale
-Special Offers: Special Offers
-Discover our best deals and exclusive discounts on premium products.: Discover our best deals and exclusive discounts on premium products.
-products on sale: products on sale
-product on sale: product on sale
-No products on sale at the moment: No products on sale at the moment
-View All Special Offers: View All Special Offers
-New Arrivals: New Arrivals
-View All: View All
-Limited Time: Limited Time
-Up to 50% Off: Up to 50% Off
-Shop our exclusive sale collection with amazing discounts on premium items.: Shop our exclusive sale collection with amazing discounts on premium items.
-Shop Sale: Shop Sale
-Join Our Newsletter: Join Our Newsletter
-Subscribe: Subscribe
-Subscribe to our newsletter: Subscribe to our newsletter
-Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.: Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.
-Subscribe to get special offers, free giveaways, and new arrivals.: Subscribe to get special offers, free giveaways, and new arrivals.
-Enter your email: Enter your email
-Breadcrumb: Breadcrumb
-Additional Info: Additional Info
-Curated collections for the modern lifestyle. Quality meets elegance.: Curated collections for the modern lifestyle. Quality meets elegance.
-Discover premium products curated for modern lifestyle.: Discover premium products curated for modern lifestyle.
-
-# Footer translations
-Shop: Shop
-Help: Help
-FAQs: FAQs
-Shipping Info: Shipping Info
-Returns: Returns
-Size Guide: Size Guide
-About Us: About Us
-Careers: Careers
-Press: Press
-Sustainability: Sustainability
-All rights reserved.: All rights reserved.
-Privacy Policy: Privacy Policy
-Cookie Policy: Cookie Policy
-Follow Us: Follow Us
-Customer Service: Customer Service
-Help Center: Help Center
-
-# Header translations
-Sign In: Sign In
-Sign Out: Sign Out
-Sign up: Sign up
-Log in: Log in
-Log out: Log out
-Create an account: Create an account
-Already a member?: Already a member?
-
-# Login page translations
-Welcome to: Welcome to
-Discover our exclusive collection and enjoy a personalized shopping experience.: Discover our exclusive collection and enjoy a personalized shopping experience.
-Your account was created successfully. Please sign in.: Your account was created successfully. Please sign in.
-Email address: Email address
-your@email.com: your@email.com
-Remember me: Remember me
-Signing in...: Signing in...
-New here?: New here?
-By signing in, you accept our: By signing in, you accept our
-Terms and Conditions: Terms and Conditions
-and our: and our
-Email is required: Email is required
-Password is required: Password is required
-An error occurred. Please try again.: An error occurred. Please try again.
-Enter your credentials to access your account: Enter your credentials to access your account
-
-# Register page translations
-Sign in to my account: Sign in to my account
-Create my account: Create my account
-Join: Join
-Create your account and enjoy exclusive benefits, order tracking and personalized recommendations.: Create your account and enjoy exclusive benefits, order tracking and personalized recommendations.
-Fast checkout: Fast checkout
-Track your orders easily: Track your orders easily
-Exclusive member offers: Exclusive member offers
-Fill in your information to get started: Fill in your information to get started
-Account created successfully! Redirecting...: Account created successfully! Redirecting...
-John: John
-Doe: Doe
-Minimum 8 characters: Minimum 8 characters
-I accept the: I accept the
-and the: and the
-Creating account...: Creating account...
-First name is required: First name is required
-Last name is required: Last name is required
-You must accept the terms and conditions: You must accept the terms and conditions
-I want to receive news and exclusive offers by email: I want to receive news and exclusive offers by email
-
-# Password forgotten page translations
-Send new password: Send new password
-Sending...: Sending...
-Resending...: Resending...
-Enter your email address and we will send you a new password.: Enter your email address and we will send you a new password.
-If your email address exists in our database, you will receive a password recovery link in a few minutes.: If your email address exists in our database, you will receive a password recovery link in a few minutes.
-Don't worry, it happens. We'll help you recover access to your account.: Don't worry, it happens. We'll help you recover access to your account.
-A new email has been sent. Please check your inbox.: A new email has been sent. Please check your inbox.
-Didn't receive the email? Resend: Didn't receive the email? Resend
-Please enter a valid email address: Please enter a valid email address
-Remember your password?: Remember your password?
-Back to sign in: Back to sign in
-
-# Wishlist page translations
-Add your first favorites: Add your first favorites
-You might also like: You might also like
-My favorites: My favorites
-View and manage your favorite products: View and manage your favorite products
-Save your favorites: Save your favorites
-Sync your favorites across all your devices: Sync your favorites across all your devices
-Your current list is saved locally in your browser. Create an account to never lose it!: Your current list is saved locally in your browser. Create an account to never lose it!
-Remove all: Remove all
-Add your favorite products by clicking on the heart icon: Add your favorite products by clicking on the heart icon
-Already have an account? Sign in: Already have an account? Sign in
-Create an account to save your list and access it from any device.: Create an account to save your list and access it from any device.
-Get notified about promotions: Get notified about promotions
-Track your order history: Track your order history
-Order faster: Order faster
-
-# Address page translations
-Manage your delivery and billing addresses: Manage your delivery and billing addresses
-No addresses yet: No addresses yet
-You haven't added any addresses yet. Add your first address to speed up checkout.: You haven't added any addresses yet. Add your first address to speed up checkout.
-
-# Cart translations
-This combination is not available: This combination is not available
-This variant is out of stock: This variant is out of stock
-An error occurred: An error occurred
-
-# API error translations
-Email address is required: Email address is required
-Invalid email or password. Please try again.: Invalid email or password. Please try again.
-Your account is not yet confirmed. Please check your email for the confirmation link.: Your account is not yet confirmed. Please check your email for the confirmation link.
-Login successful: Login successful
-Logout successful: Logout successful
-If your email address exists in our database, you will receive a new password in a few minutes.: If your email address exists in our database, you will receive a new password in a few minutes.
-
-# Address form page translations
-Back to addresses: Back to addresses
-Add Address: Add Address
-Fill in your delivery details: Fill in your delivery details
-Address Name: Address Name
-e.g. Home, Work, Parents...: e.g. Home, Work, Parents...
-Give this address a name for easy identification: Give this address a name for easy identification
-Recipient: Recipient
-Company name: Company name
-Street Address: Street Address
-Number and street name: Number and street name
-Apartment, suite, floor, building...: Apartment, suite, floor, building...
-Phone Number: Phone Number
-For delivery notifications: For delivery notifications
-This address will be pre-selected at checkout: This address will be pre-selected at checkout
-Your delivery address: Your delivery address
-Add your address to enjoy fast and secure delivery to your doorstep.: Add your address to enjoy fast and secure delivery to your doorstep.
-Secure & encrypted: Secure & encrypted
-Multiple addresses: Multiple addresses
-Edit Address: Edit Address
-Update your delivery details: Update your delivery details
-Save Changes: Save Changes
-Update your address: Update your address
-Keep your delivery information up to date for a smooth shopping experience.: Keep your delivery information up to date for a smooth shopping experience.
-Instant updates: Instant updates
-Always accurate: Always accurate
-Current address: Current address
-Default: Default
-Set as Default: Set as Default
-Delete Address: Delete Address
-Are you sure you want to delete this address? This action cannot be undone.: Are you sure you want to delete this address? This action cannot be undone.
-Failed to set address as default: Failed to set address as default
-Address: Address
-
-# Contact page translations
-Contact our team for any questions about our products, orders or services.: Contact our team for any questions about our products, orders or services.
-Get in Touch: Get in Touch
-We'd love to hear from you. Send us a message and we'll respond as soon as possible.: We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-Opening Hours: Opening Hours
-Mon - Fri: Mon - Fri
-Saturday: Saturday
-Sunday: Sunday
-Closed: Closed
-Our location: Our location
-France: France
-Send us a message: Send us a message
-Full Name: Full Name
-Your name: Your name
-Subject: Subject
-Select a subject: Select a subject
-Product question: Product question
-Order tracking: Order tracking
-Return / Refund: Return / Refund
-Other: Other
-Message: Message
-How can we help you?: How can we help you?
-Send message: Send message
-Thank you for your message! We will get back to you as soon as possible.: Thank you for your message! We will get back to you as soon as possible.
-Message Sent: Message Sent
-Thank you!: Thank you!
-Your message has been sent successfully. We will get back to you as soon as possible.: Your message has been sent successfully. We will get back to you as soon as possible.
-Send another message: Send another message
-
-# Language selector
-Select language: Select language
-
-# French keys to English (for templates using French source strings)
-Se connecter: Sign in
-Se connecter à mon compte: Sign in to my account
-Créer mon compte: Create my account
-Créer un compte: Create an account
-Déconnexion: Log out
-Entrez vos identifiants pour accéder à votre compte: Enter your credentials to access your account
-Consultez et gérez vos produits favoris: View and manage your favorite products
-Je souhaite recevoir les actualités et offres exclusives par email: I want to receive news and exclusive offers by email
-Conditions générales: Terms and conditions
-Politique de confidentialité: Privacy Policy
-Prénom: First name
-Retour à la connexion: Back to login
-Soyez alerté des promotions: Get notified about promotions
-icône cœur: heart icon
-Connexion: Sign in
-Bienvenue sur: Welcome to
-Découvrez notre collection exclusive et profitez d'une expérience d'achat personnalisée.: Discover our exclusive collection and enjoy a personalized shopping experience.
-Votre compte a été créé avec succès. Veuillez vous connecter.: Your account has been created successfully. Please sign in.
-Adresse email: Email address
-votre@email.com: your@email.com
-Mot de passe: Password
-Mot de passe oublié ?: Forgot password?
-Se souvenir de moi: Remember me
-Connexion en cours...: Signing in...
-Nouveau ici ?: New here?
-En vous connectant, vous acceptez nos: By signing in, you accept our
-Conditions d'utilisation: Terms of Service
-et notre: and our
-L'email est requis: Email is required
-Le mot de passe est requis: Password is required
-Une erreur s'est produite. Veuillez réessayer.: An error occurred. Please try again.
-Rejoignez: Join
-Créez votre compte et profitez d'avantages exclusifs, du suivi de commandes et de recommandations personnalisées.: Create your account and enjoy exclusive benefits, order tracking and personalized recommendations.
-Paiement rapide: Fast checkout
-Suivez vos commandes facilement: Track your orders easily
-Offres exclusives membres: Exclusive member offers
-Remplissez vos informations pour commencer: Fill in your information to get started
-Compte créé avec succès ! Redirection...: Account created successfully! Redirecting...
-Jean: John
-Nom: Last name
-Dupont: Smith
-Minimum 8 caractères: Minimum 8 characters
-J'accepte les: I accept the
-et la: and the
-Création en cours...: Creating...
-Déjà membre ?: Already a member?
-Le prénom est requis: First name is required
-Le nom est requis: Last name is required
-Le mot de passe doit contenir au moins 8 caractères: Password must be at least 8 characters
-Vous devez accepter les conditions générales: You must accept the terms and conditions
-
-# Navigation
-Main navigation: Main navigation
-
-# Recently Viewed Products
-Recently viewed: Recently viewed
-product: product
-products: products
+No billing address: No billing address
+Details: Details
+Download Invoice: Download Invoice
+Need Help?: Need Help?
+Order not found: Order not found
+This order does not exist or you do not have access to it.: This order does not exist or you do not have access to it.
+Back to my orders: Back to my orders
