@@ -137,12 +137,16 @@
     </section>
     {% endif %}
 
-    {# Recently Viewed Section - Placeholder for 3.2 #}
-    <section class="error-section error-recently-viewed-section">
+    {# Recently Viewed Section #}
+    <div class="error-section error-recently-viewed-section">
         <div class="container">
-            {# Recently viewed products will be added in subtask 3.2 #}
+            {{ include('components/Product/RecentlyViewed.html.twig', {
+                maxItems: 4,
+                excludeProductId: null,
+                title: 'Recently viewed'|trans
+            }) }}
         </div>
-    </section>
+    </div>
 
     {# Wishlist Section - Placeholder for 4.1 #}
     <section class="error-section error-wishlist-section">
@@ -464,6 +468,48 @@
     background-color: var(--color-white, #fff);
 }
 
+/* Recently Viewed Section */
+.error-recently-viewed-section {
+    background-color: var(--color-background, #fafafa);
+}
+
+.error-recently-viewed-section .recently-viewed-section {
+    margin: 0;
+}
+
+.error-recently-viewed-section .recently-viewed-header {
+    margin-bottom: 24px;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.error-recently-viewed-section .recently-viewed-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text, #1a1a1a);
+}
+
+.error-recently-viewed-section .recently-viewed-count {
+    font-size: 0.875rem;
+    color: var(--color-text-muted, #666);
+}
+
+.error-recently-viewed-section .recently-viewed-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 640px) {
+    .error-recently-viewed-section .recently-viewed-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .error-recently-viewed-section .recently-viewed-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 .error-products-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -541,6 +587,21 @@
     }
 
     .error-products-grid {
+        gap: 16px;
+    }
+
+    .error-recently-viewed-section .recently-viewed-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .error-recently-viewed-section .recently-viewed-count {
+        padding-left: 0;
+        border-left: none;
+    }
+
+    .error-recently-viewed-section .recently-viewed-grid {
         gap: 16px;
     }
 }
