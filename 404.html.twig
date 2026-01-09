@@ -2,46 +2,1287 @@
 
 {% block title %}{{ '404 - Page Not Found'|trans }} - {{ store_name }}{% endblock %}
 
+{% block meta_description %}{{ 'The page you are looking for does not exist.'|trans }}{% endblock %}
+
 {% block body %}
-<div class="error-page">
-    <div class="container">
-        <div class="error-content">
-            <h1 class="error-code">404</h1>
-            <h2 class="error-title">{{ 'Page Not Found'|trans }}</h2>
-            <p class="error-text">{{ 'Sorry, the page you are looking for does not exist or has been moved.'|trans }}</p>
-            <a href="/" class="btn btn-primary">{{ 'Back to Home'|trans }}</a>
+<main class="error-page" role="main" aria-labelledby="error-title">
+    {# Skip to search for accessibility #}
+    <a href="#error-search-input" class="error-skip-link">{{ 'Skip to search'|trans }}</a>
+
+    {# Hero Section - Error Message #}
+    <header class="error-hero">
+        <div class="container">
+            <div class="error-content">
+                {# Error Icon #}
+                <div class="error-icon" aria-hidden="true">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M16 16s-1.5-2-4-2-4 2-4 2"/>
+                        <line x1="9" y1="9" x2="9.01" y2="9"/>
+                        <line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                </div>
+
+                {# Error Code #}
+                <h1 class="error-code">404</h1>
+
+                {# Error Title #}
+                <h2 id="error-title" class="error-title">{{ 'Page Not Found'|trans }}</h2>
+
+                {# Error Description #}
+                <p class="error-text">
+                    {{ 'Oops! The page you are looking for does not exist or has been moved.'|trans }}
+                </p>
+                <p class="error-subtext">
+                    {{ 'Don\'t worry, you can find what you need using the options below.'|trans }}
+                </p>
+
+                {# Primary CTA #}
+                <div class="error-actions">
+                    <a href="{{ path('index') }}" class="error-btn error-btn--primary" aria-label="{{ 'Back to Home'|trans }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        {{ 'Back to Home'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {# Search Section #}
+    <section class="error-section error-search-section" aria-labelledby="search-section-title">
+        <div class="container">
+            <div class="error-search">
+                {# Section Header #}
+                <h3 id="search-section-title" class="error-search-title">{{ 'Looking for something specific?'|trans }}</h3>
+                <p class="error-search-subtitle">{{ 'Use the search to find what you need.'|trans }}</p>
+
+                {# Search Form #}
+                <form action="/" method="get" class="error-search-form" role="search">
+                    <input type="hidden" name="view" value="search">
+                    <div class="error-search-inputWrapper">
+                        <svg class="error-search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input
+                            type="search"
+                            name="q"
+                            id="error-search-input"
+                            placeholder="{{ 'Search for products, categories...'|trans }}"
+                            class="error-search-input"
+                            autocomplete="off"
+                            aria-label="{{ 'Search for products'|trans }}"
+                        >
+                        <button type="submit" class="error-search-submit" aria-label="{{ 'Submit search'|trans }}">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+
+                {# Popular Searches #}
+                <div class="error-search-suggestions">
+                    <p class="error-search-suggestionsLabel">{{ 'Popular searches'|trans }}</p>
+                    <div class="error-search-suggestionsList">
+                        <a href="/?view=search&q=chaises" class="error-search-suggestion">{{ 'Chairs'|trans }}</a>
+                        <a href="/?view=search&q=canapes" class="error-search-suggestion">{{ 'Sofas'|trans }}</a>
+                        <a href="/?view=search&q=fauteuils" class="error-search-suggestion">{{ 'Armchairs'|trans }}</a>
+                        <a href="/?view=search&q=tables" class="error-search-suggestion">{{ 'Tables'|trans }}</a>
+                        <a href="/?view=category&category_id=1" class="error-search-suggestion error-search-suggestion--highlight">{{ 'Sale'|trans }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Product Suggestions Section #}
+    {% set promoProducts = resources('/api/front/products', {'productSaleElements.promo': true, 'limit': 4}) %}
+    {% set newProducts = resources('/api/front/products', {'limit': 8}) %}
+    {# Exclude promo products from new products to avoid duplicates #}
+    {% set promoIds = [] %}
+    {% for product in promoProducts %}
+        {% set promoIds = promoIds|merge([product.id]) %}
+    {% endfor %}
+    {% set filteredNewProducts = newProducts|filter(p => p.id not in promoIds)|slice(0, 4) %}
+    {# Combine promo and new products for a mix #}
+    {% set recommendedProducts = promoProducts|merge(filteredNewProducts)|slice(0, 8) %}
+
+    {% if recommendedProducts is iterable and recommendedProducts|length > 0 %}
+    <section class="error-section error-products-section" aria-labelledby="products-section-title">
+        <div class="container">
+            <div class="error-section-header">
+                <h3 id="products-section-title" class="error-section-title">{{ 'Discover our products'|trans }}</h3>
+                <a href="/?view=category&category_id=1" class="error-section-link" aria-label="{{ 'Browse all products'|trans }}">
+                    {{ 'Browse all'|trans }}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+
+            <div class="error-products-grid" role="list">
+                {% for product in recommendedProducts %}
+                    {# Fetch product images for the component #}
+                    {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
+                    {% set productWithImages = product|merge({'productImages': productImages}) %}
+
+                    {{ component('Moderna:Product:ProductCard', {
+                        product: productWithImages,
+                        showWishlist: true
+                    }) }}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {# Recently Viewed Section #}
+    <div class="error-section error-recently-viewed-section">
+        <div class="container">
+            {{ include('components/Product/RecentlyViewed.html.twig', {
+                maxItems: 4,
+                excludeProductId: null,
+                title: 'Recently viewed'|trans
+            }) }}
         </div>
     </div>
-</div>
+
+    {# Wishlist Section - Shows user's saved favorites #}
+    <section
+        class="error-section error-wishlist-section"
+        x-data="errorWishlistSection()"
+        x-show="items.length > 0"
+        x-cloak
+        aria-labelledby="wishlist-section-title"
+    >
+        <div class="container">
+            <div class="error-section-header">
+                <h3 id="wishlist-section-title" class="error-section-title">
+                    <svg class="error-wishlist-icon" width="24" height="24" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" aria-hidden="true">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                    </svg>
+                    {{ 'Your favorites'|trans }}
+                </h3>
+                <a href="/?view=wishlist" class="error-section-link" aria-label="{{ 'View all wishlist items'|trans }}">
+                    {{ 'View all'|trans }}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+
+            <div class="error-wishlist-grid" role="list">
+                <template x-for="item in items.slice(0, 4)" :key="item.id">
+                    <article class="error-wishlist-card">
+                        {# Image #}
+                        <a :href="item.url || '#'" class="error-wishlist-cardImage" :aria-label="'{{ 'View'|trans }}: ' + item.title">
+                            <img
+                                :src="getImageUrl(item)"
+                                :alt="item.title"
+                                loading="lazy"
+                                x-show="item.image || item.imageId"
+                            >
+                            <div class="error-wishlist-cardPlaceholder" x-show="!item.image && !item.imageId">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                    <path d="M3 6h18"/>
+                                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                                </svg>
+                            </div>
+                            {# Heart badge #}
+                            <div class="error-wishlist-badge" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2">
+                                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                                </svg>
+                            </div>
+                        </a>
+
+                        {# Content #}
+                        <div class="error-wishlist-cardContent">
+                            <h4 class="error-wishlist-cardTitle">
+                                <a :href="item.url || '#'" x-text="item.title"></a>
+                            </h4>
+                            <div class="error-wishlist-cardPrice">
+                                <template x-if="item.isPromo && item.promoPrice">
+                                    <div>
+                                        <span class="error-wishlist-pricePromo" x-text="item.promoPrice"></span>
+                                        <span class="error-wishlist-priceOriginal" x-text="item.price"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!item.isPromo || !item.promoPrice">
+                                    <span class="error-wishlist-priceRegular" x-text="item.price"></span>
+                                </template>
+                            </div>
+                        </div>
+                    </article>
+                </template>
+            </div>
+
+            {# Show count if more items exist #}
+            <div class="error-wishlist-more" x-show="items.length > 4">
+                <a href="/?view=wishlist" class="error-wishlist-moreLink" aria-label="{{ 'View all wishlist items'|trans }}">
+                    <span>+ <span x-text="items.length - 4"></span> {{ 'more items'|trans }}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    function errorWishlistSection() {
+        return {
+            items: [],
+
+            init() {
+                // Load wishlist items from Alpine store
+                this.loadItems();
+
+                // Listen for wishlist updates
+                window.addEventListener('wishlist:added', () => this.loadItems());
+                window.addEventListener('wishlist:removed', () => this.loadItems());
+                window.addEventListener('wishlist:cleared', () => this.loadItems());
+                window.addEventListener('wishlist:synced', () => this.loadItems());
+            },
+
+            loadItems() {
+                if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                    this.items = [...window.Alpine.store('wishlist').items];
+                } else {
+                    this.items = [];
+                }
+            },
+
+            getImageUrl(item) {
+                if (item.image) return item.image;
+                if (item.imageId) {
+                    return `/legacy-image-library/product_image_${item.imageId}/full/%5E*!400,400/0/default.webp`;
+                }
+                return '';
+            }
+        };
+    }
+    </script>
+
+    {# Quick Navigation Section - Helpful links to main areas #}
+    <section class="error-section error-navigation-section" aria-labelledby="navigation-section-title">
+        <div class="container">
+            <div class="error-section-header">
+                <h3 id="navigation-section-title" class="error-section-title">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                    {{ 'Quick Links'|trans }}
+                </h3>
+            </div>
+
+            <p class="error-navigation-intro">{{ 'Here are some helpful links to get you back on track:'|trans }}</p>
+
+            <nav class="error-navigation-grid" aria-label="{{ 'Quick navigation'|trans }}">
+                {# Home #}
+                <a href="{{ path('index') }}" class="error-navigation-card">
+                    <div class="error-navigation-cardIcon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    </div>
+                    <div class="error-navigation-cardContent">
+                        <span class="error-navigation-cardTitle">{{ 'Home'|trans }}</span>
+                        <span class="error-navigation-cardDesc">{{ 'Return to the homepage'|trans }}</span>
+                    </div>
+                    <svg class="error-navigation-cardArrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+
+                {# Shop / Categories #}
+                <a href="/?view=category&category_id=1" class="error-navigation-card">
+                    <div class="error-navigation-cardIcon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect width="7" height="7" x="3" y="3" rx="1"/>
+                            <rect width="7" height="7" x="14" y="3" rx="1"/>
+                            <rect width="7" height="7" x="14" y="14" rx="1"/>
+                            <rect width="7" height="7" x="3" y="14" rx="1"/>
+                        </svg>
+                    </div>
+                    <div class="error-navigation-cardContent">
+                        <span class="error-navigation-cardTitle">{{ 'Shop'|trans }}</span>
+                        <span class="error-navigation-cardDesc">{{ 'Browse our categories'|trans }}</span>
+                    </div>
+                    <svg class="error-navigation-cardArrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+
+                {# Contact #}
+                <a href="/?view=contact" class="error-navigation-card">
+                    <div class="error-navigation-cardIcon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                    </div>
+                    <div class="error-navigation-cardContent">
+                        <span class="error-navigation-cardTitle">{{ 'Contact Us'|trans }}</span>
+                        <span class="error-navigation-cardDesc">{{ 'Get in touch with us'|trans }}</span>
+                    </div>
+                    <svg class="error-navigation-cardArrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+
+                {# My Account #}
+                <a href="/?view=account" class="error-navigation-card">
+                    <div class="error-navigation-cardIcon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="8" r="5"/>
+                            <path d="M20 21a8 8 0 0 0-16 0"/>
+                        </svg>
+                    </div>
+                    <div class="error-navigation-cardContent">
+                        <span class="error-navigation-cardTitle">{{ 'My Account'|trans }}</span>
+                        <span class="error-navigation-cardDesc">{{ 'View your account'|trans }}</span>
+                    </div>
+                    <svg class="error-navigation-cardArrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </section>
+</main>
 
 <style>
+/* Error Page Base */
 .error-page {
-    padding: 120px 0;
-    text-align: center;
+    min-height: 100vh;
+    background-color: var(--color-background, #fafafa);
+}
+
+/* Skip Link for Accessibility */
+.error-skip-link {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-text, #1a1a1a);
+    color: var(--color-white, #fff);
+    padding: 12px 24px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--radius-md, 8px);
+    z-index: 100;
+    transition: top 0.2s ease;
+}
+
+.error-skip-link:focus {
+    top: 16px;
+    outline: 2px solid var(--color-white, #fff);
+    outline-offset: 2px;
+}
+
+/* Hero Section */
+.error-hero {
+    padding: 80px 0 60px;
+    background: linear-gradient(180deg, var(--color-white, #fff) 0%, var(--color-background, #fafafa) 100%);
 }
 
 .error-content {
-    max-width: 480px;
+    max-width: 560px;
     margin: 0 auto;
+    text-align: center;
 }
 
+/* Error Icon */
+.error-icon {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: 50%;
+    color: var(--color-text-muted, #666);
+}
+
+.error-icon svg {
+    opacity: 0.7;
+}
+
+/* Error Code */
 .error-code {
-    font-size: 8rem;
-    font-weight: 700;
+    font-size: clamp(5rem, 15vw, 10rem);
+    font-weight: 800;
     line-height: 1;
-    color: var(--color-primary);
-    margin-bottom: 16px;
+    color: var(--color-primary, #1a1a1a);
+    margin: 0 0 16px;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--color-primary, #1a1a1a) 0%, var(--color-text-muted, #666) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
+/* Error Title */
 .error-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 16px;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    margin: 0 0 16px;
+    color: var(--color-text, #1a1a1a);
 }
 
+/* Error Text */
 .error-text {
-    color: var(--color-text-muted);
-    margin-bottom: 32px;
+    font-size: 1.125rem;
+    color: var(--color-text-muted, #666);
+    margin: 0 0 8px;
+    line-height: 1.6;
+}
+
+.error-subtext {
+    font-size: 0.9375rem;
+    color: var(--color-text-light, #888);
+    margin: 0 0 32px;
+    line-height: 1.6;
+}
+
+/* Error Actions */
+.error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+
+.error-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--radius-lg, 12px);
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.error-btn--primary {
+    background-color: var(--color-text, #1a1a1a);
+    color: var(--color-white, #fff);
+}
+
+.error-btn--primary:hover {
+    background-color: #333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.error-btn--primary:focus {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+.error-btn--primary:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.error-btn--primary:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+.error-btn--secondary {
+    background-color: var(--color-surface, #f5f5f5);
+    color: var(--color-text, #1a1a1a);
+    border: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+}
+
+.error-btn--secondary:hover {
+    background-color: var(--color-surface-dark, #eee);
+}
+
+.error-btn--secondary:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+/* Section Base */
+.error-section {
+    padding: 40px 0;
+}
+
+.error-section .container:empty {
+    display: none;
+}
+
+/* Section Title Pattern (for future sections) */
+.error-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.error-section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text, #1a1a1a);
+}
+
+.error-section-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-primary, #1a1a1a);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.2s;
+}
+
+.error-section-link:hover {
+    opacity: 0.7;
+}
+
+.error-section-link:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 4px);
+}
+
+/* Container */
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Search Section */
+.error-search-section {
+    background-color: var(--color-white, #fff);
+    border-top: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+    border-bottom: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+}
+
+.error-search {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.error-search-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--color-text, #1a1a1a);
+}
+
+.error-search-subtitle {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted, #666);
+    margin: 0 0 24px;
+}
+
+/* Search Form */
+.error-search-form {
+    margin-bottom: 24px;
+}
+
+.error-search-inputWrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: var(--radius-lg, 12px);
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.error-search-inputWrapper:focus-within {
+    background-color: var(--color-white, #fff);
+    border-color: var(--color-text, #1a1a1a);
+}
+
+.error-search-icon {
+    flex-shrink: 0;
+    color: var(--color-text-muted, #666);
+}
+
+.error-search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    font-size: 1.0625rem;
+    color: var(--color-text, #1a1a1a);
+    outline: none;
+    min-width: 0;
+}
+
+.error-search-input::placeholder {
+    color: var(--color-text-light, #888);
+}
+
+.error-search-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: var(--color-text, #1a1a1a);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    color: var(--color-white, #fff);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.error-search-submit:hover {
+    background-color: #333;
+    transform: translateX(2px);
+}
+
+.error-search-submit:focus {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+/* Popular Searches */
+.error-search-suggestions {
+    text-align: center;
+}
+
+.error-search-suggestionsLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-light, #888);
+    margin: 0 0 12px;
+}
+
+.error-search-suggestionsList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.error-search-suggestion {
+    display: inline-flex;
+    padding: 8px 16px;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: var(--radius-full, 999px);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text, #1a1a1a);
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.error-search-suggestion:hover {
+    background-color: var(--color-surface-dark, #eee);
+    transform: translateY(-1px);
+}
+
+.error-search-suggestion:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+.error-search-suggestion--highlight {
+    background-color: #c9a227;
+    color: white;
+}
+
+.error-search-suggestion--highlight:hover {
+    background-color: #b8922a;
+}
+
+.error-search-suggestion--highlight:focus-visible {
+    outline: 2px solid #c9a227;
+    outline-offset: 2px;
+}
+
+/* Products Section */
+.error-products-section {
+    background-color: var(--color-white, #fff);
+}
+
+/* Recently Viewed Section */
+.error-recently-viewed-section {
+    background-color: var(--color-background, #fafafa);
+}
+
+.error-recently-viewed-section .recently-viewed-section {
+    margin: 0;
+}
+
+.error-recently-viewed-section .recently-viewed-header {
+    margin-bottom: 24px;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.error-recently-viewed-section .recently-viewed-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text, #1a1a1a);
+}
+
+.error-recently-viewed-section .recently-viewed-count {
+    font-size: 0.875rem;
+    color: var(--color-text-muted, #666);
+}
+
+.error-recently-viewed-section .recently-viewed-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 640px) {
+    .error-recently-viewed-section .recently-viewed-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .error-recently-viewed-section .recently-viewed-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.error-products-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+@media (min-width: 640px) {
+    .error-products-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .error-products-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Wishlist Section */
+.error-wishlist-section {
+    background-color: var(--color-white, #fff);
+    border-top: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+}
+
+.error-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.error-wishlist-icon {
+    flex-shrink: 0;
+}
+
+.error-wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+@media (min-width: 640px) {
+    .error-wishlist-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .error-wishlist-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.error-wishlist-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-white, #fff);
+    border: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.error-wishlist-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.error-wishlist-cardImage {
+    position: relative;
+    aspect-ratio: 1;
+    background-color: var(--color-surface, #f5f5f5);
+    overflow: hidden;
+    display: block;
+    margin: 8px;
+    border-radius: var(--radius-md, 8px);
+}
+
+.error-wishlist-cardImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.error-wishlist-card:hover .error-wishlist-cardImage img {
+    transform: scale(1.05);
+}
+
+.error-wishlist-cardPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-light, #888);
+}
+
+.error-wishlist-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white, #fff);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.error-wishlist-cardContent {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.error-wishlist-cardTitle {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.error-wishlist-cardTitle a {
+    color: var(--color-text, #1a1a1a);
+    text-decoration: none;
+}
+
+.error-wishlist-cardTitle a:hover {
+    text-decoration: underline;
+}
+
+.error-wishlist-cardTitle a:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 4px);
+}
+
+.error-wishlist-cardImage:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+.error-wishlist-cardPrice {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.error-wishlist-priceRegular,
+.error-wishlist-pricePromo {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text, #1a1a1a);
+}
+
+.error-wishlist-pricePromo {
+    color: #dc2626;
+}
+
+.error-wishlist-priceOriginal {
+    font-size: 0.8125rem;
+    color: var(--color-text-light, #888);
+    text-decoration: line-through;
+}
+
+.error-wishlist-more {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.error-wishlist-moreLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text, #1a1a1a);
+    text-decoration: none;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: var(--radius-full, 999px);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.error-wishlist-moreLink:hover {
+    background-color: var(--color-surface-dark, #eee);
+    transform: translateY(-1px);
+}
+
+.error-wishlist-moreLink:focus-visible {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+/* Alpine x-cloak - hide elements before Alpine initializes */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .error-hero {
+        padding: 60px 0 40px;
+    }
+
+    .error-icon {
+        width: 100px;
+        height: 100px;
+    }
+
+    .error-icon svg {
+        width: 48px;
+        height: 48px;
+    }
+
+    .error-text {
+        font-size: 1rem;
+    }
+
+    .error-subtext {
+        font-size: 0.875rem;
+    }
+
+    .error-actions {
+        flex-direction: column;
+    }
+
+    .error-btn {
+        width: 100%;
+    }
+
+    .error-section {
+        padding: 32px 0;
+    }
+
+    .error-search-title {
+        font-size: 1.125rem;
+    }
+
+    .error-search-subtitle {
+        font-size: 0.875rem;
+    }
+
+    .error-search-inputWrapper {
+        padding: 12px 14px;
+    }
+
+    .error-search-input {
+        font-size: 1rem;
+    }
+
+    .error-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .error-products-grid {
+        gap: 16px;
+    }
+
+    .error-recently-viewed-section .recently-viewed-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .error-recently-viewed-section .recently-viewed-count {
+        padding-left: 0;
+        border-left: none;
+    }
+
+    .error-recently-viewed-section .recently-viewed-grid {
+        gap: 16px;
+    }
+
+    .error-wishlist-grid {
+        gap: 12px;
+    }
+
+    .error-wishlist-cardContent {
+        padding: 10px;
+    }
+
+    .error-wishlist-cardTitle {
+        font-size: 0.8125rem;
+    }
+
+    .error-wishlist-priceRegular,
+    .error-wishlist-pricePromo {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-hero {
+        padding: 48px 0 32px;
+    }
+
+    .error-icon {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 16px;
+    }
+
+    .error-icon svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .error-code {
+        margin-bottom: 12px;
+    }
+
+    .error-title {
+        margin-bottom: 12px;
+    }
+
+    .container {
+        padding: 0 16px;
+    }
+
+    .error-search-title {
+        font-size: 1rem;
+    }
+
+    .error-search-subtitle {
+        margin-bottom: 20px;
+    }
+
+    .error-search-inputWrapper {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .error-search-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .error-search-input {
+        font-size: 0.9375rem;
+    }
+
+    .error-search-submit {
+        width: 36px;
+        height: 36px;
+    }
+
+    .error-search-submit svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .error-search-suggestion {
+        padding: 6px 12px;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Navigation Section */
+.error-navigation-section {
+    background-color: var(--color-background, #fafafa);
+    border-top: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+}
+
+.error-navigation-intro {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted, #666);
+    margin: 0 0 24px;
+    text-align: center;
+}
+
+.error-navigation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .error-navigation-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+}
+
+.error-navigation-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 20px;
+    background-color: var(--color-white, #fff);
+    border: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--radius-lg, 12px);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.error-navigation-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    border-color: var(--color-text, #1a1a1a);
+}
+
+.error-navigation-card:focus {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+.error-navigation-cardIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: 50%;
+    color: var(--color-text, #1a1a1a);
+    transition: all 0.2s ease;
+}
+
+.error-navigation-card:hover .error-navigation-cardIcon {
+    background-color: var(--color-text, #1a1a1a);
+    color: var(--color-white, #fff);
+}
+
+.error-navigation-cardContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.error-navigation-cardTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text, #1a1a1a);
+}
+
+.error-navigation-cardDesc {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted, #666);
+    line-height: 1.4;
+}
+
+.error-navigation-cardArrow {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    color: var(--color-text-light, #888);
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.error-navigation-card:hover .error-navigation-cardArrow {
+    opacity: 1;
+    color: var(--color-text, #1a1a1a);
+}
+
+@media (max-width: 768px) {
+    .error-navigation-intro {
+        font-size: 0.875rem;
+        margin-bottom: 20px;
+    }
+
+    .error-navigation-card {
+        padding: 20px 16px;
+        gap: 12px;
+    }
+
+    .error-navigation-cardIcon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .error-navigation-cardIcon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .error-navigation-cardTitle {
+        font-size: 0.9375rem;
+    }
+
+    .error-navigation-cardDesc {
+        font-size: 0.75rem;
+    }
+
+    .error-navigation-cardArrow {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-navigation-card {
+        padding: 16px 12px;
+        gap: 10px;
+    }
+
+    .error-navigation-cardIcon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .error-navigation-cardTitle {
+        font-size: 0.875rem;
+    }
 }
 </style>
 {% endblock %}
