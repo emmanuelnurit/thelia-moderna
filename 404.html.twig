@@ -48,10 +48,51 @@
         </div>
     </section>
 
-    {# Search Section - Placeholder for 2.2 #}
+    {# Search Section #}
     <section class="error-section error-search-section">
         <div class="container">
-            {# Search form will be added in subtask 2.2 #}
+            <div class="error-search">
+                {# Section Header #}
+                <h3 class="error-search-title">{{ 'Looking for something specific?'|trans }}</h3>
+                <p class="error-search-subtitle">{{ 'Use the search to find what you need.'|trans }}</p>
+
+                {# Search Form #}
+                <form action="/" method="get" class="error-search-form" role="search">
+                    <input type="hidden" name="view" value="search">
+                    <div class="error-search-inputWrapper">
+                        <svg class="error-search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input
+                            type="search"
+                            name="q"
+                            placeholder="{{ 'Search for products, categories...'|trans }}"
+                            class="error-search-input"
+                            autocomplete="off"
+                            aria-label="{{ 'Search'|trans }}"
+                        >
+                        <button type="submit" class="error-search-submit" aria-label="{{ 'Search'|trans }}">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+
+                {# Popular Searches #}
+                <div class="error-search-suggestions">
+                    <p class="error-search-suggestionsLabel">{{ 'Popular searches'|trans }}</p>
+                    <div class="error-search-suggestionsList">
+                        <a href="/?view=search&q=chaises" class="error-search-suggestion">{{ 'Chairs'|trans }}</a>
+                        <a href="/?view=search&q=canapes" class="error-search-suggestion">{{ 'Sofas'|trans }}</a>
+                        <a href="/?view=search&q=fauteuils" class="error-search-suggestion">{{ 'Armchairs'|trans }}</a>
+                        <a href="/?view=search&q=tables" class="error-search-suggestion">{{ 'Tables'|trans }}</a>
+                        <a href="/?view=category&category_id=1" class="error-search-suggestion error-search-suggestion--highlight">{{ 'Sale'|trans }}</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -247,6 +288,143 @@
     padding: 0 24px;
 }
 
+/* Search Section */
+.error-search-section {
+    background-color: var(--color-white, #fff);
+    border-top: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+    border-bottom: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+}
+
+.error-search {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.error-search-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--color-text, #1a1a1a);
+}
+
+.error-search-subtitle {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted, #666);
+    margin: 0 0 24px;
+}
+
+/* Search Form */
+.error-search-form {
+    margin-bottom: 24px;
+}
+
+.error-search-inputWrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: var(--radius-lg, 12px);
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.error-search-inputWrapper:focus-within {
+    background-color: var(--color-white, #fff);
+    border-color: var(--color-text, #1a1a1a);
+}
+
+.error-search-icon {
+    flex-shrink: 0;
+    color: var(--color-text-muted, #666);
+}
+
+.error-search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    font-size: 1.0625rem;
+    color: var(--color-text, #1a1a1a);
+    outline: none;
+    min-width: 0;
+}
+
+.error-search-input::placeholder {
+    color: var(--color-text-light, #888);
+}
+
+.error-search-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: var(--color-text, #1a1a1a);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    color: var(--color-white, #fff);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.error-search-submit:hover {
+    background-color: #333;
+    transform: translateX(2px);
+}
+
+.error-search-submit:focus {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+/* Popular Searches */
+.error-search-suggestions {
+    text-align: center;
+}
+
+.error-search-suggestionsLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-light, #888);
+    margin: 0 0 12px;
+}
+
+.error-search-suggestionsList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.error-search-suggestion {
+    display: inline-flex;
+    padding: 8px 16px;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: var(--radius-full, 999px);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text, #1a1a1a);
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.error-search-suggestion:hover {
+    background-color: var(--color-surface-dark, #eee);
+    transform: translateY(-1px);
+}
+
+.error-search-suggestion--highlight {
+    background-color: #c9a227;
+    color: white;
+}
+
+.error-search-suggestion--highlight:hover {
+    background-color: #b8922a;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .error-hero {
@@ -282,6 +460,22 @@
     .error-section {
         padding: 32px 0;
     }
+
+    .error-search-title {
+        font-size: 1.125rem;
+    }
+
+    .error-search-subtitle {
+        font-size: 0.875rem;
+    }
+
+    .error-search-inputWrapper {
+        padding: 12px 14px;
+    }
+
+    .error-search-input {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -310,6 +504,43 @@
 
     .container {
         padding: 0 16px;
+    }
+
+    .error-search-title {
+        font-size: 1rem;
+    }
+
+    .error-search-subtitle {
+        margin-bottom: 20px;
+    }
+
+    .error-search-inputWrapper {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .error-search-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .error-search-input {
+        font-size: 0.9375rem;
+    }
+
+    .error-search-submit {
+        width: 36px;
+        height: 36px;
+    }
+
+    .error-search-submit svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .error-search-suggestion {
+        padding: 6px 12px;
+        font-size: 0.8125rem;
     }
 }
 </style>
