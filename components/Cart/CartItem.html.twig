@@ -856,6 +856,33 @@ function cartItemComponent(itemId, initialQuantity, maxStock, isInStock) {
         gap: 8px;
     }
 
+    /* Arrow pointing up toward delete button on mobile */
+    .delete-popup-compact::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        right: 16px;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid rgba(248, 250, 252, 0.95);
+        filter: drop-shadow(0 -2px 2px rgba(71, 85, 105, 0.08));
+    }
+
+    /* Arrow border for visual consistency */
+    .delete-popup-compact::after {
+        content: '';
+        position: absolute;
+        top: -9px;
+        right: 16px;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid rgba(100, 116, 139, 0.2);
+    }
+
     .delete-popup-timer {
         width: 36px;
         height: 36px;
