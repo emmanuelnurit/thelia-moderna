@@ -187,7 +187,7 @@
                 {# Availability with real-time stock display (minus quantity in cart) #}
                 <div
                     class="product-availability"
-                    x-data="stockAvailability({ totalStock: {{ currentPse.quantity }}, pseId: {{ currentPse.id }} })"
+                    x-data="stockAvailability({ totalStock: {{ currentPse.quantity|default(0) }}, pseId: {{ currentPse.id }} })"
                     x-init="await fetchCartAndCalculate()"
                     @stock-decreased.window="quantityInCart += $event.detail.quantity; availableStock = Math.max(0, totalStock - quantityInCart)"
                 >
@@ -209,7 +209,7 @@
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="20 6 9 17 4 12"/>
                             </svg>
-                            <span x-text="availableStock + ' {{ 'article(s) en stock'|trans }}'"></span>
+                            <span x-text="availableStock + ' {{ 'article(s) en stock'|trans|e('js') }}'"></span>
                         </span>
                     </template>
                     {# Case 3: No stock available but items in cart #}
@@ -250,8 +250,8 @@
                         formattedPromoPrice: '{{ (defaultPrice and currentPse.promo and defaultPrice.promoPrice > 0) ? defaultPrice.promoPrice|format_currency('EUR') : '' }}',
                         isPromo: {{ currentPse.promo ? 'true' : 'false' }},
                         imageId: {{ initialImageId }},
-                        maxQuantity: {{ currentPse.quantity }},
-                        totalStock: {{ currentPse.quantity }}
+                        maxQuantity: {{ currentPse.quantity|default(0) }},
+                        totalStock: {{ currentPse.quantity|default(0) }}
                     })"
                     x-init="await initMaxQuantity()"
                     @stock-decreased.window="maxQuantity = Math.max(0, maxQuantity - $event.detail.quantity); if (maxQuantity === 0) quantity = 0; else if (quantity > maxQuantity) quantity = maxQuantity; $nextTick(() => { if ($refs.quantityInput) { $refs.quantityInput.removeAttribute('max'); $refs.quantityInput.setAttribute('max', maxQuantity); } });"
@@ -334,8 +334,8 @@
                         title: '{{ product.i18ns.title|e('js') }}',
                         publicUrl: '{{ product.publicUrl|e('js') }}',
                         imageId: {{ initialImageId }},
-                        price: '{{ taxedPrice ? (taxedPrice|format_currency('EUR')) : '0,00 €' }}',
-                        promoPrice: {{ (taxedPromoPrice > 0) ? '\'' ~ taxedPromoPrice|format_currency('EUR') ~ '\'' : 'null' }},
+                        price: '{{ taxedPrice ? (taxedPrice|number_format(2, ',', ' ')) ~ ' €' : '0,00 €' }}',
+                        promoPrice: {{ ((taxedPromoPrice > 0) ? '\'' ~ (taxedPromoPrice|number_format(2, ',', ' ')) ~ ' €\'' : 'null')|raw }},
                         isPromo: {{ (taxedPromoPrice > 0) ? 'true' : 'false' }}
                     })"
                     @click="toggle()"
@@ -347,7 +347,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" :fill="isInWishlist ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2" :style="isInWishlist ? 'color: #ef4444' : ''">
                         <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
                     </svg>
-                    <span x-text="isInWishlist ? '{{ 'In wishlist'|trans }}' : '{{ 'Add to wishlist'|trans }}'"></span>
+                    <span x-text="isInWishlist ? '{{ 'In wishlist'|trans|e('js') }}' : '{{ 'Add to wishlist'|trans|e('js') }}'"></span>
                 </button>
 
                 {# Features #}
@@ -380,8 +380,8 @@
         {# Recently Viewed Products #}
         {% include 'components/Product/RecentlyViewed.html.twig' with {
             excludeProductId: product.id,
-            maxItems: 6,
-            title: 'Recently Viewed'|trans
+            maxItems: 5,
+            title: 'Recently viewed'|trans
         } %}
     </div>
 </div>
@@ -1312,7 +1312,7 @@ function addToCartForm(config) {
 
             } catch (error) {
                 this.loading = false;
-                alert('{{ 'Error adding item to cart. Please try again.'|trans }}');
+                alert('{{ 'Error adding item to cart. Please try again.'|trans|e('js') }}');
             }
         },
 
@@ -1354,7 +1354,7 @@ function addToCartForm(config) {
                 this.showNotifyMePopup();
             } catch (error) {
                 console.error('Error adding to wishlist for notification:', error);
-                alert('{{ 'Error adding to notification list. Please try again.'|trans }}');
+                alert('{{ 'Error adding to notification list. Please try again.'|trans|e('js') }}');
             }
         },
 
@@ -1370,11 +1370,11 @@ function addToCartForm(config) {
                 <div class="cart-toast-content">
                     ${this.imageId ? `<img src="/legacy-image-library/product_image_${this.imageId}/full/%5E*!80,80/0/default.webp" alt="${this.title}" class="cart-toast-image">` : ''}
                     <div class="cart-toast-info">
-                        <p class="cart-toast-title">{{ 'Notification activée !'|trans }}</p>
+                        <p class="cart-toast-title">{{ 'Notification activée !'|trans|e('js') }}</p>
                         <p class="cart-toast-product">${this.title}</p>
-                        <p class="cart-toast-qty">{{ 'Vous serez notifié dès que ce produit sera de nouveau disponible'|trans }}</p>
+                        <p class="cart-toast-qty">{{ 'Vous serez notifié dès que ce produit sera de nouveau disponible'|trans|e('js') }}</p>
                     </div>
-                    <a href="/?view=wishlist" class="cart-toast-link">{{ 'Voir la liste de souhaits'|trans }}</a>
+                    <a href="/?view=wishlist" class="cart-toast-link">{{ 'Voir la liste de souhaits'|trans|e('js') }}</a>
                     <button class="cart-toast-close" onclick="this.parentElement.parentElement.remove()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 6 6 18"/>
@@ -1406,11 +1406,11 @@ function addToCartForm(config) {
                 <div class="cart-toast-content">
                     ${this.imageId ? `<img src="/legacy-image-library/product_image_${this.imageId}/full/%5E*!80,80/0/default.webp" alt="${this.title}" class="cart-toast-image">` : ''}
                     <div class="cart-toast-info">
-                        <p class="cart-toast-title">{{ 'Added to cart!'|trans }}</p>
+                        <p class="cart-toast-title">{{ 'Added to cart!'|trans|e('js') }}</p>
                         <p class="cart-toast-product">${this.title}</p>
-                        <p class="cart-toast-qty">{{ 'Quantity'|trans }}: ${quantityAdded}</p>
+                        <p class="cart-toast-qty">{{ 'Quantity'|trans|e('js') }}: ${quantityAdded}</p>
                     </div>
-                    <a href="/?view=cart" class="cart-toast-link">{{ 'View Cart'|trans }}</a>
+                    <a href="/?view=cart" class="cart-toast-link">{{ 'View Cart'|trans|e('js') }}</a>
                 </div>
                 <div class="cart-toast-progress"></div>
             `;
@@ -1443,9 +1443,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             id: '{{ product.id }}',
             title: '{{ product.i18ns.title|e('js') }}',
             url: '{{ product.publicUrl|e('js') }}',
-            imageId: {{ initialImageId }},
-            price: '{{ taxedPrice ? (taxedPrice|format_currency('EUR')) : '0,00 €' }}',
-            promoPrice: {{ (taxedPromoPrice > 0) ? '\'' ~ taxedPromoPrice|format_currency('EUR') ~ '\'' : 'null' }},
+            image: {{ initialImageId }} ? '/legacy-image-library/product_image_{{ initialImageId }}/full/%5E*!400,400/0/default.webp' : '',
+            price: '{{ taxedPrice ? (taxedPrice|number_format(2, ',', ' ')) ~ ' €' : '0,00 €' }}',
+            promoPrice: {{ ((taxedPromoPrice > 0) ? '\'' ~ (taxedPromoPrice|number_format(2, ',', ' ')) ~ ' €\'' : 'null')|raw }},
             isPromo: {{ (taxedPromoPrice > 0) ? 'true' : 'false' }}
         };
 
