@@ -106,7 +106,7 @@
                                         <div class="order-meta">
                                             <h3 class="order-ref">{{ order.ref }}</h3>
                                             <time class="order-date" datetime="{{ order.createdAt|date('Y-m-d') }}">
-                                                {{ order.createdAt|date('d F Y'|trans) }} {{ 'at'|trans }} {{ order.createdAt|date('H:i') }}
+                                                {{ order.createdAt|format_date('long', locale=lang_locale|default('en')) }} {{ 'at'|trans }} {{ order.createdAt|date('H:i') }}
                                             </time>
                                         </div>
                                     </div>

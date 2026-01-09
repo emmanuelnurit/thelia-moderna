@@ -53,7 +53,7 @@
                 <div class="order-headerInfo">
                     <h1 class="order-title">{{ order.ref }}</h1>
                     <p class="order-date">
-                        {{ 'Placed on'|trans }} {{ order.createdAt|date('d F Y') }} {{ 'at'|trans }} {{ order.createdAt|date('H:i') }}
+                        {{ 'Placed on'|trans }} {{ order.createdAt|format_date('long', locale=lang_locale|default('en')) }} {{ 'at'|trans }} {{ order.createdAt|date('H:i') }}
                     </p>
                 </div>
             </div>
