@@ -146,7 +146,7 @@
                     <svg class="wishlist-heart" width="32" height="32" viewBox="0 0 24 24" :fill="items.length > 0 ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2" :style="items.length > 0 ? 'color: #ef4444' : ''">
                         <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
                     </svg>
-                    {{ 'Mes favoris'|trans }}
+                    {{ 'My favorites'|trans }}
                 </h1>
                 <p class="wishlist-count" x-text="items.length + ' ' + (items.length === 1 ? '{{ 'article'|trans }}' : '{{ 'articles'|trans }}')"></p>
             </div>
@@ -295,11 +295,20 @@
             </a>
         </div>
 
+        {# Recently Viewed Products #}
+        {% include 'components/Product/RecentlyViewed.html.twig' with {
+            'title': 'Recently viewed'|trans,
+            'maxItems': 4
+        } %}
+
         {# Product Suggestions #}
         {% set suggestedProducts = resources('/api/front/products', {'limit': 8, 'order[position]': 'ASC'}) %}
         {% if suggestedProducts is iterable and suggestedProducts|length > 0 %}
         <section class="wishlist-suggestions" x-data="productSuggestions()">
-            <h2 class="wishlist-suggestionsTitle">{{ 'Add your first favorites'|trans }}</h2>
+            <h2 class="wishlist-suggestionsTitle">
+                <span x-show="$store.wishlist.items.length === 0">{{ 'Add your first favorites'|trans }}</span>
+                <span x-show="$store.wishlist.items.length > 0" x-cloak>{{ 'You might also like'|trans }}</span>
+            </h2>
             <div class="products-grid">
                 <template x-for="displayedProduct in displayedProducts" :key="displayedProduct.id">
                     <article
