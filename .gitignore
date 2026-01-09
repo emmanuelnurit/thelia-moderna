@@ -61,3 +61,4 @@ docs/plans/
 test-*.md
 *_ANALYSIS.md
 *_VERIFICATION.md
+.claude_settings.json
