@@ -265,10 +265,92 @@
     }
     </script>
 
-    {# Quick Navigation Section - Placeholder for 5.1 #}
+    {# Quick Navigation Section - Helpful links to main areas #}
     <section class="error-section error-navigation-section">
         <div class="container">
-            {# Quick navigation links will be added in subtask 5.1 #}
+            <div class="error-section-header">
+                <h3 class="error-section-title">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                    {{ 'Quick Links'|trans }}
+                </h3>
+            </div>
+
+            <p class="error-navigation-intro">{{ 'Here are some helpful links to get you back on track:'|trans }}</p>
+
+            <nav class="error-navigation-grid" aria-label="{{ 'Quick navigation'|trans }}">
+                {# Home #}
+                <a href="{{ path('index') }}" class="error-navigation-card">
+                    <div class="error-navigation-cardIcon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    </div>
+                    <div class="error-navigation-cardContent">
+                        <span class="error-navigation-cardTitle">{{ 'Home'|trans }}</span>
+                        <span class="error-navigation-cardDesc">{{ 'Return to the homepage'|trans }}</span>
+                    </div>
+                    <svg class="error-navigation-cardArrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+
+                {# Shop / Categories #}
+                <a href="/?view=category&category_id=1" class="error-navigation-card">
+                    <div class="error-navigation-cardIcon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect width="7" height="7" x="3" y="3" rx="1"/>
+                            <rect width="7" height="7" x="14" y="3" rx="1"/>
+                            <rect width="7" height="7" x="14" y="14" rx="1"/>
+                            <rect width="7" height="7" x="3" y="14" rx="1"/>
+                        </svg>
+                    </div>
+                    <div class="error-navigation-cardContent">
+                        <span class="error-navigation-cardTitle">{{ 'Shop'|trans }}</span>
+                        <span class="error-navigation-cardDesc">{{ 'Browse our categories'|trans }}</span>
+                    </div>
+                    <svg class="error-navigation-cardArrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+
+                {# Contact #}
+                <a href="/?view=contact" class="error-navigation-card">
+                    <div class="error-navigation-cardIcon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                    </div>
+                    <div class="error-navigation-cardContent">
+                        <span class="error-navigation-cardTitle">{{ 'Contact Us'|trans }}</span>
+                        <span class="error-navigation-cardDesc">{{ 'Get in touch with us'|trans }}</span>
+                    </div>
+                    <svg class="error-navigation-cardArrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+
+                {# My Account #}
+                <a href="/?view=account" class="error-navigation-card">
+                    <div class="error-navigation-cardIcon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="8" r="5"/>
+                            <path d="M20 21a8 8 0 0 0-16 0"/>
+                        </svg>
+                    </div>
+                    <div class="error-navigation-cardContent">
+                        <span class="error-navigation-cardTitle">{{ 'My Account'|trans }}</span>
+                        <span class="error-navigation-cardDesc">{{ 'View your account'|trans }}</span>
+                    </div>
+                    <svg class="error-navigation-cardArrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+            </nav>
         </div>
     </section>
 </div>
@@ -969,6 +1051,158 @@
     .error-search-suggestion {
         padding: 6px 12px;
         font-size: 0.8125rem;
+    }
+}
+
+/* Navigation Section */
+.error-navigation-section {
+    background-color: var(--color-background, #fafafa);
+    border-top: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+}
+
+.error-navigation-intro {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted, #666);
+    margin: 0 0 24px;
+    text-align: center;
+}
+
+.error-navigation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .error-navigation-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+}
+
+.error-navigation-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 20px;
+    background-color: var(--color-white, #fff);
+    border: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--radius-lg, 12px);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.error-navigation-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    border-color: var(--color-text, #1a1a1a);
+}
+
+.error-navigation-card:focus {
+    outline: 2px solid var(--color-text, #1a1a1a);
+    outline-offset: 2px;
+}
+
+.error-navigation-cardIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background-color: var(--color-surface, #f5f5f5);
+    border-radius: 50%;
+    color: var(--color-text, #1a1a1a);
+    transition: all 0.2s ease;
+}
+
+.error-navigation-card:hover .error-navigation-cardIcon {
+    background-color: var(--color-text, #1a1a1a);
+    color: var(--color-white, #fff);
+}
+
+.error-navigation-cardContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.error-navigation-cardTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text, #1a1a1a);
+}
+
+.error-navigation-cardDesc {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted, #666);
+    line-height: 1.4;
+}
+
+.error-navigation-cardArrow {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    color: var(--color-text-light, #888);
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.error-navigation-card:hover .error-navigation-cardArrow {
+    opacity: 1;
+    color: var(--color-text, #1a1a1a);
+}
+
+@media (max-width: 768px) {
+    .error-navigation-intro {
+        font-size: 0.875rem;
+        margin-bottom: 20px;
+    }
+
+    .error-navigation-card {
+        padding: 20px 16px;
+        gap: 12px;
+    }
+
+    .error-navigation-cardIcon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .error-navigation-cardIcon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .error-navigation-cardTitle {
+        font-size: 0.9375rem;
+    }
+
+    .error-navigation-cardDesc {
+        font-size: 0.75rem;
+    }
+
+    .error-navigation-cardArrow {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-navigation-card {
+        padding: 16px 12px;
+        gap: 10px;
+    }
+
+    .error-navigation-cardIcon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .error-navigation-cardTitle {
+        font-size: 0.875rem;
     }
 }
 </style>
