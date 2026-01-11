@@ -774,12 +774,13 @@
     display: none !important;
 }
 
-@media (min-width: 1024px) {
-    .lg\:hidden {
-        display: none !important;
-    }
-    .lg\:flex {
-        display: flex !important;
+.hidden {
+    display: none !important;
+}
+
+@media (min-width: 640px) {
+    .sm\:block {
+        display: block !important;
     }
 }
 
@@ -792,15 +793,15 @@
     }
 }
 
-@media (min-width: 640px) {
-    .sm\:block {
-        display: block !important;
+@media (min-width: 1024px) {
+    .lg\:hidden {
+        display: none !important;
+    }
+    .lg\:flex {
+        display: flex !important;
     }
 }
 
-.hidden {
-    display: none !important;
-}
 </style>
 
 <script>
