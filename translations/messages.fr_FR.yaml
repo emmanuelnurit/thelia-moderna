@@ -491,6 +491,24 @@ Order faster: Commandez plus rapidement
 Create an account: Créer un compte
 Already have an account?: Vous avez déjà un compte ?
 Sign in: Se connecter
+Sign In: Se connecter
+
+# Login page translations
+Welcome to: Bienvenue sur
+Discover our exclusive collection and enjoy a personalized shopping experience.: Découvrez notre collection exclusive et profitez d'une expérience d'achat personnalisée.
+Enter your credentials to access your account: Entrez vos identifiants pour accéder à votre compte
+Your account was created successfully. Please sign in.: Votre compte a été créé avec succès. Veuillez vous connecter.
+Email address: Adresse e-mail
+your@email.com: votre@email.com
+Remember me: Se souvenir de moi
+Signing in...: Connexion en cours...
+New here?: Nouveau ici ?
+By signing in, you accept our: En vous connectant, vous acceptez nos
+Terms and Conditions: Conditions Générales
+and our: et notre
+Email is required: L'adresse e-mail est requise
+Password is required: Le mot de passe est requis
+An error occurred. Please try again.: Une erreur est survenue. Veuillez réessayer.
 Your current list is saved locally in your browser. Create an account to never lose it!: Votre liste actuelle est sauvegardée localement dans votre navigateur. Créez un compte pour ne jamais la perdre !
 My favorites: Mes favoris
 article: article
@@ -505,6 +523,16 @@ You might also like: Vous pourriez aussi aimer
 Recently viewed: Récemment consultés
 
 # 404 Page translations
+404 - Page Not Found: 404 - Page non trouvée
+The page you are looking for does not exist.: La page que vous recherchez n'existe pas.
+Page Not Found: Page non trouvée
+Back to Home: Retour à l'accueil
+Return to homepage: Retour à la page d'accueil
+Browse categories: Parcourir les catégories
+Orders & settings: Commandes et paramètres
+Saved favorites: Favoris enregistrés
+Search for products...: Rechercher des produits...
+View all: Tout voir
 Skip to search: Passer à la recherche
 Looking for something specific?: Vous cherchez quelque chose de particulier ?
 Use the search to find what you need.: Utilisez la recherche pour trouver ce dont vous avez besoin.

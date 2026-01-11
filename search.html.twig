@@ -1,0 +1,950 @@
+{% extends 'base.html.twig' %}
+
+{% set searchQuery = app.request.query.get('q', '')|trim %}
+
+{% block title %}
+    {% if searchQuery %}
+        {{ 'Search results for'|trans }} "{{ searchQuery }}" - {{ store_name }}
+    {% else %}
+        {{ 'Search'|trans }} - {{ store_name }}
+    {% endif %}
+{% endblock %}
+
+{% block meta_description %}{{ 'Search for products in our catalog'|trans }}{% endblock %}
+
+{% block body %}
+<main class="search-page" x-data="searchPage('{{ searchQuery|e('js') }}')" x-init="init()">
+    {# Hero Search Section #}
+    <section class="search-hero">
+        <div class="container">
+            <h1 class="search-hero-title">
+                <span x-show="!query">{{ 'What are you looking for?'|trans }}</span>
+                <span x-show="query" x-cloak>{{ 'Search results'|trans }}</span>
+            </h1>
+
+            <form @submit.prevent="submitSearch()" class="search-form" role="search">
+                <div class="search-form-wrapper">
+                    <svg class="search-form-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input
+                        type="search"
+                        x-model="query"
+                        placeholder="{{ 'Search for products, brands, categories...'|trans }}"
+                        class="search-form-input"
+                        autocomplete="off"
+                        autofocus
+                        @input.debounce.300ms="performSearch()"
+                    >
+                    <button
+                        type="button"
+                        class="search-form-clear"
+                        x-show="query.length > 0"
+                        @click="clearSearch()"
+                        x-cloak
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                    <button type="submit" class="search-form-btn">
+                        {{ 'Search'|trans }}
+                    </button>
+                </div>
+            </form>
+
+            {# Popular searches - shown when no query #}
+            <div class="search-suggestions" x-show="!query" x-cloak>
+                <span class="search-suggestions-label">{{ 'Popular searches'|trans }}</span>
+                <div class="search-suggestions-list">
+                    <button type="button" @click="setQuery('chaises')" class="search-suggestion">{{ 'Chairs'|trans }}</button>
+                    <button type="button" @click="setQuery('tables')" class="search-suggestion">{{ 'Tables'|trans }}</button>
+                    <button type="button" @click="setQuery('canapes')" class="search-suggestion">{{ 'Sofas'|trans }}</button>
+                    <button type="button" @click="setQuery('fauteuils')" class="search-suggestion">{{ 'Armchairs'|trans }}</button>
+                    <button type="button" @click="setQuery('lampes')" class="search-suggestion">{{ 'Lamps'|trans }}</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Loading State #}
+    <div class="search-loading" x-show="loading" x-cloak>
+        <div class="container">
+            <div class="search-loading-spinner">
+                <svg class="search-spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                <span>{{ 'Searching...'|trans }}</span>
+            </div>
+        </div>
+    </div>
+
+    {# Results Section #}
+    <section class="search-results" x-show="query && !loading && searched" x-cloak>
+        <div class="container">
+            {# Results Found #}
+            <template x-if="results.length > 0">
+                <div>
+                    <div class="search-results-header">
+                        <p class="search-results-count">
+                            <strong x-text="results.length"></strong> {{ 'results for'|trans }} "<strong x-text="query"></strong>"
+                        </p>
+                    </div>
+
+                    <div class="search-results-grid">
+                        <template x-for="product in results" :key="product.id">
+                            <article class="product-card">
+                                <a :href="product.url" class="product-card-image">
+                                    <img
+                                        :src="product.image || '/assets/dist/images/placeholder.svg'"
+                                        :alt="product.title"
+                                        loading="lazy"
+                                        @error="$el.src='/assets/dist/images/placeholder.svg'"
+                                    >
+                                    <span class="product-badge product-badge--promo" x-show="product.promo" x-cloak>{{ 'Sale'|trans }}</span>
+                                    <span class="product-badge product-badge--new" x-show="product.newness && !product.promo" x-cloak>{{ 'New'|trans }}</span>
+                                </a>
+                                <div class="product-card-content">
+                                    <h3 class="product-card-title">
+                                        <a :href="product.url" x-text="product.title"></a>
+                                    </h3>
+                                    <div class="product-card-price">
+                                        <template x-if="product.promo && product.promoPrice">
+                                            <div class="product-price-promo">
+                                                <span class="product-price-current" x-text="product.promoPrice"></span>
+                                                <span class="product-price-old" x-text="product.price"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!product.promo || !product.promoPrice">
+                                            <span class="product-price-current" x-text="product.price"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </article>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            {# No Results #}
+            <template x-if="results.length === 0">
+                <div class="search-empty">
+                    <div class="search-empty-icon">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                            <path d="M8 8l6 6M14 8l-6 6"/>
+                        </svg>
+                    </div>
+                    <h2 class="search-empty-title">{{ 'No results found'|trans }}</h2>
+                    <p class="search-empty-text">
+                        {{ 'We couldn\'t find any products matching'|trans }} "<strong x-text="query"></strong>"
+                    </p>
+                    <p class="search-empty-tips-title">{{ 'Try these tips'|trans }}</p>
+                    <ul class="search-empty-tips">
+                        <li>{{ 'Check your spelling'|trans }}</li>
+                        <li>{{ 'Use more general terms'|trans }}</li>
+                        <li>{{ 'Try different keywords'|trans }}</li>
+                    </ul>
+
+                    <div class="search-empty-suggestions">
+                        <span class="search-suggestions-label">{{ 'Popular searches'|trans }}</span>
+                        <div class="search-suggestions-list">
+                            <button type="button" @click="setQuery('chaises')" class="search-suggestion">{{ 'Chairs'|trans }}</button>
+                            <button type="button" @click="setQuery('tables')" class="search-suggestion">{{ 'Tables'|trans }}</button>
+                            <button type="button" @click="setQuery('canapes')" class="search-suggestion">{{ 'Sofas'|trans }}</button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </section>
+
+    {# Browse Categories when no search #}
+    {% set categories = resources('/api/front/categories', {'depth': 1, 'limit': 8}) %}
+    <section class="search-categories" x-show="!query && !loading" x-cloak>
+        <div class="container">
+            <h2 class="search-categories-title">{{ 'Browse by category'|trans }}</h2>
+            <div class="search-categories-grid">
+                {% for category in categories %}
+                <a href="{{ category.publicUrl }}" class="search-category-card">
+                    <div class="search-category-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="7" height="7" x="3" y="3" rx="1"/>
+                            <rect width="7" height="7" x="14" y="3" rx="1"/>
+                            <rect width="7" height="7" x="14" y="14" rx="1"/>
+                            <rect width="7" height="7" x="3" y="14" rx="1"/>
+                        </svg>
+                    </div>
+                    <span class="search-category-name">{{ category.i18ns.title }}</span>
+                    <svg class="search-category-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14m-7-7 7 7-7 7"/>
+                    </svg>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# Featured Products when no search #}
+    {% set featuredProducts = resources('/api/front/products', {'limit': 8}) %}
+    <section class="search-featured" x-show="!query && !loading">
+        <div class="container">
+            <h2 class="search-featured-title">{{ 'Discover our products'|trans }}</h2>
+            <div class="search-featured-grid">
+                {% for product in featuredProducts %}
+                    {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
+                    {% set productWithImages = product|merge({'productImages': productImages}) %}
+                    {{ component('Moderna:Product:ProductCard', {
+                        product: productWithImages,
+                        showWishlist: true
+                    }) }}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+function searchPage(initialQuery) {
+    return {
+        query: initialQuery || '',
+        results: [],
+        allProducts: [],
+        loading: false,
+        searched: false,
+        productsLoaded: false,
+
+        async init() {
+            // Load all products once for client-side filtering
+            await this.loadAllProducts();
+
+            // If there's an initial query, perform search
+            if (this.query) {
+                this.performSearch();
+            }
+        },
+
+        async loadAllProducts() {
+            if (this.productsLoaded) return;
+
+            try {
+                const response = await fetch('/api/front/products?itemsPerPage=100');
+                const products = await response.json();
+
+                // Also fetch images for all products
+                this.allProducts = await Promise.all(products.map(async (product) => {
+                    let image = null;
+                    try {
+                        const imagesResponse = await fetch(`/api/front/product_images?product.id=${product.id}&itemsPerPage=1`);
+                        const images = await imagesResponse.json();
+                        if (images && images.length > 0) {
+                            image = `/legacy-image-library/product_image_${images[0].id}/full/%5E*!400,400/0/default.webp`;
+                        }
+                    } catch (e) {}
+
+                    const defaultPSE = product.productSaleElements?.find(pse => pse.isDefault) || product.productSaleElements?.[0];
+                    const price = defaultPSE?.productPrices?.[0];
+
+                    return {
+                        id: product.id,
+                        title: product.i18ns?.fr_FR?.title || product.i18ns?.en_US?.title || 'Product',
+                        description: product.i18ns?.fr_FR?.description || product.i18ns?.en_US?.description || '',
+                        chapo: product.i18ns?.fr_FR?.chapo || product.i18ns?.en_US?.chapo || '',
+                        url: product.publicUrl || `/?view=product&product_id=${product.id}`,
+                        image: image,
+                        price: price ? this.formatPrice(price.price) : '',
+                        promoPrice: price?.promoPrice ? this.formatPrice(price.promoPrice) : null,
+                        promo: defaultPSE?.promo || false,
+                        newness: defaultPSE?.newness || false
+                    };
+                }));
+
+                this.productsLoaded = true;
+            } catch (error) {
+                console.error('Error loading products:', error);
+                this.allProducts = [];
+            }
+        },
+
+        formatPrice(price) {
+            return new Intl.NumberFormat('fr-FR', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(price);
+        },
+
+        performSearch() {
+            if (!this.query || this.query.length < 2) {
+                this.results = [];
+                this.searched = false;
+                return;
+            }
+
+            this.loading = true;
+            this.searched = true;
+
+            // Simulate a small delay for UX
+            setTimeout(() => {
+                const searchTerms = this.query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\s+/);
+
+                this.results = this.allProducts.filter(product => {
+                    const title = (product.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const description = (product.description || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const chapo = (product.chapo || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+                    return searchTerms.every(term =>
+                        title.includes(term) ||
+                        description.includes(term) ||
+                        chapo.includes(term)
+                    );
+                });
+
+                this.loading = false;
+
+                // Update URL without reload
+                const url = new URL(window.location);
+                url.searchParams.set('q', this.query);
+                window.history.replaceState({}, '', url);
+            }, 150);
+        },
+
+        submitSearch() {
+            this.performSearch();
+        },
+
+        setQuery(q) {
+            this.query = q;
+            this.performSearch();
+        },
+
+        clearSearch() {
+            this.query = '';
+            this.results = [];
+            this.searched = false;
+
+            const url = new URL(window.location);
+            url.searchParams.delete('q');
+            window.history.replaceState({}, '', url);
+        }
+    };
+}
+</script>
+
+<style>
+/* Search Page Base */
+.search-page {
+    min-height: 100vh;
+    background: #fafafa;
+}
+
+/* Hero Search Section */
+.search-hero {
+    padding: 48px 0 40px;
+    background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+}
+
+.search-hero-title {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 24px;
+    color: #1a1a1a;
+}
+
+/* Search Form */
+.search-form {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.search-form-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px 10px 24px;
+    background: #fff;
+    border: 2px solid #e5e5e5;
+    border-radius: 60px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.search-form-wrapper:focus-within {
+    border-color: #1a1a1a;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.search-form-icon {
+    color: #888;
+    flex-shrink: 0;
+}
+
+.search-form-input {
+    flex: 1;
+    border: none;
+    background: none;
+    font-size: 1.0625rem;
+    color: #1a1a1a;
+    outline: none;
+    min-width: 0;
+}
+
+.search-form-input::placeholder {
+    color: #aaa;
+}
+
+.search-form-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: #888;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-form-clear:hover {
+    background: #f5f5f5;
+    color: #1a1a1a;
+}
+
+.search-form-btn {
+    padding: 14px 32px;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-form-btn:hover {
+    background: #333;
+}
+
+/* Suggestions */
+.search-suggestions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.search-suggestions-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+}
+
+.search-suggestions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.search-suggestion {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-suggestion:hover {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+}
+
+/* Loading */
+.search-loading {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.search-loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #666;
+    font-size: 0.9375rem;
+}
+
+.search-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Results Section */
+.search-results {
+    padding: 0 0 60px;
+}
+
+.search-results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.search-results-count {
+    font-size: 0.9375rem;
+    color: #666;
+    margin: 0;
+}
+
+.search-results-count strong {
+    color: #1a1a1a;
+}
+
+.search-results-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+@media (min-width: 640px) {
+    .search-results-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .search-results-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+}
+
+/* Product Card (inline for search results) */
+.product-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #eee;
+    transition: all 0.2s ease;
+}
+
+.product-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.product-card-image {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    background: #fff;
+    overflow: hidden;
+}
+
+.product-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-card-image img {
+    transform: scale(1.05);
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 4px 10px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-radius: 4px;
+}
+
+.product-badge--promo {
+    background: #ef4444;
+    color: #fff;
+}
+
+.product-badge--new {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.product-card-content {
+    padding: 14px;
+}
+
+.product-card-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.product-card-title a {
+    color: #1a1a1a;
+    text-decoration: none;
+}
+
+.product-card-title a:hover {
+    text-decoration: underline;
+}
+
+.product-card-price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.product-price-promo {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.product-price-current {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.product-price-promo .product-price-current {
+    color: #ef4444;
+}
+
+.product-price-old {
+    font-size: 0.8125rem;
+    color: #999;
+    text-decoration: line-through;
+}
+
+/* Empty State */
+.search-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 60px 24px;
+    background: #fff;
+    border-radius: 16px;
+    margin-top: 20px;
+}
+
+.search-empty-icon {
+    color: #ddd;
+    margin-bottom: 24px;
+}
+
+.search-empty-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 12px;
+}
+
+.search-empty-text {
+    font-size: 1rem;
+    color: #666;
+    margin: 0 0 24px;
+    max-width: 400px;
+}
+
+.search-empty-text strong {
+    color: #1a1a1a;
+}
+
+.search-empty-tips-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 12px;
+}
+
+.search-empty-tips {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.search-empty-tips li {
+    padding: 4px 0;
+}
+
+.search-empty-tips li::before {
+    content: '•';
+    color: #ccc;
+    margin-right: 8px;
+}
+
+.search-empty-suggestions {
+    padding-top: 24px;
+    border-top: 1px solid #eee;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Categories Section */
+.search-categories {
+    padding: 0 0 48px;
+}
+
+.search-categories-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 20px;
+    text-align: center;
+}
+
+.search-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 640px) {
+    .search-categories-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .search-categories-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.search-category-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.search-category-card:hover {
+    border-color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
+
+.search-category-card:hover .search-category-icon {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.search-category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    color: #1a1a1a;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.search-category-name {
+    flex: 1;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.search-category-arrow {
+    color: #ccc;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.search-category-card:hover .search-category-arrow {
+    color: #1a1a1a;
+    transform: translateX(4px);
+}
+
+/* Featured Products */
+.search-featured {
+    padding: 48px 0 60px;
+    background: #fff;
+}
+
+.search-featured-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 24px;
+}
+
+.search-featured-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+@media (min-width: 640px) {
+    .search-featured-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .search-featured-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+}
+
+/* Container */
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+@media (min-width: 768px) {
+    .container {
+        padding: 0 32px;
+    }
+}
+
+/* Alpine cloak */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 767px) {
+    .search-hero {
+        padding: 32px 0 28px;
+    }
+
+    .search-hero-title {
+        margin-bottom: 20px;
+    }
+
+    .search-form-wrapper {
+        padding: 8px 8px 8px 18px;
+    }
+
+    .search-form-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .search-form-input {
+        font-size: 1rem;
+    }
+
+    .search-form-btn {
+        padding: 12px 20px;
+        font-size: 0.875rem;
+    }
+
+    .search-suggestions {
+        margin-top: 20px;
+    }
+
+    .search-suggestion {
+        padding: 6px 14px;
+        font-size: 0.8125rem;
+    }
+
+    .search-results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .search-empty {
+        padding: 40px 20px;
+    }
+
+    .search-empty-icon svg {
+        width: 64px;
+        height: 64px;
+    }
+
+    .search-empty-title {
+        font-size: 1.25rem;
+    }
+
+    .search-categories {
+        padding: 0 0 32px;
+    }
+
+    .search-category-card {
+        padding: 14px 16px;
+        gap: 12px;
+    }
+
+    .search-category-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .search-category-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .search-category-name {
+        font-size: 0.875rem;
+    }
+
+    .search-category-arrow {
+        display: none;
+    }
+
+    .search-featured {
+        padding: 32px 0 48px;
+    }
+
+    .product-card-content {
+        padding: 12px;
+    }
+
+    .product-card-title {
+        font-size: 0.875rem;
+    }
+
+    .product-price-current {
+        font-size: 0.9375rem;
+    }
+}
+</style>
+{% endblock %}
