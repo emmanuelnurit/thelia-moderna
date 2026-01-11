@@ -38,17 +38,20 @@
 
                 {# Search Bar (Desktop) #}
                 <div class="header-search hidden md:flex">
-                    <button
-                        type="button"
-                        class="header-searchBtn"
-                        @click="$store.search.toggle()"
-                    >
+                    <form action="/" method="get" class="header-searchForm">
+                        <input type="hidden" name="view" value="search">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"/>
                             <path d="m21 21-4.35-4.35"/>
                         </svg>
-                        <span>{{ 'Search'|trans }}</span>
-                    </button>
+                        <input
+                            type="search"
+                            name="q"
+                            placeholder="{{ 'Search...'|trans }}"
+                            class="header-searchInput"
+                            autocomplete="off"
+                        >
+                    </form>
                 </div>
 
                 {# Header Actions #}
@@ -238,7 +241,7 @@
     margin: 0 24px;
 }
 
-.header-searchBtn {
+.header-searchForm {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -247,18 +250,29 @@
     background-color: var(--color-surface);
     border: none;
     border-radius: var(--radius-full);
-    font-size: 0.875rem;
-    color: var(--color-text-light);
-    cursor: pointer;
     transition: background-color var(--transition-fast);
 }
 
-.header-searchBtn:hover {
+.header-searchForm:focus-within {
     background-color: var(--color-surface-dark);
 }
 
-.header-searchBtn svg {
+.header-searchForm svg {
+    flex-shrink: 0;
     color: var(--color-text-muted);
+}
+
+.header-searchInput {
+    flex: 1;
+    background: none;
+    border: none;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    outline: none;
+}
+
+.header-searchInput::placeholder {
+    color: var(--color-text-light);
 }
 
 .header-langSelector {
