@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ModernaBundle\Controller;
+namespace Moderna\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
