@@ -1,0 +1,502 @@
+{#
+    AddressForm LiveComponent - Modern.A
+    Address creation and editing form
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Address form with all fields
+    - Form validation
+    - Address creation and update
+
+    Usage:
+    {{ component('Moderna:Checkout:AddressForm') }}
+    {{ component('Moderna:Checkout:AddressForm', { addressId: 123 }) }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Checkout:AddressForm' })
+})) }} class="address-form">
+
+    {# Form Header #}
+    <div class="address-form__header">
+        <h3 class="address-form__title">
+            {% if this.addressId %}
+                {{ 'Edit address'|trans }}
+            {% else %}
+                {{ 'New address'|trans }}
+            {% endif %}
+        </h3>
+    </div>
+
+    {# Error Message #}
+    {% if this.error %}
+        <div class="address-form__alert address-form__alert--error">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{{ this.error|trans }}</span>
+        </div>
+    {% endif %}
+
+    {# Success Message #}
+    {% if this.success %}
+        <div class="address-form__alert address-form__alert--success">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <path d="m9 11 3 3L22 4"/>
+            </svg>
+            <span>{{ this.success|trans }}</span>
+        </div>
+    {% endif %}
+
+    <form class="address-form__form" data-action="submit->live#action" data-live-action-param="submit">
+        {# Address Label #}
+        <div class="address-form__field">
+            <label for="address-label" class="address-form__label">
+                {{ 'Address name'|trans }}
+                <span class="address-form__optional">({{ 'optional'|trans }})</span>
+            </label>
+            <input type="text"
+                   id="address-label"
+                   class="address-form__input"
+                   placeholder="{{ 'e.g., Home, Office'|trans }}"
+                   data-model="label"
+                   value="{{ this.label }}">
+        </div>
+
+        {# Title Select #}
+        <div class="address-form__field">
+            <label for="address-title" class="address-form__label">
+                {{ 'Title'|trans }}
+            </label>
+            <select id="address-title"
+                    class="address-form__select"
+                    data-model="titleId">
+                {% for title in this.titles %}
+                    <option value="{{ title.id }}" {{ this.titleId == title.id ? 'selected' : '' }}>
+                        {{ title.long }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# First Name & Last Name (2 columns) #}
+        <div class="address-form__row">
+            <div class="address-form__field">
+                <label for="address-firstname" class="address-form__label">
+                    {{ 'First name'|trans }} <span class="address-form__required">*</span>
+                </label>
+                <input type="text"
+                       id="address-firstname"
+                       class="address-form__input {{ this.fieldErrors.firstname ? 'address-form__input--error' : '' }}"
+                       data-model="firstname"
+                       value="{{ this.firstname }}"
+                       required>
+                {% if this.fieldErrors.firstname %}
+                    <span class="address-form__error">{{ this.fieldErrors.firstname|trans }}</span>
+                {% endif %}
+            </div>
+
+            <div class="address-form__field">
+                <label for="address-lastname" class="address-form__label">
+                    {{ 'Last name'|trans }} <span class="address-form__required">*</span>
+                </label>
+                <input type="text"
+                       id="address-lastname"
+                       class="address-form__input {{ this.fieldErrors.lastname ? 'address-form__input--error' : '' }}"
+                       data-model="lastname"
+                       value="{{ this.lastname }}"
+                       required>
+                {% if this.fieldErrors.lastname %}
+                    <span class="address-form__error">{{ this.fieldErrors.lastname|trans }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Company (optional) #}
+        <div class="address-form__field">
+            <label for="address-company" class="address-form__label">
+                {{ 'Company'|trans }}
+                <span class="address-form__optional">({{ 'optional'|trans }})</span>
+            </label>
+            <input type="text"
+                   id="address-company"
+                   class="address-form__input"
+                   data-model="company"
+                   value="{{ this.company }}">
+        </div>
+
+        {# Address Line 1 #}
+        <div class="address-form__field">
+            <label for="address-address1" class="address-form__label">
+                {{ 'Address'|trans }} <span class="address-form__required">*</span>
+            </label>
+            <input type="text"
+                   id="address-address1"
+                   class="address-form__input {{ this.fieldErrors.address1 ? 'address-form__input--error' : '' }}"
+                   placeholder="{{ 'Street address'|trans }}"
+                   data-model="address1"
+                   value="{{ this.address1 }}"
+                   required>
+            {% if this.fieldErrors.address1 %}
+                <span class="address-form__error">{{ this.fieldErrors.address1|trans }}</span>
+            {% endif %}
+        </div>
+
+        {# Address Line 2 (optional) #}
+        <div class="address-form__field">
+            <label for="address-address2" class="address-form__label">
+                {{ 'Address line 2'|trans }}
+                <span class="address-form__optional">({{ 'optional'|trans }})</span>
+            </label>
+            <input type="text"
+                   id="address-address2"
+                   class="address-form__input"
+                   placeholder="{{ 'Apartment, suite, unit, etc.'|trans }}"
+                   data-model="address2"
+                   value="{{ this.address2 }}">
+        </div>
+
+        {# Zip Code & City (2 columns) #}
+        <div class="address-form__row">
+            <div class="address-form__field address-form__field--small">
+                <label for="address-zipcode" class="address-form__label">
+                    {{ 'Postal code'|trans }} <span class="address-form__required">*</span>
+                </label>
+                <input type="text"
+                       id="address-zipcode"
+                       class="address-form__input {{ this.fieldErrors.zipcode ? 'address-form__input--error' : '' }}"
+                       data-model="zipcode"
+                       value="{{ this.zipcode }}"
+                       required>
+                {% if this.fieldErrors.zipcode %}
+                    <span class="address-form__error">{{ this.fieldErrors.zipcode|trans }}</span>
+                {% endif %}
+            </div>
+
+            <div class="address-form__field address-form__field--large">
+                <label for="address-city" class="address-form__label">
+                    {{ 'City'|trans }} <span class="address-form__required">*</span>
+                </label>
+                <input type="text"
+                       id="address-city"
+                       class="address-form__input {{ this.fieldErrors.city ? 'address-form__input--error' : '' }}"
+                       data-model="city"
+                       value="{{ this.city }}"
+                       required>
+                {% if this.fieldErrors.city %}
+                    <span class="address-form__error">{{ this.fieldErrors.city|trans }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Country #}
+        <div class="address-form__field">
+            <label for="address-country" class="address-form__label">
+                {{ 'Country'|trans }} <span class="address-form__required">*</span>
+            </label>
+            <select id="address-country"
+                    class="address-form__select {{ this.fieldErrors.countryId ? 'address-form__select--error' : '' }}"
+                    data-model="countryId"
+                    required>
+                {% for country in this.countries %}
+                    <option value="{{ country.id }}" {{ this.countryId == country.id ? 'selected' : '' }}>
+                        {{ country.title }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if this.fieldErrors.countryId %}
+                <span class="address-form__error">{{ this.fieldErrors.countryId|trans }}</span>
+            {% endif %}
+        </div>
+
+        {# Phone Numbers (2 columns) #}
+        <div class="address-form__row">
+            <div class="address-form__field">
+                <label for="address-phone" class="address-form__label">
+                    {{ 'Phone'|trans }}
+                    <span class="address-form__optional">({{ 'optional'|trans }})</span>
+                </label>
+                <input type="tel"
+                       id="address-phone"
+                       class="address-form__input"
+                       data-model="phone"
+                       value="{{ this.phone }}">
+            </div>
+
+            <div class="address-form__field">
+                <label for="address-cellphone" class="address-form__label">
+                    {{ 'Mobile'|trans }}
+                    <span class="address-form__optional">({{ 'optional'|trans }})</span>
+                </label>
+                <input type="tel"
+                       id="address-cellphone"
+                       class="address-form__input"
+                       data-model="cellphone"
+                       value="{{ this.cellphone }}">
+            </div>
+        </div>
+
+        {# Default Address Checkbox #}
+        <div class="address-form__checkbox-field">
+            <label class="address-form__checkbox-label">
+                <input type="checkbox"
+                       class="address-form__checkbox"
+                       data-model="isDefault"
+                       {{ this.isDefault ? 'checked' : '' }}>
+                <span class="address-form__checkbox-text">{{ 'Set as default address'|trans }}</span>
+            </label>
+        </div>
+
+        {# Form Actions #}
+        <div class="address-form__actions">
+            {% block footer %}
+                <button type="button"
+                        class="address-form__btn address-form__btn--secondary"
+                        data-action="live#action"
+                        data-live-action-param="cancel">
+                    {{ 'Cancel'|trans }}
+                </button>
+
+                <button type="submit" class="address-form__btn address-form__btn--primary">
+                    {% if this.addressId %}
+                        {{ 'Update address'|trans }}
+                    {% else %}
+                        {{ 'Add address'|trans }}
+                    {% endif %}
+                </button>
+            {% endblock %}
+        </div>
+    </form>
+</div>
+
+<style>
+/* Address Form Component Styles */
+.address-form {
+    background-color: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #e5e7eb;
+}
+
+.address-form__header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.address-form__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+/* Alerts */
+.address-form__alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.address-form__alert--error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.address-form__alert--success {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.address-form__alert svg {
+    flex-shrink: 0;
+}
+
+/* Form */
+.address-form__form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.address-form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.address-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.address-form__field--small {
+    flex: 0 0 140px;
+}
+
+.address-form__field--large {
+    flex: 1;
+}
+
+.address-form__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.address-form__required {
+    color: #dc2626;
+}
+
+.address-form__optional {
+    font-weight: 400;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.address-form__input,
+.address-form__select {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: white;
+    color: #111827;
+    transition: all 0.2s;
+}
+
+.address-form__input:focus,
+.address-form__select:focus {
+    outline: none;
+    border-color: var(--color-primary, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.address-form__input--error,
+.address-form__select--error {
+    border-color: #dc2626;
+}
+
+.address-form__input--error:focus,
+.address-form__select--error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.address-form__input::placeholder {
+    color: #9ca3af;
+}
+
+.address-form__error {
+    font-size: 12px;
+    color: #dc2626;
+}
+
+/* Checkbox */
+.address-form__checkbox-field {
+    padding-top: 4px;
+}
+
+.address-form__checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.address-form__checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+}
+
+.address-form__checkbox:checked {
+    background-color: var(--color-primary, #2563eb);
+    border-color: var(--color-primary, #2563eb);
+}
+
+.address-form__checkbox-text {
+    font-size: 14px;
+    color: #374151;
+}
+
+/* Actions */
+.address-form__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.address-form__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.address-form__btn--primary {
+    background-color: var(--color-primary, #111827);
+    color: white;
+}
+
+.address-form__btn--primary:hover {
+    background-color: var(--color-primary-dark, #1f2937);
+}
+
+.address-form__btn--secondary {
+    background-color: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.address-form__btn--secondary:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .address-form {
+        padding: 16px;
+    }
+
+    .address-form__row {
+        grid-template-columns: 1fr;
+    }
+
+    .address-form__field--small {
+        flex: 1;
+    }
+
+    .address-form__actions {
+        flex-direction: column;
+    }
+
+    .address-form__btn {
+        width: 100%;
+    }
+}
+</style>

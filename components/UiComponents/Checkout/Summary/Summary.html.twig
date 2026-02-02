@@ -1,0 +1,549 @@
+{#
+    Summary LiveComponent - Modern.A
+    Order summary display
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Cart items summary
+    - Totals display (subtotal, shipping, discount, tax, total)
+    - Real-time updates from other checkout components
+    - Applied coupons display
+
+    Usage:
+    {{ component('Moderna:Checkout:Summary') }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Checkout:Summary' })
+})) }} class="summary">
+
+    {# Summary Header #}
+    <div class="summary__header">
+        <h3 class="summary__title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                <path d="M3 6h18"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            {{ 'Order Summary'|trans }}
+        </h3>
+        {% if not this.isEmpty %}
+            <span class="summary__count">
+                {{ this.itemCount }} {{ this.itemCount <= 1 ? 'item'|trans : 'items'|trans }}
+            </span>
+        {% endif %}
+    </div>
+
+    {% if not this.isEmpty %}
+        {# Mini Cart Items Preview #}
+        <div class="summary__items">
+            {% for item in this.items|slice(0, 3) %}
+                <div class="summary__item">
+                    <div class="summary__item-image">
+                        {% if item.imageUrl %}
+                            <img src="{{ item.imageUrl }}" alt="{{ item.title }}" loading="lazy">
+                        {% else %}
+                            <div class="summary__item-placeholder">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <path d="m21 15-5-5L5 21"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        <span class="summary__item-qty">{{ item.quantity }}</span>
+                    </div>
+                    <div class="summary__item-info">
+                        <span class="summary__item-title">{{ item.title|slice(0, 40) }}{% if item.title|length > 40 %}...{% endif %}</span>
+                        <span class="summary__item-price">
+                            {% set effectivePrice = item.isPromo and item.promoPrice ? item.promoPrice : item.price %}
+                            {{ (effectivePrice * item.quantity)|format_currency(this.currencyCode) }}
+                        </span>
+                    </div>
+                </div>
+            {% endfor %}
+
+            {% if this.items|length > 3 %}
+                <div class="summary__more">
+                    {{ '+%count% more items'|trans({'%count%': this.items|length - 3}) }}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Promo Code Section #}
+        <div class="summary__promo">
+            {{ component('Moderna:Checkout:PromoCode') }}
+        </div>
+
+        {# Totals Section #}
+        <div class="summary__totals">
+            {# Subtotal #}
+            <div class="summary__line">
+                <span class="summary__label">
+                    {{ 'Subtotal'|trans }}
+                    <span class="summary__label-count">({{ this.totalQuantity }} {{ this.totalQuantity <= 1 ? 'item'|trans : 'items'|trans }})</span>
+                </span>
+                <span class="summary__value">{{ this.subtotal|format_currency(this.currencyCode) }}</span>
+            </div>
+
+            {# Shipping #}
+            <div class="summary__line">
+                <span class="summary__label">
+                    {{ 'Shipping'|trans }}
+                    {% if this.deliveryModuleName %}
+                        <span class="summary__label-detail">{{ this.deliveryModuleName }}</span>
+                    {% endif %}
+                </span>
+                <span class="summary__value">
+                    {% if this.isFreeShipping %}
+                        <span class="summary__free">{{ 'Free'|trans }}</span>
+                    {% elseif this.shipping > 0 %}
+                        {{ this.shipping|format_currency(this.currencyCode) }}
+                    {% else %}
+                        <span class="summary__pending">{{ 'To be calculated'|trans }}</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            {# Applied Coupons #}
+            {% if this.hasCoupons %}
+                {% for coupon in this.appliedCoupons %}
+                    <div class="summary__line summary__line--coupon">
+                        <span class="summary__label">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                            {{ coupon.code }}
+                        </span>
+                        <span class="summary__value summary__value--coupon">{{ 'Applied'|trans }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {# Discount #}
+            {% if this.hasDiscount %}
+                <div class="summary__line summary__line--discount">
+                    <span class="summary__label">{{ 'Discount'|trans }}</span>
+                    <span class="summary__value summary__value--discount">-{{ this.discount|format_currency(this.currencyCode) }}</span>
+                </div>
+            {% endif %}
+
+            {# Tax #}
+            {% if this.hasTax %}
+                <div class="summary__line summary__line--tax">
+                    <span class="summary__label">{{ 'Tax'|trans }}</span>
+                    <span class="summary__value">{{ this.tax|format_currency(this.currencyCode) }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Total #}
+        <div class="summary__total">
+            <span class="summary__total-label">
+                {% if this.hasTax %}
+                    {{ 'Total (incl. VAT)'|trans }}
+                {% else %}
+                    {{ 'Total'|trans }}
+                {% endif %}
+            </span>
+            <span class="summary__total-value">{{ this.total|format_currency(this.currencyCode) }}</span>
+        </div>
+
+        {# Tax Included Notice #}
+        {% if this.hasTax %}
+            <div class="summary__tax-note">
+                {{ 'Including %tax% tax'|trans({'%tax%': this.tax|format_currency(this.currencyCode)}) }}
+            </div>
+        {% endif %}
+
+        {# Selected Options Recap #}
+        {% if this.deliveryModuleName or this.paymentModuleName %}
+            <div class="summary__selections">
+                {% if this.deliveryModuleName %}
+                    <div class="summary__selection">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+                            <path d="M15 18H9"/>
+                            <circle cx="17" cy="18" r="2"/>
+                            <circle cx="7" cy="18" r="2"/>
+                        </svg>
+                        <span>{{ this.deliveryModuleName }}</span>
+                    </div>
+                {% endif %}
+                {% if this.paymentModuleName %}
+                    <div class="summary__selection">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="20" height="14" x="2" y="5" rx="2"/>
+                            <line x1="2" y1="10" x2="22" y2="10"/>
+                        </svg>
+                        <span>{{ this.paymentModuleName }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {# Savings Badge #}
+        {% if this.getSavings > 0 %}
+            <div class="summary__savings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+                <span>{{ 'You save %amount%'|trans({'%amount%': this.getSavings|format_currency(this.currencyCode)}) }}</span>
+            </div>
+        {% endif %}
+
+    {% else %}
+        {# Empty State #}
+        <div class="summary__empty">
+            <div class="summary__empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+            </div>
+            <p class="summary__empty-text">{{ 'Your cart is empty'|trans }}</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+/* Summary Component Styles */
+.summary {
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+/* Header */
+.summary__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.summary__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.summary__title svg {
+    color: var(--color-primary, #2563eb);
+}
+
+.summary__count {
+    font-size: 13px;
+    color: #6b7280;
+    background-color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Items Preview */
+.summary__items {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.summary__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.summary__item:first-child {
+    padding-top: 0;
+}
+
+.summary__item:last-child {
+    padding-bottom: 0;
+}
+
+.summary__item + .summary__item {
+    border-top: 1px solid #f3f4f6;
+}
+
+.summary__item-image {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.summary__item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    background-color: #f9fafb;
+}
+
+.summary__item-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    border-radius: 6px;
+    color: #d1d5db;
+}
+
+.summary__item-qty {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-primary, #111827);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0 6px;
+}
+
+.summary__item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.summary__item-title {
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.3;
+}
+
+.summary__item-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.summary__more {
+    text-align: center;
+    padding-top: 12px;
+    margin-top: 8px;
+    border-top: 1px solid #f3f4f6;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* Promo Section */
+.summary__promo {
+    padding: 16px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Totals */
+.summary__totals {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.summary__line {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 14px;
+}
+
+.summary__label {
+    color: #6b7280;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.summary__label-count {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.summary__label-detail {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.summary__value {
+    font-weight: 500;
+    color: #111827;
+}
+
+.summary__free {
+    color: #16a34a;
+    font-weight: 500;
+}
+
+.summary__pending {
+    color: #9ca3af;
+    font-style: italic;
+    font-weight: 400;
+}
+
+.summary__line--coupon .summary__label {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    color: #16a34a;
+}
+
+.summary__value--coupon {
+    color: #16a34a;
+    font-size: 12px;
+}
+
+.summary__line--discount .summary__value--discount {
+    color: #dc2626;
+}
+
+.summary__line--tax {
+    padding-top: 12px;
+    border-top: 1px dashed #e5e7eb;
+}
+
+/* Total */
+.summary__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background-color: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.summary__total-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.summary__total-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* Tax Note */
+.summary__tax-note {
+    padding: 0 24px 16px;
+    font-size: 12px;
+    color: #9ca3af;
+    text-align: right;
+    background-color: #f9fafb;
+}
+
+/* Selections */
+.summary__selections {
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.summary__selection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.summary__selection svg {
+    color: #9ca3af;
+}
+
+/* Savings Badge */
+.summary__savings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background-color: #f0fdf4;
+    color: #16a34a;
+    font-size: 14px;
+    font-weight: 500;
+    border-top: 1px solid #bbf7d0;
+}
+
+/* Empty State */
+.summary__empty {
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.summary__empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    border-radius: 50%;
+    color: #d1d5db;
+}
+
+.summary__empty-text {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .summary__header {
+        padding: 16px 20px;
+    }
+
+    .summary__items,
+    .summary__totals,
+    .summary__promo {
+        padding: 16px 20px;
+    }
+
+    .summary__total {
+        padding: 16px 20px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .summary__total-value {
+        font-size: 20px;
+    }
+
+    .summary__tax-note {
+        padding: 0 20px 12px;
+        text-align: left;
+    }
+
+    .summary__selections {
+        padding: 12px 20px;
+    }
+
+    .summary__savings {
+        padding: 10px 20px;
+    }
+}
+</style>

@@ -50,5 +50,17 @@ services:
     Moderna\UiComponents\Checkout\PromoCode\PromoCode:
         tags: ['twig.component']
 
+    Moderna\UiComponents\Checkout\AddressForm\AddressForm:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\Delivery\Delivery:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\Payment\Payment:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\Summary\Summary:
+        tags: ['twig.component']
+
     Moderna\UiComponents\Toast\AddToCartToast:
         tags: ['twig.component']

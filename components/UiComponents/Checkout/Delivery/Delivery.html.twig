@@ -1,0 +1,642 @@
+{#
+    Delivery LiveComponent - Modern.A
+    Address selection and delivery method selection
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Display and selection of delivery addresses
+    - Display and selection of delivery methods
+    - New address form toggle
+
+    Usage:
+    {{ component('Moderna:Checkout:Delivery') }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Checkout:Delivery' })
+})) }} class="delivery">
+
+    {# Error Message #}
+    {% if this.error %}
+        <div class="delivery__alert delivery__alert--error">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{{ this.error|trans }}</span>
+        </div>
+    {% endif %}
+
+    {# SECTION: Delivery Address #}
+    <section class="delivery__section">
+        <h2 class="delivery__section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>
+            {{ 'Delivery address'|trans }}
+        </h2>
+
+        <div class="delivery__content">
+            {# New Address Form #}
+            {% if this.showNewAddressForm %}
+                <div class="delivery__address-form">
+                    {{ component('Moderna:Checkout:AddressForm') }}
+                </div>
+
+            {# Edit Address Form #}
+            {% elseif this.editingAddressId %}
+                <div class="delivery__address-form">
+                    {{ component('Moderna:Checkout:AddressForm', { addressId: this.editingAddressId }) }}
+                </div>
+
+            {# Address List #}
+            {% else %}
+                {% if this.addresses|length > 0 %}
+                    <div class="delivery__addresses">
+                        {% for address in this.addresses %}
+                            <label class="delivery__address-card {{ this.selectedAddressId == address.id ? 'delivery__address-card--selected' : '' }}">
+                                <input type="radio"
+                                       name="delivery_address"
+                                       class="delivery__radio"
+                                       value="{{ address.id }}"
+                                       data-action="change->live#action"
+                                       data-live-action-param="selectAddress"
+                                       data-live-addressId-param="{{ address.id }}"
+                                       {{ this.selectedAddressId == address.id ? 'checked' : '' }}>
+
+                                <div class="delivery__address-content">
+                                    <div class="delivery__address-header">
+                                        <span class="delivery__address-name">
+                                            {{ address.firstname }} {{ address.lastname }}
+                                        </span>
+                                        {% if address.isDefault %}
+                                            <span class="delivery__address-badge">{{ 'Default'|trans }}</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if address.company %}
+                                        <p class="delivery__address-company">{{ address.company }}</p>
+                                    {% endif %}
+
+                                    <p class="delivery__address-line">{{ address.address1 }}</p>
+                                    {% if address.address2 %}
+                                        <p class="delivery__address-line">{{ address.address2 }}</p>
+                                    {% endif %}
+                                    <p class="delivery__address-line">
+                                        {{ address.zipcode }} {{ address.city }}
+                                    </p>
+
+                                    {% if address.phone or address.cellphone %}
+                                        <p class="delivery__address-phone">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                            </svg>
+                                            {{ address.cellphone ?: address.phone }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="delivery__address-actions">
+                                    <button type="button"
+                                            class="delivery__address-edit"
+                                            data-action="live#action"
+                                            data-live-action-param="editAddress"
+                                            data-live-addressId-param="{{ address.id }}"
+                                            title="{{ 'Edit'|trans }}">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                            <path d="m15 5 4 4"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <span class="delivery__radio-indicator"></span>
+                            </label>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button"
+                            class="delivery__add-btn"
+                            data-action="live#action"
+                            data-live-action-param="toggleNewAddressForm">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M8 12h8"/>
+                            <path d="M12 8v8"/>
+                        </svg>
+                        {{ 'Add a new address'|trans }}
+                    </button>
+
+                {% else %}
+                    <div class="delivery__no-address">
+                        <div class="delivery__no-address-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <p class="delivery__no-address-text">{{ 'You have no saved addresses'|trans }}</p>
+                        <button type="button"
+                                class="delivery__add-btn delivery__add-btn--primary"
+                                data-action="live#action"
+                                data-live-action-param="toggleNewAddressForm">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M8 12h8"/>
+                                <path d="M12 8v8"/>
+                            </svg>
+                            {{ 'Add an address'|trans }}
+                        </button>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </section>
+
+    {# SECTION: Delivery Method #}
+    {% if this.selectedAddressId and not this.showNewAddressForm and not this.editingAddressId %}
+        <section class="delivery__section">
+            <h2 class="delivery__section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+                    <path d="M15 18H9"/>
+                    <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
+                    <circle cx="17" cy="18" r="2"/>
+                    <circle cx="7" cy="18" r="2"/>
+                </svg>
+                {{ 'Delivery method'|trans }}
+            </h2>
+
+            <div class="delivery__content">
+                {% if this.deliveryModules|length > 0 %}
+                    <div class="delivery__methods">
+                        {% for code, module in this.deliveryModules %}
+                            <label class="delivery__method-card {{ this.selectedModuleId == module.moduleId and this.selectedOptionCode == module.code ? 'delivery__method-card--selected' : '' }}">
+                                <input type="radio"
+                                       name="delivery_module"
+                                       class="delivery__radio"
+                                       value="{{ module.moduleId }}"
+                                       data-action="change->live#action"
+                                       data-live-action-param="selectModule"
+                                       data-live-moduleId-param="{{ module.moduleId }}"
+                                       data-live-optionCode-param="{{ module.code }}"
+                                       {{ this.selectedModuleId == module.moduleId and this.selectedOptionCode == module.code ? 'checked' : '' }}>
+
+                                <div class="delivery__method-icon">
+                                    {% if module.deliveryMode == 'delivery' %}
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+                                            <path d="M15 18H9"/>
+                                            <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
+                                            <circle cx="17" cy="18" r="2"/>
+                                            <circle cx="7" cy="18" r="2"/>
+                                        </svg>
+                                    {% elseif module.deliveryMode == 'localPickup' %}
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/>
+                                            <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"/>
+                                            <path d="M12 3v6"/>
+                                        </svg>
+                                    {% elseif module.deliveryMode == 'pickup' %}
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                            <circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="m7.5 4.27 9 5.15"/>
+                                            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                                            <path d="m3.3 7 8.7 5 8.7-5"/>
+                                            <path d="M12 22V12"/>
+                                        </svg>
+                                    {% endif %}
+                                </div>
+
+                                <div class="delivery__method-info">
+                                    <span class="delivery__method-title">{{ module.title }}</span>
+                                    <span class="delivery__method-desc">
+                                        {% if module.deliveryMode == 'localPickup' %}
+                                            {{ 'Pick up in store'|trans }}
+                                        {% elseif module.deliveryMode == 'pickup' %}
+                                            {{ 'Pick up point'|trans }}
+                                        {% else %}
+                                            {{ 'Home delivery'|trans }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                                <div class="delivery__method-price">
+                                    {% if module.postage > 0 %}
+                                        {{ module.postage|format_currency('EUR') }}
+                                    {% else %}
+                                        <span class="delivery__method-free">{{ 'Free'|trans }}</span>
+                                    {% endif %}
+                                </div>
+
+                                <span class="delivery__radio-indicator"></span>
+                            </label>
+                        {% endfor %}
+                    </div>
+
+                {% else %}
+                    <div class="delivery__no-methods">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+                            <path d="M15 18H9"/>
+                            <circle cx="17" cy="18" r="2"/>
+                            <circle cx="7" cy="18" r="2"/>
+                            <line x1="2" y1="2" x2="22" y2="22" stroke-width="2"/>
+                        </svg>
+                        <p>{{ 'No delivery method available for this address'|trans }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+
+<style>
+/* Delivery Component Styles */
+.delivery {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.delivery__alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.delivery__alert--error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.delivery__alert svg {
+    flex-shrink: 0;
+}
+
+/* Section */
+.delivery__section {
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.delivery__section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    padding: 20px 24px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.delivery__section-title svg {
+    color: var(--color-primary, #2563eb);
+}
+
+.delivery__content {
+    padding: 24px;
+}
+
+/* Address Cards */
+.delivery__addresses {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.delivery__address-card {
+    position: relative;
+    display: flex;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: white;
+}
+
+.delivery__address-card:hover {
+    border-color: #d1d5db;
+    background-color: #fafafa;
+}
+
+.delivery__address-card--selected {
+    border-color: var(--color-primary, #2563eb);
+    background-color: rgba(37, 99, 235, 0.02);
+}
+
+.delivery__radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.delivery__radio-indicator {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.delivery__address-card--selected .delivery__radio-indicator {
+    border-color: var(--color-primary, #2563eb);
+    background-color: var(--color-primary, #2563eb);
+}
+
+.delivery__address-card--selected .delivery__radio-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.delivery__address-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.delivery__address-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.delivery__address-name {
+    font-weight: 600;
+    color: #111827;
+}
+
+.delivery__address-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-primary, #2563eb);
+    background-color: rgba(37, 99, 235, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.delivery__address-company {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 4px 0;
+}
+
+.delivery__address-line {
+    font-size: 14px;
+    color: #374151;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.delivery__address-phone {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #6b7280;
+    margin: 8px 0 0 0;
+}
+
+.delivery__address-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-right: 32px;
+}
+
+.delivery__address-edit {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: #9ca3af;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.delivery__address-edit:hover {
+    color: var(--color-primary, #2563eb);
+    background-color: rgba(37, 99, 235, 0.1);
+}
+
+/* Add Button */
+.delivery__add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    background-color: white;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delivery__add-btn:hover {
+    border-color: var(--color-primary, #2563eb);
+    color: var(--color-primary, #2563eb);
+    background-color: rgba(37, 99, 235, 0.02);
+}
+
+.delivery__add-btn--primary {
+    background-color: var(--color-primary, #111827);
+    color: white;
+    border: none;
+}
+
+.delivery__add-btn--primary:hover {
+    background-color: var(--color-primary-dark, #1f2937);
+}
+
+/* No Address State */
+.delivery__no-address {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.delivery__no-address-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    border-radius: 50%;
+    color: #9ca3af;
+}
+
+.delivery__no-address-text {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 20px 0;
+}
+
+/* Delivery Methods */
+.delivery__methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.delivery__method-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: white;
+}
+
+.delivery__method-card:hover {
+    border-color: #d1d5db;
+    background-color: #fafafa;
+}
+
+.delivery__method-card--selected {
+    border-color: var(--color-primary, #2563eb);
+    background-color: rgba(37, 99, 235, 0.02);
+}
+
+.delivery__method-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    color: #6b7280;
+}
+
+.delivery__method-card--selected .delivery__method-icon {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--color-primary, #2563eb);
+}
+
+.delivery__method-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.delivery__method-title {
+    font-weight: 600;
+    color: #111827;
+}
+
+.delivery__method-desc {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.delivery__method-price {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin-right: 32px;
+}
+
+.delivery__method-free {
+    color: #16a34a;
+}
+
+/* No Methods State */
+.delivery__no-methods {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.delivery__no-methods svg {
+    color: #d1d5db;
+}
+
+.delivery__no-methods p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Address Form Container */
+.delivery__address-form {
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .delivery__section-title {
+        padding: 16px 20px;
+    }
+
+    .delivery__content {
+        padding: 16px;
+    }
+
+    .delivery__address-card {
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .delivery__address-actions {
+        flex-direction: row;
+        margin-right: 0;
+        margin-top: 12px;
+    }
+
+    .delivery__radio-indicator {
+        top: 16px;
+        right: 16px;
+    }
+
+    .delivery__method-card {
+        flex-wrap: wrap;
+        padding: 16px;
+    }
+
+    .delivery__method-price {
+        width: 100%;
+        margin-top: 8px;
+        margin-right: 0;
+        text-align: right;
+    }
+}
+</style>

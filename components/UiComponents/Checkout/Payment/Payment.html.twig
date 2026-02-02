@@ -1,0 +1,423 @@
+{#
+    Payment LiveComponent - Modern.A
+    Payment method selection
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Display of available payment methods
+    - Payment method selection
+    - Communication with other checkout components
+
+    Usage:
+    {{ component('Moderna:Checkout:Payment') }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Checkout:Payment' })
+})) }} class="payment">
+
+    {# Error Message #}
+    {% if this.error %}
+        <div class="payment__alert payment__alert--error">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{{ this.error|trans }}</span>
+        </div>
+    {% endif %}
+
+    {# Section Header #}
+    <div class="payment__header">
+        <h2 class="payment__title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="20" height="14" x="2" y="5" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+            {{ 'Payment method'|trans }}
+        </h2>
+    </div>
+
+    <div class="payment__content">
+        {% if this.paymentModules|length > 0 %}
+            <div class="payment__methods">
+                {% for module in this.paymentModules %}
+                    <label class="payment__method-card {{ this.selectedModuleId == module.id ? 'payment__method-card--selected' : '' }} {{ this.isLoading ? 'payment__method-card--loading' : '' }}">
+                        <input type="radio"
+                               name="payment_module"
+                               class="payment__radio"
+                               value="{{ module.id }}"
+                               data-action="change->live#action"
+                               data-live-action-param="selectPayment"
+                               data-live-moduleId-param="{{ module.id }}"
+                               {{ this.selectedModuleId == module.id ? 'checked' : '' }}
+                               {{ this.isLoading ? 'disabled' : '' }}>
+
+                        <div class="payment__method-icon">
+                            {% set iconCode = module.code|lower %}
+                            {% if iconCode == 'paypal' %}
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797H9.166c-.533 0-.98.404-1.052.92l-.008.051-1.03 6.535v.001zm13.24-14.18c-.036.18-.074.361-.118.545-1.11 5.698-4.91 7.668-9.766 7.668H9.15c-.58 0-1.072.42-1.165.991l-.908 5.754a.423.423 0 0 0 .418.491h3.29c.507 0 .94-.368 1.018-.868l.042-.22.806-5.115.052-.285c.077-.5.511-.868 1.019-.868h.64c4.15 0 7.4-1.686 8.35-6.565.396-2.038.191-3.74-.856-4.939a4.08 4.08 0 0 0-1.54-1.114z"/>
+                                </svg>
+                            {% elseif iconCode == 'stripe' or iconCode matches '/card/' %}
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                    <line x1="2" y1="10" x2="22" y2="10"/>
+                                </svg>
+                            {% elseif iconCode == 'cheque' %}
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <path d="M14 2v6h6"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <line x1="10" y1="9" x2="8" y2="9"/>
+                                </svg>
+                            {% elseif iconCode matches '/bank/' or iconCode matches '/virement/' or iconCode matches '/transfer/' %}
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                                    <path d="M10 6h4"/>
+                                    <path d="M10 10h4"/>
+                                    <path d="M10 14h4"/>
+                                    <path d="M10 18h4"/>
+                                </svg>
+                            {% elseif iconCode matches '/cash/' or iconCode matches '/cod/' %}
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect width="20" height="12" x="2" y="6" rx="2"/>
+                                    <circle cx="12" cy="12" r="2"/>
+                                    <path d="M6 12h.01"/>
+                                    <path d="M18 12h.01"/>
+                                </svg>
+                            {% else %}
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                    <line x1="2" y1="10" x2="22" y2="10"/>
+                                </svg>
+                            {% endif %}
+                        </div>
+
+                        <div class="payment__method-info">
+                            <span class="payment__method-title">{{ module.title }}</span>
+                            {% if module.description %}
+                                <span class="payment__method-desc">{{ module.description|striptags|slice(0, 100) }}{% if module.description|length > 100 %}...{% endif %}</span>
+                            {% endif %}
+                        </div>
+
+                        {% if module.image %}
+                            <div class="payment__method-image">
+                                <img src="{{ module.image }}" alt="{{ module.title }}">
+                            </div>
+                        {% endif %}
+
+                        <span class="payment__radio-indicator">
+                            {% if this.isLoading and this.selectedModuleId == module.id %}
+                                <svg class="payment__spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                                </svg>
+                            {% endif %}
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+
+            {# Payment Security Notice #}
+            <div class="payment__security">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span>{{ 'Your payment information is secured and encrypted'|trans }}</span>
+            </div>
+
+        {% else %}
+            <div class="payment__no-methods">
+                <div class="payment__no-methods-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect width="20" height="14" x="2" y="5" rx="2"/>
+                        <line x1="2" y1="10" x2="22" y2="10"/>
+                        <line x1="2" y1="2" x2="22" y2="22" stroke-width="2"/>
+                    </svg>
+                </div>
+                <p class="payment__no-methods-text">{{ 'No payment method available'|trans }}</p>
+                <p class="payment__no-methods-hint">{{ 'Please select a delivery method first'|trans }}</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Payment Component Styles */
+.payment {
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.payment__alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin: 16px 16px 0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.payment__alert--error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.payment__alert svg {
+    flex-shrink: 0;
+}
+
+/* Header */
+.payment__header {
+    padding: 20px 24px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.payment__title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.payment__title svg {
+    color: var(--color-primary, #2563eb);
+}
+
+/* Content */
+.payment__content {
+    padding: 24px;
+}
+
+/* Payment Methods */
+.payment__methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.payment__method-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: white;
+}
+
+.payment__method-card:hover:not(.payment__method-card--loading) {
+    border-color: #d1d5db;
+    background-color: #fafafa;
+}
+
+.payment__method-card--selected {
+    border-color: var(--color-primary, #2563eb);
+    background-color: rgba(37, 99, 235, 0.02);
+}
+
+.payment__method-card--loading {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.payment__radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.payment__radio-indicator {
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.payment__method-card--selected .payment__radio-indicator {
+    border-color: var(--color-primary, #2563eb);
+    background-color: var(--color-primary, #2563eb);
+}
+
+.payment__method-card--selected .payment__radio-indicator::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.payment__spinner {
+    animation: spin 1s linear infinite;
+    color: var(--color-primary, #2563eb);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Method Icon */
+.payment__method-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f3f4f6;
+    border-radius: 10px;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+.payment__method-card--selected .payment__method-icon {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--color-primary, #2563eb);
+}
+
+/* Method Info */
+.payment__method-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.payment__method-title {
+    font-weight: 600;
+    color: #111827;
+    font-size: 15px;
+}
+
+.payment__method-desc {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+/* Method Image */
+.payment__method-image {
+    max-width: 80px;
+    margin-right: 32px;
+}
+
+.payment__method-image img {
+    max-width: 100%;
+    max-height: 40px;
+    object-fit: contain;
+}
+
+/* Security Notice */
+.payment__security {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 12px 16px;
+    background-color: #f0fdf4;
+    border-radius: 8px;
+    color: #16a34a;
+    font-size: 13px;
+}
+
+.payment__security svg {
+    flex-shrink: 0;
+}
+
+/* No Methods State */
+.payment__no-methods {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.payment__no-methods-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    border-radius: 50%;
+    color: #d1d5db;
+}
+
+.payment__no-methods-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+    margin: 0 0 8px 0;
+}
+
+.payment__no-methods-hint {
+    font-size: 14px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .payment__header {
+        padding: 16px 20px;
+    }
+
+    .payment__content {
+        padding: 16px;
+    }
+
+    .payment__method-card {
+        flex-wrap: wrap;
+        padding: 16px;
+    }
+
+    .payment__method-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .payment__method-info {
+        width: calc(100% - 60px - 32px);
+    }
+
+    .payment__method-image {
+        width: 100%;
+        margin-top: 12px;
+        margin-right: 0;
+        text-align: center;
+    }
+
+    .payment__method-image img {
+        max-height: 32px;
+    }
+
+    .payment__radio-indicator {
+        top: 16px;
+        transform: none;
+    }
+}
+</style>
