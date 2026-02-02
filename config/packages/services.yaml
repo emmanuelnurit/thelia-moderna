@@ -43,3 +43,12 @@ services:
     # UI Components - LiveComponents
     Moderna\UiComponents\Cart\Cart:
         tags: ['twig.component']
+
+    Moderna\UiComponents\Cart\CartDrawer:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\PromoCode\PromoCode:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Toast\AddToCartToast:
+        tags: ['twig.component']

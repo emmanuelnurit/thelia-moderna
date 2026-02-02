@@ -1,0 +1,314 @@
+{#
+    PromoCode LiveComponent - Modern.A
+    Promo code input and management form
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Promo code input
+    - Code validation and application
+    - Display of applied coupons
+    - Coupon removal
+
+    Usage:
+    {{ component('Moderna:Checkout:PromoCode') }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Checkout:PromoCode' })
+})) }} class="promo-code">
+
+    {# Promo Code Form #}
+    <div class="promo-code__form">
+        <label for="promo-code-input" class="promo-code__label">
+            {{ 'Promo Code'|trans }}
+        </label>
+
+        <div class="promo-code__input-group">
+            <div class="promo-code__input-wrapper">
+                <svg class="promo-code__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+                <input type="text"
+                       id="promo-code-input"
+                       class="promo-code__input {{ this.error ? 'promo-code__input--error' : '' }}"
+                       placeholder="{{ 'Enter promo code'|trans }}"
+                       data-model="code"
+                       data-action="keydown.enter->live#action"
+                       data-live-action-param="applyCode"
+                       value="{{ this.code }}"
+                       autocomplete="off">
+            </div>
+
+            <button type="button"
+                    class="promo-code__btn"
+                    data-action="live#action"
+                    data-live-action-param="applyCode"
+                    {% if not this.code %}disabled{% endif %}>
+                {{ 'Apply'|trans }}
+            </button>
+        </div>
+
+        {# Error Message #}
+        {% if this.error %}
+            <div class="promo-code__message promo-code__message--error">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>{{ this.error|trans }}</span>
+            </div>
+        {% endif %}
+
+        {# Success Message #}
+        {% if this.success %}
+            <div class="promo-code__message promo-code__message--success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <path d="m9 11 3 3L22 4"/>
+                </svg>
+                <span>{{ this.success|trans }}</span>
+            </div>
+        {% endif %}
+    </div>
+
+    {# Applied Coupons List #}
+    {% if this.appliedCoupons|length > 0 %}
+        <div class="promo-code__applied">
+            <h4 class="promo-code__applied-title">{{ 'Applied Codes'|trans }}</h4>
+
+            <ul class="promo-code__applied-list">
+                {% for coupon in this.appliedCoupons %}
+                    <li class="promo-code__applied-item">
+                        <div class="promo-code__applied-info">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                            <span class="promo-code__applied-code">{{ coupon.code }}</span>
+                            {% if coupon.title %}
+                                <span class="promo-code__applied-desc">- {{ coupon.title }}</span>
+                            {% endif %}
+                        </div>
+                        <button type="button"
+                                class="promo-code__remove-btn"
+                                data-action="live#action"
+                                data-live-action-param="removeCode"
+                                data-live-couponCode-param="{{ coupon.code }}"
+                                aria-label="{{ 'Remove coupon'|trans }}"
+                                title="{{ 'Remove'|trans }}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+/* Promo Code Component Styles */
+.promo-code {
+    background-color: #fafafa;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+/* Form */
+.promo-code__label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.promo-code__input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.promo-code__input-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.promo-code__icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.promo-code__input {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px 0 40px;
+    font-size: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: white;
+    transition: all 0.2s;
+}
+
+.promo-code__input:focus {
+    outline: none;
+    border-color: var(--color-primary, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.promo-code__input--error {
+    border-color: #dc2626;
+}
+
+.promo-code__input--error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.promo-code__input::placeholder {
+    color: #9ca3af;
+}
+
+.promo-code__btn {
+    height: 44px;
+    padding: 0 20px;
+    font-size: 14px;
+    font-weight: 500;
+    background-color: var(--color-primary, #111827);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.promo-code__btn:hover:not(:disabled) {
+    background-color: var(--color-primary-dark, #1f2937);
+}
+
+.promo-code__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Messages */
+.promo-code__message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.promo-code__message--error {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.promo-code__message--success {
+    background-color: #f0fdf4;
+    color: #16a34a;
+}
+
+/* Applied Coupons */
+.promo-code__applied {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.promo-code__applied-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.promo-code__applied-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.promo-code__applied-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.promo-code__applied-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    color: #16a34a;
+}
+
+.promo-code__applied-code {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.promo-code__applied-desc {
+    font-size: 13px;
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.promo-code__remove-btn {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: #9ca3af;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.promo-code__remove-btn:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .promo-code__input-group {
+        flex-direction: column;
+    }
+
+    .promo-code__btn {
+        width: 100%;
+    }
+
+    .promo-code__applied-info {
+        flex-wrap: wrap;
+    }
+
+    .promo-code__applied-desc {
+        width: 100%;
+        margin-left: 24px;
+    }
+}
+</style>
