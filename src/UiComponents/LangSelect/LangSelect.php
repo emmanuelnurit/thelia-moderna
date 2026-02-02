@@ -10,7 +10,7 @@ use Thelia\Api\Service\DataAccess\DataAccessService;
 use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Model\ConfigQuery;
 
-#[AsTwigComponent(name: 'Moderna:LangSelect', template: '@templates/frontOffice/moderna/components/UiComponents/LangSelect/LangSelect.html.twig')]
+#[AsTwigComponent(name: 'Moderna:LangSelect', template: '@UiComponents/LangSelect/LangSelect.html.twig')]
 class LangSelect
 {
     #[ExposeInTemplate()]

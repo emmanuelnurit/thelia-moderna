@@ -34,7 +34,7 @@ use Thelia\Model\CartItemQuery;
  * Usage in Twig:
  * {{ component('Moderna:Cart') }}
  */
-#[AsLiveComponent(name: 'Moderna:Cart', template: '@templates/frontOffice/moderna/components/UiComponents/Cart/Cart.html.twig')]
+#[AsLiveComponent(name: 'Moderna:Cart', template: '@UiComponents/Cart/Cart.html.twig')]
 class Cart
 {
     use ComponentToolsTrait;

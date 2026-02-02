@@ -31,7 +31,7 @@ use Thelia\Core\HttpFoundation\Session\Session;
  * Usage in Twig:
  * {{ component('Moderna:Cart:Drawer') }}
  */
-#[AsLiveComponent(name: 'Moderna:Cart:Drawer', template: '@templates/frontOffice/moderna/components/UiComponents/Cart/CartDrawer.html.twig')]
+#[AsLiveComponent(name: 'Moderna:Cart:Drawer', template: '@UiComponents/Cart/CartDrawer.html.twig')]
 class CartDrawer
 {
     use ComponentToolsTrait;

@@ -36,7 +36,7 @@ use Thelia\Model\ModuleQuery;
  */
 #[AsLiveComponent(
     name: 'Moderna:Checkout:Summary',
-    template: '@templates/frontOffice/moderna/components/UiComponents/Checkout/Summary/Summary.html.twig'
+    template: '@UiComponents/Checkout/Summary/Summary.html.twig'
 )]
 class Summary
 {

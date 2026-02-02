@@ -31,7 +31,7 @@ use Thelia\Model\CustomerTitleQuery;
  */
 #[AsLiveComponent(
     name: 'Moderna:Account:CustomerUpdate',
-    template: '@templates/frontOffice/moderna/components/UiComponents/Account/CustomerUpdate/CustomerUpdate.html.twig'
+    template: '@UiComponents/Account/CustomerUpdate/CustomerUpdate.html.twig'
 )]
 class CustomerUpdate
 {

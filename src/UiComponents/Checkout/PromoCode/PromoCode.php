@@ -34,7 +34,7 @@ use Thelia\Model\CouponQuery;
  * Usage in Twig:
  * {{ component('Moderna:Checkout:PromoCode') }}
  */
-#[AsLiveComponent(name: 'Moderna:Checkout:PromoCode', template: '@templates/frontOffice/moderna/components/UiComponents/Checkout/PromoCode.html.twig')]
+#[AsLiveComponent(name: 'Moderna:Checkout:PromoCode', template: '@UiComponents/Checkout/PromoCode.html.twig')]
 class PromoCode
 {
     use ComponentToolsTrait;

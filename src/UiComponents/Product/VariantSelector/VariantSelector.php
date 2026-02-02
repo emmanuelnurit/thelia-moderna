@@ -33,7 +33,7 @@ use Thelia\Model\ProductSaleElementsQuery;
  */
 #[AsLiveComponent(
     name: 'Moderna:Product:VariantSelector',
-    template: '@templates/frontOffice/moderna/components/UiComponents/Product/VariantSelector/VariantSelector.html.twig'
+    template: '@UiComponents/Product/VariantSelector/VariantSelector.html.twig'
 )]
 class VariantSelector
 {

@@ -37,7 +37,7 @@ use Thelia\Model\CustomerTitleQuery;
  */
 #[AsLiveComponent(
     name: 'Moderna:Checkout:AddressForm',
-    template: '@templates/frontOffice/moderna/components/UiComponents/Checkout/AddressForm/AddressForm.html.twig'
+    template: '@UiComponents/Checkout/AddressForm/AddressForm.html.twig'
 )]
 class AddressForm
 {

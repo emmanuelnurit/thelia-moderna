@@ -30,7 +30,7 @@ use Thelia\Model\ProductQuery;
  */
 #[AsLiveComponent(
     name: 'Moderna:Layout:SearchModal',
-    template: '@templates/frontOffice/moderna/components/UiComponents/Layout/SearchModal/SearchModal.html.twig'
+    template: '@UiComponents/Layout/SearchModal/SearchModal.html.twig'
 )]
 class SearchModal
 {

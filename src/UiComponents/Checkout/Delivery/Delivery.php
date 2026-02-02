@@ -40,7 +40,7 @@ use Thelia\Model\Customer;
  */
 #[AsLiveComponent(
     name: 'Moderna:Checkout:Delivery',
-    template: '@templates/frontOffice/moderna/components/UiComponents/Checkout/Delivery/Delivery.html.twig'
+    template: '@UiComponents/Checkout/Delivery/Delivery.html.twig'
 )]
 class Delivery
 {

@@ -18,7 +18,7 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
  * Usage in Twig:
  * {{ component('Moderna:Cart:Item', { item: cartItemDto }) }}
  */
-#[AsTwigComponent(name: 'Moderna:Cart:Item', template: '@templates/frontOffice/moderna/components/UiComponents/Cart/CartItem.html.twig')]
+#[AsTwigComponent(name: 'Moderna:Cart:Item', template: '@UiComponents/Cart/CartItem.html.twig')]
 class CartItem
 {
     /**

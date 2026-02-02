@@ -29,7 +29,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
  * Usage in Twig:
  * {{ component('Moderna:Toast:AddToCart') }}
  */
-#[AsLiveComponent(name: 'Moderna:Toast:AddToCart', template: '@templates/frontOffice/moderna/components/UiComponents/Toast/AddToCartToast.html.twig')]
+#[AsLiveComponent(name: 'Moderna:Toast:AddToCart', template: '@UiComponents/Toast/AddToCartToast.html.twig')]
 class AddToCartToast
 {
     use DefaultActionTrait;

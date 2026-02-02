@@ -36,7 +36,7 @@ use Thelia\Model\CountryQuery;
  */
 #[AsLiveComponent(
     name: 'Moderna:Account:AddressList',
-    template: '@templates/frontOffice/moderna/components/UiComponents/Account/AddressList/AddressList.html.twig'
+    template: '@UiComponents/Account/AddressList/AddressList.html.twig'
 )]
 class AddressList
 {

@@ -36,7 +36,7 @@ use Thelia\Domain\Checkout\DTO\CheckoutDTO;
  */
 #[AsLiveComponent(
     name: 'Moderna:Checkout:Payment',
-    template: '@templates/frontOffice/moderna/components/UiComponents/Checkout/Payment/Payment.html.twig'
+    template: '@UiComponents/Checkout/Payment/Payment.html.twig'
 )]
 class Payment
 {
