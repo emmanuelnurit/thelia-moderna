@@ -1,0 +1,691 @@
+/**
+ * Animations - Moderna Template
+ * Animations CSS centralisees extraites des composants
+ *
+ * @package Moderna
+ * @version 1.0.0
+ */
+
+/* =============================================================================
+   CART ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Cart Bounce Animation
+ * Utilise lors de l'ajout d'un produit au panier
+ * Source: components/Layout/Header.html.twig
+ */
+@keyframes cartBounce {
+  0% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.3);
+  }
+  40% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  80% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-cart-bounce {
+  animation: cartBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* =============================================================================
+   WISHLIST/HEART ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Heart Bounce Animation
+ * Utilise lors de l'ajout d'un produit aux favoris
+ * Source: components/Layout/Header.html.twig
+ */
+@keyframes heartBounce {
+  0% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.4);
+  }
+  30% {
+    transform: scale(0.95);
+  }
+  45% {
+    transform: scale(1.25);
+  }
+  60% {
+    transform: scale(0.98);
+  }
+  75% {
+    transform: scale(1.15);
+  }
+  90% {
+    transform: scale(0.99);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-heart-bounce {
+  animation: heartBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/**
+ * Heart Implode Animation
+ * Utilise lors de la suppression complete des favoris
+ * Source: components/Layout/Header.html.twig
+ */
+@keyframes heartImplode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(1.15);
+  }
+  40% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(0.85);
+  }
+  80% {
+    transform: scale(0.7);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-heart-implode {
+  animation: heartImplode 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/**
+ * Heart Shrink Animation
+ * Utilise lors de la suppression d'un favori (mais pas le dernier)
+ * Source: components/Layout/Header.html.twig
+ */
+@keyframes heartShrink {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(0.85);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  75% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-heart-shrink {
+  animation: heartShrink 0.4s ease-in-out;
+}
+
+/* =============================================================================
+   PARTICLE BURST ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Burst Particle Animation
+ * Utilise pour l'effet d'explosion lors de la suppression des favoris
+ * Source: components/Layout/Header.html.twig
+ */
+@keyframes burstParticle {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(var(--x), var(--y)) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) scale(0);
+  }
+}
+
+.animate-heart-burst .burst-particle {
+  animation: burstParticle 0.6s ease-out forwards;
+}
+
+/* Burst Particle Positions */
+.burst-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: var(--color-danger, #ef4444);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.burst-particle-1 {
+  --x: 0px;
+  --y: -30px;
+  animation-delay: 0s;
+}
+
+.burst-particle-2 {
+  --x: 21px;
+  --y: -21px;
+  animation-delay: 0.05s;
+}
+
+.burst-particle-3 {
+  --x: 30px;
+  --y: 0px;
+  animation-delay: 0.1s;
+}
+
+.burst-particle-4 {
+  --x: 21px;
+  --y: 21px;
+  animation-delay: 0.15s;
+}
+
+.burst-particle-5 {
+  --x: 0px;
+  --y: 30px;
+  animation-delay: 0.2s;
+}
+
+.burst-particle-6 {
+  --x: -21px;
+  --y: 21px;
+  animation-delay: 0.25s;
+}
+
+.burst-particle-7 {
+  --x: -30px;
+  --y: 0px;
+  animation-delay: 0.3s;
+}
+
+.burst-particle-8 {
+  --x: -21px;
+  --y: -21px;
+  animation-delay: 0.35s;
+}
+
+/**
+ * Add Particle Burst Animation
+ * Utilise pour l'effet de particules lors de l'ajout aux favoris
+ * Source: components/Layout/Header.html.twig
+ */
+@keyframes addParticleBurst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--x) * 0.5), calc(-50% + var(--y) * 0.5)) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0);
+  }
+}
+
+/* Add Particle Base Styles */
+.add-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 14px;
+  color: var(--color-danger, #ef4444);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  animation: addParticleBurst 0.7s ease-out forwards;
+}
+
+/* Add Particle Positions */
+.add-particle-1 {
+  --x: 0px;
+  --y: -35px;
+  animation-delay: 0s;
+}
+
+.add-particle-2 {
+  --x: 30px;
+  --y: -18px;
+  animation-delay: 0.05s;
+}
+
+.add-particle-3 {
+  --x: 30px;
+  --y: 18px;
+  animation-delay: 0.1s;
+}
+
+.add-particle-4 {
+  --x: 0px;
+  --y: 35px;
+  animation-delay: 0.15s;
+}
+
+.add-particle-5 {
+  --x: -30px;
+  --y: 18px;
+  animation-delay: 0.2s;
+}
+
+.add-particle-6 {
+  --x: -30px;
+  --y: -18px;
+  animation-delay: 0.25s;
+}
+
+/* =============================================================================
+   LOADING/SPINNER ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Spin Animation
+ * Utilise pour les indicateurs de chargement
+ * Source: components/Cart/CartItem.html.twig
+ */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* Spinner Component */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border, rgba(0, 0, 0, 0.1));
+  border-top-color: var(--color-primary, #000);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.spinner-lg {
+  width: 60px;
+  height: 60px;
+  border-width: 4px;
+}
+
+/* =============================================================================
+   DELETE ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Delete Icon Pulse Animation
+ * Utilise pour l'icone de suppression dans la confirmation
+ * Source: components/Cart/CartItem.html.twig
+ */
+@keyframes deleteIconPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.6;
+  }
+}
+
+.animate-delete-pulse {
+  animation: deleteIconPulse 2s ease-in-out infinite;
+}
+
+/* =============================================================================
+   TOAST ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Toast Progress Animation
+ * Barre de progression pour les notifications toast
+ * Source: components/Cart/Toast.html.twig
+ */
+@keyframes toast-progress-animation {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.toast-progress-bar {
+  height: 100%;
+  width: 100%;
+  background-color: currentColor;
+  transform-origin: left;
+  animation: toast-progress-animation linear forwards;
+}
+
+/* =============================================================================
+   BASIC ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Fade In Animation
+ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-base, 200ms) ease;
+}
+
+/**
+ * Fade Out Animation
+ */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-fade-out {
+  animation: fadeOut var(--transition-base, 200ms) ease;
+}
+
+/* =============================================================================
+   SLIDE ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Slide Up
+ */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp var(--transition-base, 200ms) ease-out;
+}
+
+/**
+ * Slide Down
+ */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown var(--transition-base, 200ms) ease-out;
+}
+
+/**
+ * Slide In From Right
+ */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--transition-slow, 300ms) ease;
+}
+
+/**
+ * Slide In From Left
+ */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft var(--transition-slow, 300ms) ease;
+}
+
+/**
+ * Slide Left
+ */
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-left {
+  animation: slideLeft var(--transition-base, 200ms) ease-out;
+}
+
+/**
+ * Slide Right
+ */
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-right {
+  animation: slideRight var(--transition-base, 200ms) ease-out;
+}
+
+/* =============================================================================
+   SCALE ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Scale In
+ */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--transition-base, 200ms) ease-out;
+}
+
+/**
+ * Scale Out
+ */
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.animate-scale-out {
+  animation: scaleOut var(--transition-base, 200ms) ease-out;
+}
+
+/* =============================================================================
+   UTILITY ANIMATIONS
+   ============================================================================= */
+
+/**
+ * Pulse Animation
+ */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/**
+ * Bounce Animation
+ */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-5%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/**
+ * Shake Animation
+ */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* =============================================================================
+   ANIMATION UTILITIES
+   ============================================================================= */
+
+/* Pause animations when reduced motion is preferred */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Animation delay utilities */
+.animation-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+.animation-delay-700 {
+  animation-delay: 700ms;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
+/* Animation duration utilities */
+.animation-duration-fast {
+  animation-duration: var(--transition-fast, 150ms);
+}
+
+.animation-duration-base {
+  animation-duration: var(--transition-base, 200ms);
+}
+
+.animation-duration-slow {
+  animation-duration: var(--transition-slow, 300ms);
+}
+
+.animation-duration-slower {
+  animation-duration: var(--transition-slower, 400ms);
+}

@@ -1,0 +1,162 @@
+/* ===================================
+   SEARCH MODAL COMPONENT
+   Extracted from components/Layout/SearchModal.html.twig
+   =================================== */
+
+/* Container */
+.search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Backdrop */
+.search-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+/* Content */
+.search-modal-content {
+    position: relative;
+    background-color: var(--color-white);
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.search-modal-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 16px 24px 24px;
+}
+
+/* Form */
+.search-modal-form {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.search-modal-inputWrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+}
+
+.search-modal-inputWrapper svg {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+}
+
+.search-modal-input {
+    flex: 1;
+    background: none;
+    border: none;
+    font-size: var(--font-size-2xl);
+    color: var(--color-text);
+    outline: none;
+}
+
+.search-modal-input::placeholder {
+    color: var(--color-text-light);
+}
+
+/* Clear Button */
+.search-modal-clearBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background-color: var(--color-border);
+    border: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    color: var(--color-text-muted);
+}
+
+.search-modal-clearBtn:hover {
+    background-color: var(--color-text-light);
+    color: var(--color-white);
+}
+
+/* Close Button */
+.search-modal-closeBtn {
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    font-size: var(--font-size-lg);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.search-modal-closeBtn:hover {
+    color: var(--color-text);
+}
+
+/* Suggestions */
+.search-modal-suggestions {
+    margin-top: 24px;
+}
+
+.search-modal-suggestionsTitle {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-light);
+    margin-bottom: 12px;
+}
+
+.search-modal-suggestionsList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search-modal-suggestion {
+    padding: 8px 16px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+}
+
+.search-modal-suggestion:hover {
+    background-color: var(--color-surface-dark);
+}
+
+.search-modal-suggestion--sale {
+    background-color: var(--color-accent);
+    color: var(--color-white);
+}
+
+.search-modal-suggestion--sale:hover {
+    background-color: var(--color-accent-hover);
+}
+
+/* Results */
+.search-modal-results {
+    margin-top: 24px;
+}
+
+.search-modal-resultsHint {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+}
+
+[x-cloak] {
+    display: none !important;
+}

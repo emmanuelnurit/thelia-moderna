@@ -1,5 +1,20 @@
+/* ===================================
+   MODERNA TEMPLATE - Main Stylesheet
+   =================================== */
+
+/* Design System */
+@import './design-tokens.css';
+@import './animations.css';
+@import './utilities.css';
+
+/* Tailwind Base */
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
+
+/* Component Styles */
+@import './components/_index.css';
+
+/* Tailwind Utilities */
 @import 'tailwindcss/utilities';
 
 /* Google Font - Plus Jakarta Sans */
@@ -12,40 +27,6 @@
    Components
    ============================================ */
 @import './components/_product-card.css';
-
-/* ============================================
-   CSS Custom Properties
-   ============================================ */
-:root {
-  /* Colors */
-  --color-primary: #000000;
-  --color-surface: #f5f5f5;
-  --color-surface-light: #fafafa;
-  --color-surface-dark: #eeeeee;
-  --color-accent: #c9a227;
-  --color-text: #1a1a1a;
-  --color-text-muted: #666666;
-  --color-text-light: #999999;
-  --color-border: #e5e5e5;
-  --color-white: #ffffff;
-
-  /* Spacing */
-  --header-height: 80px;
-  --container-padding: 24px;
-  --container-max-width: 1400px;
-
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 350ms ease;
-
-  /* Border radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-full: 9999px;
-}
 
 /* ============================================
    Base Styles
@@ -262,7 +243,7 @@ a {
 }
 
 /* ============================================
-   Utilities
+   Utilities (legacy - see utilities.css)
    ============================================ */
 .visually-hidden {
   position: absolute;
@@ -293,46 +274,4 @@ a {
   &:hover {
     background: var(--color-text-light);
   }
-}
-
-/* ============================================
-   Animations
-   ============================================ */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out;
-}
-
-.animate-slide-down {
-  animation: slideDown 0.3s ease-out;
 }

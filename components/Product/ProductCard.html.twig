@@ -1,0 +1,127 @@
+{#
+  Product Card Component
+  Usage: {% include 'components/Product/ProductCard.html.twig' with { product: product } %}
+#}
+{% set defaultPse = product.productSaleElements|filter(pse => pse.isDefault)|first %}
+{% set price = defaultPse.productPrices|first %}
+{% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
+
+<article class="product-card">
+    <div class="product-card-image">
+        <a href="{{ product.publicUrl }}" class="product-card-imageLink">
+            {% if productImages|length > 0 %}
+                <img src="/legacy-image-library/product_image_{{ productImages|first.id }}/full/%5E*!400,400/0/default.webp" alt="{{ product.i18ns.title }}" loading="lazy">
+            {% else %}
+                <div class="product-card-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                        <path d="M3 6h18"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                </div>
+            {% endif %}
+        </a>
+
+        {# Badges #}
+        {% if defaultPse.promo and price.promoPrice > 0 %}
+            {% set discount = ((price.price - price.promoPrice) / price.price * 100)|round %}
+            <div class="product-card-badges">
+                <span class="product-card-badge product-card-badge--promo">-{{ discount }}%</span>
+            </div>
+        {% endif %}
+
+        {# Wishlist Button #}
+        <button
+            type="button"
+            class="product-card-wishlistBtn"
+            x-data="wishlistButton({
+                id: {{ product.id }},
+                title: '{{ product.i18ns.title|e('js') }}',
+                publicUrl: '{{ product.publicUrl|e('js') }}',
+                imageId: {{ productImages|first.id|default(0) }},
+                price: '{{ price.price|format_currency('EUR') }}',
+                promoPrice: '{{ defaultPse.promo and price.promoPrice > 0 ? price.promoPrice|format_currency('EUR') : '' }}',
+                isPromo: {{ defaultPse.promo and price.promoPrice > 0 ? 'true' : 'false' }}
+            })"
+            @click.prevent="toggle()"
+            :class="{ 'is-active': isInWishlist }"
+            :title="isInWishlist ? '{{ 'Remove from wishlist'|trans }}' : '{{ 'Add to wishlist'|trans }}'"
+        >
+            <svg width="20" height="20" viewBox="0 0 24 24" :fill="isInWishlist ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="product-card-content">
+        <h3 class="product-card-title">
+            <a href="{{ product.publicUrl }}">{{ product.i18ns.title }}</a>
+        </h3>
+        <div class="product-card-price">
+            {% if defaultPse.promo and price.promoPrice > 0 %}
+                <span class="product-card-pricePromo">{{ price.promoPrice|format_currency('EUR') }}</span>
+                <span class="product-card-priceOriginal">{{ price.price|format_currency('EUR') }}</span>
+            {% else %}
+                <span class="product-card-priceRegular">{{ price.price|format_currency('EUR') }}</span>
+            {% endif %}
+        </div>
+    </div>
+</article>
+
+{# Styles moved to assets/css/components/product/product-card.css #}
+
+<script>
+// Wishlist button component (if not already defined)
+if (typeof wishlistButton === 'undefined') {
+    function wishlistButton(config) {
+        return {
+            id: config.id,
+            title: config.title,
+            publicUrl: config.publicUrl,
+            imageId: config.imageId,
+            price: config.price || '',
+            promoPrice: config.promoPrice || '',
+            isPromo: config.isPromo || false,
+            isInWishlist: false,
+
+            init() {
+                // Check immediately
+                this.checkWishlist();
+
+                // Listen for wishlist changes
+                window.addEventListener('wishlist:added', () => this.checkWishlist());
+                window.addEventListener('wishlist:removed', () => this.checkWishlist());
+                window.addEventListener('wishlist:cleared', () => this.checkWishlist());
+            },
+
+            checkWishlist() {
+                // Use Alpine store directly for better reliability
+                if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                    this.isInWishlist = window.Alpine.store('wishlist').has(this.id);
+                }
+            },
+
+            toggle() {
+                // Use Alpine store directly
+                if (window.Alpine && window.Alpine.store && window.Alpine.store('wishlist')) {
+                    // Build full image URL from imageId
+                    const imageUrl = this.imageId ? `/legacy-image-library/product_image_${this.imageId}/full/%5E*!400,400/0/default.webp` : '';
+
+                    const product = {
+                        id: this.id,
+                        title: this.title,
+                        url: this.publicUrl,
+                        image: imageUrl,
+                        imageId: this.imageId,
+                        price: this.price,
+                        promoPrice: this.promoPrice,
+                        isPromo: this.isPromo
+                    };
+                    const added = window.Alpine.store('wishlist').toggle(product);
+                    this.isInWishlist = added;
+                }
+            }
+        };
+    }
+}
+</script>

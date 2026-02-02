@@ -19,70 +19,75 @@
 
     <div class="products-section-grid">
         {% for product in products %}
-            {# Populate product images for the component #}
+            {% set defaultPse = product.productSaleElements|filter(pse => pse.isDefault)|first %}
+            {% set price = defaultPse.productPrices|first %}
             {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
-            {% set productWithImages = product|merge({'productImages': productImages}) %}
 
-            {{ component('Moderna:Product:ProductCard', {
-                product: productWithImages
-            }) }}
+            <article class="product-card">
+                <div class="product-card-image">
+                    <a href="{{ product.publicUrl }}" class="product-card-imageLink">
+                        {% if productImages|length > 0 %}
+                            <img src="/legacy-image-library/product_image_{{ productImages|first.id }}/full/%5E*!400,400/0/default.webp"
+                                 alt="{{ product.i18ns.title }}"
+                                 loading="lazy">
+                        {% else %}
+                            <div class="product-card-placeholder">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                    <path d="M3 6h18"/>
+                                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </a>
+
+                    {# Promo Badge #}
+                    {% if defaultPse.promo and price.promoPrice > 0 %}
+                        <span class="product-card-badge">
+                            -{{ (((price.price - price.promoPrice) / price.price) * 100)|round }}%
+                        </span>
+                    {% endif %}
+
+                    {# Wishlist Button #}
+                    <button
+                        type="button"
+                        class="product-card-wishlistBtn"
+                        x-data="wishlistButton({
+                            id: {{ product.id }},
+                            title: '{{ product.i18ns.title|e('js') }}',
+                            publicUrl: '{{ product.publicUrl|e('js') }}',
+                            imageId: {{ productImages|first.id|default(0) }},
+                            price: '{{ price.price|format_currency('EUR') }}',
+                            promoPrice: '{{ defaultPse.promo and price.promoPrice > 0 ? price.promoPrice|format_currency('EUR') : '' }}',
+                            isPromo: {{ defaultPse.promo and price.promoPrice > 0 ? 'true' : 'false' }}
+                        })"
+                        @click.prevent="toggle()"
+                        :class="{ 'is-active': isInWishlist }"
+                        :title="isInWishlist ? '{{ 'Remove from wishlist'|trans }}' : '{{ 'Add to wishlist'|trans }}'"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" :fill="isInWishlist ? '#ef4444' : 'none'" stroke="currentColor" stroke-width="2">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="product-card-content">
+                    <h3 class="product-card-title">
+                        <a href="{{ product.publicUrl }}">{{ product.i18ns.title }}</a>
+                    </h3>
+                    <div class="product-card-price">
+                        {% if defaultPse.promo and price.promoPrice > 0 %}
+                            <span class="product-card-pricePromo">{{ price.promoPrice|format_currency('EUR') }}</span>
+                            <span class="product-card-priceOriginal">{{ price.price|format_currency('EUR') }}</span>
+                        {% else %}
+                            <span class="product-card-priceRegular">{{ price.price|format_currency('EUR') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
         {% endfor %}
     </div>
 </section>
 {% endif %}
 
-<style>
-.products-section {
-    /* Section container */
-}
-
-.products-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 32px;
-}
-
-.products-section-title {
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin: 0;
-}
-
-.products-section-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--color-primary);
-    text-decoration: none;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    transition: gap var(--transition-base);
-}
-
-.products-section-link:hover {
-    gap: 10px;
-}
-
-.products-section-link svg {
-    transition: transform var(--transition-base);
-}
-
-.products-section-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-}
-
-@media (min-width: 768px) {
-    .products-section-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .products-section-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-</style>
+{# Styles moved to assets/css/components/product/product-card.css #}
