@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ModernaBundle\Api;
+namespace Moderna\Api;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,9 +11,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Thelia\Model\CountryQuery;
 use Thelia\Model\CountryI18nQuery;
 use Thelia\Model\CustomerTitleQuery;
-use Thelia\Model\ProductSaleElementsQuery;
-use Thelia\Model\Country;
-use Thelia\Domain\Taxation\TaxEngine\Calculator;
 
 #[Route('/moderna-api/data', name: 'moderna_api_data_')]
 class DataController extends AbstractController
@@ -108,59 +105,6 @@ class DataController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Failed to load titles',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    #[Route('/taxed-price/{pseId}', name: 'taxed_price', methods: ['GET'])]
-    public function getTaxedPrice(int $pseId): JsonResponse
-    {
-        try {
-            $pse = ProductSaleElementsQuery::create()->findPk($pseId);
-
-            if (!$pse) {
-                return new JsonResponse([
-                    'error' => 'Product Sale Element not found'
-                ], 404);
-            }
-
-            $product = $pse->getProduct();
-            if (!$product) {
-                return new JsonResponse([
-                    'error' => 'Product not found'
-                ], 404);
-            }
-
-            // Get the price
-            $productPrice = $pse->getProductPrices()->getFirst();
-            if (!$productPrice) {
-                return new JsonResponse([
-                    'error' => 'Price not found'
-                ], 404);
-            }
-
-            // Calculate taxed prices
-            $country = Country::getShopLocation();
-            $taxCalculator = (new Calculator())->load($product, $country);
-
-            $price = $productPrice->getPrice();
-            $promoPrice = $productPrice->getPromoPrice();
-
-            $taxedPrice = round($taxCalculator->getTaxedPrice($price), 2);
-            $taxedPromoPrice = $pse->getPromo() && $promoPrice > 0
-                ? round($taxCalculator->getTaxedPrice($promoPrice), 2)
-                : 0;
-
-            return new JsonResponse([
-                'price' => $taxedPrice,
-                'promoPrice' => $taxedPromoPrice,
-                'isPromo' => $pse->getPromo() && $promoPrice > 0
-            ]);
-
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'error' => 'Failed to calculate taxed price',
                 'message' => $e->getMessage()
             ], 500);
         }

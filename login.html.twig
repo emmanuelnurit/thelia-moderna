@@ -637,6 +637,18 @@ function loginForm() {
                     body: formData
                 });
 
+                // Vérifier le statut de la réponse avant de parser le JSON
+                if (!response.ok) {
+                    try {
+                        const errorData = await response.json();
+                        this.error = errorData.error || '{{ "An error occurred. Please try again."|trans }}';
+                    } catch (e) {
+                        this.error = '{{ "Server error. Please try again later."|trans }}';
+                    }
+                    this.loading = false;
+                    return;
+                }
+
                 const data = await response.json();
 
                 if (data.success) {

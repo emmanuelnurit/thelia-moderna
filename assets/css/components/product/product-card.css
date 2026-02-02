@@ -1,0 +1,256 @@
+/* ===================================
+   PRODUCT CARD COMPONENT
+   Unified styles from ProductCard and ProductsGrid
+   =================================== */
+
+/* Product card container */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: box-shadow var(--transition-base);
+}
+
+.product-card:hover {
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Image container with hover */
+.product-card-image {
+    position: relative;
+    aspect-ratio: 1;
+    background-color: var(--color-white);
+    overflow: hidden;
+    margin: 12px;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
+}
+
+.product-card-imageLink {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.product-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+}
+
+.product-card:hover .product-card-image img {
+    transform: scale(1.05);
+}
+
+.product-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border);
+}
+
+/* Badges */
+.product-card-badges {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 5;
+}
+
+.product-card-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    /* Default badge style (promo) */
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: var(--color-danger);
+    color: white;
+    z-index: 5;
+}
+
+/* Badge inside badges container - reset position */
+.product-card-badges .product-card-badge {
+    position: static;
+}
+
+.product-card-badge--promo {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+.product-card-badge--new {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Wishlist button */
+.product-card-wishlistBtn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.product-card:hover .product-card-wishlistBtn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.product-card-wishlistBtn:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-card-wishlistBtn.is-active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.product-card-wishlistBtn svg {
+    transition: transform 0.2s ease;
+}
+
+.product-card-wishlistBtn:hover svg {
+    transform: scale(1.1);
+}
+
+.product-card-wishlistBtn.is-active svg {
+    stroke: var(--color-danger);
+}
+
+/* Product info */
+.product-card-content {
+    padding: 16px;
+}
+
+.product-card-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0 0 8px;
+}
+
+.product-card-title a {
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.product-card-title a:hover {
+    text-decoration: underline;
+}
+
+/* Price styles */
+.product-card-price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.product-card-priceRegular,
+.product-card-pricePromo {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.product-card-pricePromo {
+    color: var(--color-danger);
+}
+
+.product-card-priceOriginal {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    text-decoration: line-through;
+}
+
+/* ===================================
+   PRODUCTS GRID/SECTION
+   Section-specific styles from ProductsGrid
+   =================================== */
+
+.products-section {
+    /* Section container - inherits spacing from parent */
+}
+
+.products-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.products-section-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.products-section-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition: gap var(--transition-base);
+}
+
+.products-section-link:hover {
+    gap: 10px;
+}
+
+.products-section-link svg {
+    transition: transform var(--transition-base);
+}
+
+.products-section-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+@media (min-width: 768px) {
+    .products-section-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .products-section-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ===================================
+   UTILITY
+   =================================== */
+
+[x-cloak] {
+    display: none !important;
+}

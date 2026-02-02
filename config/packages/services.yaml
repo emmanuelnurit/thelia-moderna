@@ -4,38 +4,75 @@ services:
         autoconfigure: true
         public: false
 
-    ModernaBundle\Controller\:
+    Moderna\Controller\:
         resource: '../../src/Controller'
         tags: ['controller.service_arguments']
 
     # API controllers
-    ModernaBundle\Api\:
+    Moderna\Api\:
         resource: '../../src/Api'
         tags: ['controller.service_arguments']
 
     # Twig extensions
-    ModernaBundle\Twig\CartExtension:
+    Moderna\Twig\CartExtension:
         tags: ['twig.extension']
 
-    ModernaBundle\Twig\CartIsolationExtension:
+    Moderna\Twig\CartIsolationExtension:
         tags: ['twig.extension']
 
-    ModernaBundle\Twig\TaxedPriceExtension:
+    Moderna\Twig\TaxedPriceExtension:
         tags: ['twig.extension']
 
-    ModernaBundle\Twig\HeaderHighlightsExtension:
+    Moderna\Twig\HeaderHighlightsExtension:
         tags: ['twig.extension']
 
-    ModernaBundle\Twig\LanguageExtension:
+    Moderna\Twig\LanguageExtension:
         tags: ['twig.extension']
 
     # Event subscribers
-    ModernaBundle\EventSubscriber\LanguagePersistenceSubscriber:
+    Moderna\EventSubscriber\LanguagePersistenceSubscriber:
         tags: ['kernel.event_subscriber']
 
-    # UI Components
-    ModernaBundle\UiComponents\LangSelect\LangSelect:
+    # UI Components - TwigComponents
+    Moderna\UiComponents\LangSelect\LangSelect:
         tags: ['twig.component']
 
-    ModernaBundle\UiComponents\Product\ProductCard:
+    Moderna\UiComponents\Cart\CartItem:
+        tags: ['twig.component']
+
+    # UI Components - LiveComponents
+    Moderna\UiComponents\Cart\Cart:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Cart\CartDrawer:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\PromoCode\PromoCode:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\AddressForm\AddressForm:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\Delivery\Delivery:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\Payment\Payment:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Checkout\Summary\Summary:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Toast\AddToCartToast:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Product\VariantSelector\VariantSelector:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Layout\SearchModal\SearchModal:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Account\AddressList\AddressList:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Account\CustomerUpdate\CustomerUpdate:
         tags: ['twig.component']

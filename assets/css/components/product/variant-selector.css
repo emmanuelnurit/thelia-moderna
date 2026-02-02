@@ -1,0 +1,134 @@
+/* ===================================
+   VARIANT SELECTOR COMPONENT
+   Extracted from components/Product/VariantSelector.html.twig
+   =================================== */
+
+/* Container */
+.variant-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.variant-group {
+    /* Group container */
+}
+
+/* Label */
+.variant-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: var(--font-size-base);
+}
+
+.variant-labelTitle {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.variant-labelValue {
+    color: var(--color-text-muted);
+}
+
+/* Options Container */
+.variant-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Color Swatches */
+.variant-options--color {
+    gap: 12px;
+}
+
+.variant-color {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--color-white);
+    transition: border-color var(--transition-fast);
+}
+
+.variant-color:hover:not(:disabled) {
+    border-color: var(--color-text-muted);
+}
+
+.variant-color.is-active {
+    border-color: var(--color-primary);
+}
+
+.variant-color:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.variant-color img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.variant-colorSwatch {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Size Buttons */
+.variant-options--size {
+    gap: 8px;
+}
+
+.variant-size {
+    min-width: 56px;
+    height: 48px;
+    padding: 0 16px;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.variant-size:hover:not(:disabled) {
+    border-color: var(--color-primary);
+}
+
+.variant-size.is-active {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.variant-size:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Size Guide Link */
+.variant-sizeGuide {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: var(--font-size-md);
+    color: var(--color-text-muted);
+    text-decoration: underline;
+}
+
+.variant-sizeGuide:hover {
+    color: var(--color-text);
+}
+
+[x-cloak] {
+    display: none !important;
+}

@@ -27,15 +27,38 @@ module.exports = {
         surface: {
           DEFAULT: '#f5f5f5',
           light: '#fafafa',
-          dark: '#eeeeee',
+          dark: '#e5e5e5',
         },
         accent: {
           DEFAULT: '#c9a227', // Gold accent
           light: '#e5c95c',
           dark: '#a68518',
+          hover: '#b8922a',
         },
-        success: '#22c55e',
-        warning: '#f59e0b',
+        // Semantic colors
+        danger: {
+          DEFAULT: '#ef4444',
+          hover: '#dc2626',
+          dark: '#b91c1c',
+        },
+        success: {
+          DEFAULT: '#059669',
+          hover: '#047857',
+        },
+        warning: {
+          DEFAULT: '#d97706',
+          hover: '#b45309',
+        },
+        info: {
+          DEFAULT: '#0284c7',
+          hover: '#0369a1',
+        },
+        'logged-in': {
+          DEFAULT: '#16a34a',
+          hover: '#15803d',
+        },
+        stars: '#fbbf24',
+        // Legacy color aliases for backward compatibility
         error: '#ef4444',
       },
       fontFamily: {
@@ -69,12 +92,32 @@ module.exports = {
       transitionTimingFunction: {
         'out-expo': 'cubic-bezier(0.19, 1, 0.22, 1)',
       },
+      transitionDuration: {
+        '150': '150ms',
+        '200': '200ms',
+        '300': '300ms',
+        '400': '400ms',
+        '600': '600ms',
+        '800': '800ms',
+      },
       animation: {
+        // Existing animations
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
+        // New animations
+        'cart-bounce': 'cartBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'heart-bounce': 'heartBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'heart-implode': 'heartImplode 0.4s ease-out forwards',
+        'heart-shrink': 'heartShrink 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'delete-pulse': 'deleteIconPulse 0.8s ease-in-out infinite',
+        'spin-slow': 'spin 1s linear infinite',
+        'toast-progress': 'toastProgress var(--toast-duration, 5s) linear forwards',
+        'burst-particle': 'burstParticle 0.6s ease-out forwards',
+        'add-particle-burst': 'addParticleBurst 0.6s ease-out forwards',
       },
       keyframes: {
+        // Existing keyframes
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
@@ -87,6 +130,64 @@ module.exports = {
           '0%': { transform: 'translateY(-10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
+        // New keyframes
+        cartBounce: {
+          '0%': { transform: 'scale(1)' },
+          '30%': { transform: 'scale(1.3)' },
+          '50%': { transform: 'scale(0.9)' },
+          '70%': { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        heartBounce: {
+          '0%': { transform: 'scale(1)' },
+          '15%': { transform: 'scale(1.35)' },
+          '30%': { transform: 'scale(1)' },
+          '45%': { transform: 'scale(1.15)' },
+          '60%': { transform: 'scale(1)' },
+          '75%': { transform: 'scale(1.05)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        heartImplode: {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '30%': { transform: 'scale(1.3)', opacity: '1' },
+          '60%': { transform: 'scale(0.4)', opacity: '0.8' },
+          '80%': { transform: 'scale(0.6)', opacity: '0.5' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        heartShrink: {
+          '0%': { transform: 'scale(1)' },
+          '20%': { transform: 'scale(1.2)' },
+          '40%': { transform: 'scale(0.85)' },
+          '60%': { transform: 'scale(1.08)' },
+          '80%': { transform: 'scale(0.95)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        deleteIconPulse: {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.1)', opacity: '0.8' },
+        },
+        toastProgress: {
+          '0%': { transform: 'scaleX(1)' },
+          '100%': { transform: 'scaleX(0)' },
+        },
+        burstParticle: {
+          '0%': { transform: 'scale(0) rotate(0deg)', opacity: '1' },
+          '50%': { transform: 'scale(1) rotate(180deg)', opacity: '0.8' },
+          '100%': { transform: 'scale(0) rotate(360deg)', opacity: '0' },
+        },
+        addParticleBurst: {
+          '0%': { transform: 'scale(0)', opacity: '1' },
+          '50%': { transform: 'scale(1.2)', opacity: '0.6' },
+          '100%': { transform: 'scale(0)', opacity: '0' },
+        },
+      },
+      zIndex: {
+        'dropdown': '50',
+        'sticky': '100',
+        'drawer': '200',
+        'modal': '250',
+        'popover': '300',
+        'toast': '9999',
       },
     },
     screens: {

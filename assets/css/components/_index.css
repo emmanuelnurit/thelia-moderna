@@ -1,0 +1,24 @@
+/* ===================================
+   COMPONENTS INDEX
+   Import all component styles here
+   =================================== */
+
+/* Layout components */
+@import './layout/header.css';
+@import './layout/footer.css';
+@import './layout/mobile-menu.css';
+@import './layout/search-modal.css';
+@import './layout/cart-drawer.css';
+
+/* Product components */
+@import './product/product-card.css';
+@import './product/product-gallery.css';
+@import './product/product-reviews.css';
+@import './product/variant-selector.css';
+
+/* Cart components */
+@import './cart/cart-item.css';
+@import './cart/toast.css';
+
+/* Checkout components */
+@import './checkout/address-form.css';

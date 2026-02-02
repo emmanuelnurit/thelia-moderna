@@ -1,0 +1,492 @@
+{#
+    CartDrawer LiveComponent - Modern.A
+    Slide-out cart drawer with item list and checkout button
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Slide-out drawer display
+    - Cart items preview
+    - Quick checkout access
+    - Auto-open on item add
+
+    Usage:
+    {{ component('Moderna:Cart:Drawer') }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Cart:Drawer' })
+})) }}
+     class="cart-drawer {{ this.isOpen ? 'cart-drawer--open' : '' }}"
+     data-controller="cart-drawer"
+     data-cart-drawer-open-value="{{ this.isOpen ? 'true' : 'false' }}">
+
+    {# Backdrop Overlay #}
+    {% if this.isOpen %}
+        <div class="cart-drawer__backdrop"
+             data-action="click->live#action"
+             data-live-action-param="close"
+             aria-hidden="true"></div>
+    {% endif %}
+
+    {# Drawer Panel #}
+    <div class="cart-drawer__panel {{ this.isOpen ? 'cart-drawer__panel--open' : '' }}"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="cart-drawer-title">
+
+        {# Drawer Header #}
+        <div class="cart-drawer__header">
+            <h2 id="cart-drawer-title" class="cart-drawer__title">
+                {{ 'Your Cart'|trans }}
+                {% if this.itemCount > 0 %}
+                    <span class="cart-drawer__count">({{ this.itemCount }})</span>
+                {% endif %}
+            </h2>
+            <button type="button"
+                    class="cart-drawer__close"
+                    data-action="live#action"
+                    data-live-action-param="close"
+                    aria-label="{{ 'Close cart'|trans }}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        {# Drawer Content #}
+        <div class="cart-drawer__content">
+            {% if this.items|length > 0 %}
+                {# Cart Items List #}
+                <div class="cart-drawer__items">
+                    {% for item in this.items %}
+                        {% set effectivePrice = item.isPromo and item.promoPrice ? item.promoPrice : item.price %}
+                        {% set totalPrice = effectivePrice * item.quantity %}
+
+                        <div class="cart-drawer__item" data-item-id="{{ item.id }}">
+                            {# Product Image #}
+                            <div class="cart-drawer__item-image">
+                                <a href="{{ path('product.view', { product_id: item.productId }) }}">
+                                    {% if item.imageUrl %}
+                                        <img src="{{ item.imageUrl }}"
+                                             alt="{{ item.title }}"
+                                             loading="lazy"
+                                             class="cart-drawer__item-img">
+                                    {% else %}
+                                        <div class="cart-drawer__item-placeholder">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                <path d="m21 15-5-5L5 21"/>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                </a>
+                            </div>
+
+                            {# Product Info #}
+                            <div class="cart-drawer__item-info">
+                                <h3 class="cart-drawer__item-title">
+                                    <a href="{{ path('product.view', { product_id: item.productId }) }}">
+                                        {{ item.title }}
+                                    </a>
+                                </h3>
+
+                                {# Attributes #}
+                                {% if item.attributes is defined and item.attributes is not empty %}
+                                    <div class="cart-drawer__item-attributes">
+                                        {% for name, value in item.attributes %}
+                                            <span class="cart-drawer__item-attribute">{{ value }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <div class="cart-drawer__item-meta">
+                                    <span class="cart-drawer__item-qty">{{ 'Qty'|trans }}: {{ item.quantity }}</span>
+                                    <span class="cart-drawer__item-price">
+                                        {% if item.isPromo and item.promoPrice %}
+                                            <span class="cart-drawer__item-price--promo">{{ totalPrice|format_currency('EUR') }}</span>
+                                        {% else %}
+                                            {{ totalPrice|format_currency('EUR') }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {# Empty Cart State #}
+                <div class="cart-drawer__empty">
+                    <div class="cart-drawer__empty-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                            <path d="M3 6h18"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                    </div>
+                    <p class="cart-drawer__empty-text">{{ 'Your cart is empty'|trans }}</p>
+                    <a href="{{ path('index') }}"
+                       class="cart-drawer__empty-link"
+                       data-action="live#action"
+                       data-live-action-param="close">
+                        {{ 'Start shopping'|trans }}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Drawer Footer #}
+        {% if this.items|length > 0 %}
+            <div class="cart-drawer__footer">
+                {# Subtotal #}
+                <div class="cart-drawer__subtotal">
+                    <span class="cart-drawer__subtotal-label">{{ 'Subtotal'|trans }}</span>
+                    <span class="cart-drawer__subtotal-value">{{ this.subtotal|format_currency('EUR') }}</span>
+                </div>
+
+                <p class="cart-drawer__shipping-note">
+                    {{ 'Shipping and taxes calculated at checkout'|trans }}
+                </p>
+
+                {# Action Buttons #}
+                <div class="cart-drawer__actions">
+                    <a href="{{ path('cart.view') }}" class="cart-drawer__btn cart-drawer__btn--secondary">
+                        {{ 'View Cart'|trans }}
+                    </a>
+                    <a href="{{ path('order.invoice') }}" class="cart-drawer__btn cart-drawer__btn--primary">
+                        {{ 'Checkout'|trans }}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"/>
+                            <path d="m12 5 7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Cart Drawer Component Styles */
+.cart-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.cart-drawer--open {
+    pointer-events: auto;
+}
+
+/* Backdrop */
+.cart-drawer__backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+/* Panel */
+.cart-drawer__panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 420px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.cart-drawer__panel--open {
+    transform: translateX(0);
+}
+
+/* Header */
+.cart-drawer__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+.cart-drawer__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.cart-drawer__count {
+    font-weight: 400;
+    color: #6b7280;
+}
+
+.cart-drawer__close {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #6b7280;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.cart-drawer__close:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+/* Content */
+.cart-drawer__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* Items List */
+.cart-drawer__items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cart-drawer__item {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.cart-drawer__item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Item Image */
+.cart-drawer__item-image {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+}
+
+.cart-drawer__item-image a {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.cart-drawer__item-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    background-color: #f9fafb;
+}
+
+.cart-drawer__item-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    color: #d1d5db;
+}
+
+/* Item Info */
+.cart-drawer__item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.cart-drawer__item-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+}
+
+.cart-drawer__item-title a {
+    color: #111827;
+    text-decoration: none;
+}
+
+.cart-drawer__item-title a:hover {
+    color: var(--color-primary, #2563eb);
+}
+
+.cart-drawer__item-attributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.cart-drawer__item-attribute {
+    font-size: 11px;
+    color: #6b7280;
+    background-color: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.cart-drawer__item-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.cart-drawer__item-qty {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.cart-drawer__item-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.cart-drawer__item-price--promo {
+    color: #dc2626;
+}
+
+/* Empty State */
+.cart-drawer__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    height: 100%;
+}
+
+.cart-drawer__empty-icon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    border-radius: 50%;
+    color: #9ca3af;
+    margin-bottom: 16px;
+}
+
+.cart-drawer__empty-text {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0 0 16px 0;
+}
+
+.cart-drawer__empty-link {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-primary, #2563eb);
+    text-decoration: none;
+}
+
+.cart-drawer__empty-link:hover {
+    text-decoration: underline;
+}
+
+/* Footer */
+.cart-drawer__footer {
+    padding: 20px;
+    border-top: 1px solid #e5e7eb;
+    background-color: #fafafa;
+    flex-shrink: 0;
+}
+
+.cart-drawer__subtotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.cart-drawer__subtotal-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.cart-drawer__subtotal-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.cart-drawer__shipping-note {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 16px 0;
+}
+
+/* Action Buttons */
+.cart-drawer__actions {
+    display: flex;
+    gap: 12px;
+}
+
+.cart-drawer__btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.cart-drawer__btn--primary {
+    background-color: var(--color-primary, #111827);
+    color: white;
+}
+
+.cart-drawer__btn--primary:hover {
+    background-color: var(--color-primary-dark, #1f2937);
+}
+
+.cart-drawer__btn--secondary {
+    background-color: white;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+}
+
+.cart-drawer__btn--secondary:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .cart-drawer__panel {
+        max-width: 100%;
+    }
+
+    .cart-drawer__actions {
+        flex-direction: column;
+    }
+}
+</style>

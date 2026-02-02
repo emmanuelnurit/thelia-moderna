@@ -1,0 +1,633 @@
+{#
+    Cart LiveComponent - Modern.A
+    Displays the full shopping cart with items, totals, and actions
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Cart item display
+    - Quantity updates (plus/minus)
+    - Item removal with undo
+    - Totals calculation
+
+    Usage:
+    {{ component('Moderna:Cart') }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Cart' })
+})) }}>
+
+    {# Stock Warning Banner #}
+    {% if this.hasStockWarning %}
+        <div class="cart__alert cart__alert--warning">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                <path d="M12 9v4"/>
+                <path d="M12 17h.01"/>
+            </svg>
+            <span>{{ 'Some items in your cart have limited availability'|trans }}</span>
+        </div>
+    {% endif %}
+
+    {# Pending Delete Notification (Undo) #}
+    {% if this.pendingDelete %}
+        <div class="cart__undo-bar">
+            <div class="cart__undo-content">
+                <span class="cart__undo-text">
+                    {{ '"%title%" removed from cart'|trans({'%title%': this.pendingDelete.title}) }}
+                </span>
+                <button type="button"
+                        class="cart__undo-btn"
+                        data-action="live#action"
+                        data-live-action-param="restoreCartItem">
+                    {{ 'Undo'|trans }}
+                </button>
+                <button type="button"
+                        class="cart__undo-close"
+                        data-action="live#action"
+                        data-live-action-param="clearPendingDelete"
+                        aria-label="{{ 'Dismiss'|trans }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if this.items|length > 0 %}
+        {# Cart Header #}
+        <div class="cart__header">
+            <h1 class="cart__title">{{ 'Shopping Cart'|trans }}</h1>
+            <span class="cart__count">
+                {{ this.totalQuantity }}
+                {{ this.totalQuantity <= 1 ? 'item'|trans : 'items'|trans }}
+            </span>
+        </div>
+
+        {# Cart Items List #}
+        <div class="cart__items">
+            {% for item in this.items %}
+                {% set itemDto = item %}
+                <div class="cart__item-wrapper">
+                    {# Inline cart item rendering for LiveComponent compatibility #}
+                    {% set effectivePrice = itemDto.isPromo and itemDto.promoPrice ? itemDto.promoPrice : itemDto.price %}
+                    {% set totalPrice = effectivePrice * itemDto.quantity %}
+                    {% set isLowStock = itemDto.stock > 0 and itemDto.stock <= 5 %}
+                    {% set isOutOfStock = itemDto.stock <= 0 %}
+
+                    <div class="cart-item {{ isOutOfStock ? 'cart-item--out-of-stock' : '' }}"
+                         data-item-id="{{ itemDto.id }}">
+
+                        {# Product Image #}
+                        <div class="cart-item__image">
+                            <a href="{{ path('product.view', { product_id: itemDto.productId }) }}" class="cart-item__image-link">
+                                {% if itemDto.imageUrl %}
+                                    <img src="{{ itemDto.imageUrl }}"
+                                         alt="{{ itemDto.title }}"
+                                         loading="lazy"
+                                         class="cart-item__img">
+                                {% else %}
+                                    <div class="cart-item__placeholder">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                                            <path d="m21 15-5-5L5 21"/>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </a>
+                        </div>
+
+                        {# Product Info #}
+                        <div class="cart-item__content">
+                            <div class="cart-item__header">
+                                <div class="cart-item__info">
+                                    <h3 class="cart-item__title">
+                                        <a href="{{ path('product.view', { product_id: itemDto.productId }) }}">
+                                            {{ itemDto.title }}
+                                        </a>
+                                    </h3>
+
+                                    {% if itemDto.ref %}
+                                        <p class="cart-item__ref">{{ 'Ref'|trans }}: {{ itemDto.ref }}</p>
+                                    {% endif %}
+
+                                    {# Attributes #}
+                                    {% if itemDto.attributes is defined and itemDto.attributes is not empty %}
+                                        <div class="cart-item__attributes">
+                                            {% for name, value in itemDto.attributes %}
+                                                <span class="cart-item__attribute">{{ value }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+
+                                    {# Stock Status #}
+                                    {% if isOutOfStock %}
+                                        <div class="cart-item__stock cart-item__stock--error">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                                <line x1="9" y1="9" x2="15" y2="15"/>
+                                            </svg>
+                                            {{ 'Out of stock'|trans }}
+                                        </div>
+                                    {% elseif isLowStock %}
+                                        <div class="cart-item__stock cart-item__stock--warning">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                                <path d="M12 9v4"/>
+                                                <path d="M12 17h.01"/>
+                                            </svg>
+                                            {{ 'Only %count% left'|trans({'%count%': itemDto.stock}) }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {# Remove Button #}
+                                <button type="button"
+                                        class="cart-item__remove"
+                                        data-action="live#action"
+                                        data-live-action-param="remove"
+                                        data-live-itemId-param="{{ itemDto.id }}"
+                                        aria-label="{{ 'Remove item'|trans }}"
+                                        title="{{ 'Remove from cart'|trans }}">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 6h18"/>
+                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {# Quantity and Price Row #}
+                            <div class="cart-item__footer">
+                                {# Quantity Controls #}
+                                <div class="cart-item__quantity">
+                                    <button type="button"
+                                            class="cart-item__qty-btn"
+                                            data-action="live#action"
+                                            data-live-action-param="minus"
+                                            data-live-itemId-param="{{ itemDto.id }}"
+                                            {% if itemDto.quantity <= 1 or isOutOfStock %}disabled{% endif %}
+                                            aria-label="{{ 'Decrease quantity'|trans }}">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="5" y1="12" x2="19" y2="12"/>
+                                        </svg>
+                                    </button>
+
+                                    <span class="cart-item__qty-value">{{ itemDto.quantity }}</span>
+
+                                    <button type="button"
+                                            class="cart-item__qty-btn"
+                                            data-action="live#action"
+                                            data-live-action-param="plus"
+                                            data-live-itemId-param="{{ itemDto.id }}"
+                                            {% if itemDto.quantity >= itemDto.stock or isOutOfStock %}disabled{% endif %}
+                                            aria-label="{{ 'Increase quantity'|trans }}">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="12" y1="5" x2="12" y2="19"/>
+                                            <line x1="5" y1="12" x2="19" y2="12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {# Price Display #}
+                                <div class="cart-item__price">
+                                    {% if itemDto.isPromo and itemDto.promoPrice %}
+                                        <span class="cart-item__price-original">{{ (itemDto.price * itemDto.quantity)|format_currency('EUR') }}</span>
+                                        <span class="cart-item__price-promo">{{ totalPrice|format_currency('EUR') }}</span>
+                                    {% else %}
+                                        <span class="cart-item__price-regular">{{ totalPrice|format_currency('EUR') }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Continue Shopping Link #}
+        <div class="cart__actions">
+            <a href="{{ path('index') }}" class="cart__continue-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                {{ 'Continue shopping'|trans }}
+            </a>
+        </div>
+
+    {% else %}
+        {# Empty Cart State #}
+        <div class="cart__empty">
+            <div class="cart__empty-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+            </div>
+            <h2 class="cart__empty-title">{{ 'Your cart is empty'|trans }}</h2>
+            <p class="cart__empty-text">{{ 'Add items to your cart to continue shopping'|trans }}</p>
+            <a href="{{ path('index') }}" class="btn btn-primary">
+                {{ 'Start shopping'|trans }}
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+/* Cart Component Styles */
+.cart__alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.cart__alert--warning {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.cart__alert svg {
+    flex-shrink: 0;
+}
+
+.cart__undo-bar {
+    background-color: #1f2937;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.cart__undo-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cart__undo-text {
+    flex: 1;
+    font-size: 14px;
+}
+
+.cart__undo-btn {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cart__undo-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cart__undo-close {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.cart__undo-close:hover {
+    opacity: 1;
+}
+
+.cart__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.cart__title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #111827;
+}
+
+.cart__count {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.cart__items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cart__item-wrapper {
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 16px;
+}
+
+.cart__item-wrapper:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.cart__actions {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.cart__continue-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+.cart__continue-link:hover {
+    color: #111827;
+}
+
+/* Cart Item Styles */
+.cart-item {
+    display: flex;
+    gap: 16px;
+}
+
+.cart-item--out-of-stock {
+    opacity: 0.6;
+}
+
+.cart-item__image {
+    flex-shrink: 0;
+    width: 100px;
+    height: 100px;
+}
+
+.cart-item__image-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.cart-item__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    background-color: #f9fafb;
+}
+
+.cart-item__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    color: #d1d5db;
+}
+
+.cart-item__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.cart-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.cart-item__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.cart-item__title {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+}
+
+.cart-item__title a {
+    color: #111827;
+    text-decoration: none;
+}
+
+.cart-item__title a:hover {
+    color: var(--color-primary, #2563eb);
+}
+
+.cart-item__ref {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 0 0 6px 0;
+}
+
+.cart-item__attributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.cart-item__attribute {
+    font-size: 12px;
+    color: #6b7280;
+    background-color: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.cart-item__stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.cart-item__stock--warning {
+    color: #d97706;
+}
+
+.cart-item__stock--error {
+    color: #dc2626;
+}
+
+.cart-item__remove {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #9ca3af;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.cart-item__remove:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.cart-item__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.cart-item__quantity {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.cart-item__qty-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.cart-item__qty-btn:hover:not(:disabled) {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.cart-item__qty-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cart-item__qty-value {
+    min-width: 36px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.cart-item__price {
+    text-align: right;
+}
+
+.cart-item__price-regular {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.cart-item__price-promo {
+    font-size: 16px;
+    font-weight: 600;
+    color: #dc2626;
+}
+
+.cart-item__price-original {
+    font-size: 13px;
+    color: #9ca3af;
+    text-decoration: line-through;
+    display: block;
+}
+
+/* Empty Cart Styles */
+.cart__empty {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.cart__empty-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    border-radius: 50%;
+    color: #9ca3af;
+}
+
+.cart__empty-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 8px 0;
+}
+
+.cart__empty-text {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 24px 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .cart-item {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .cart-item__image {
+        width: 80px;
+        height: 80px;
+    }
+
+    .cart-item__footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .cart-item__price {
+        text-align: left;
+    }
+
+    .cart__undo-content {
+        flex-wrap: wrap;
+    }
+
+    .cart__undo-text {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+}
+</style>

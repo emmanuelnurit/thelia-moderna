@@ -1,0 +1,203 @@
+/* ===================================
+   TOAST COMPONENT
+   Extracted from components/Cart/Toast.html.twig
+   =================================== */
+
+/* Container */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: var(--z-toast);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 12px;
+    pointer-events: none;
+    max-width: 420px;
+    width: 100%;
+}
+
+/* Toast Base */
+.toast {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background-color: var(--color-white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl), var(--shadow-md);
+    pointer-events: auto;
+    cursor: pointer;
+    overflow: hidden;
+    min-height: 64px;
+}
+
+/* Toast Transitions */
+.toast-enter {
+    transition: all var(--transition-slow);
+}
+
+.toast-enter-start {
+    opacity: 0;
+    transform: translateX(100%) scale(0.8);
+}
+
+.toast-enter-end {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+.toast-leave {
+    transition: all var(--transition-base);
+}
+
+.toast-leave-start {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+.toast-leave-end {
+    opacity: 0;
+    transform: translateX(100%) scale(0.8);
+}
+
+/* Toast Icon */
+.toast-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Toast Type Variants */
+.toast-success {
+    border-left: 4px solid var(--color-success);
+}
+
+.toast-success .toast-icon {
+    color: var(--color-success);
+}
+
+.toast-error {
+    border-left: 4px solid var(--color-danger-hover);
+}
+
+.toast-error .toast-icon {
+    color: var(--color-danger-hover);
+}
+
+.toast-info {
+    border-left: 4px solid var(--color-info);
+}
+
+.toast-info .toast-icon {
+    color: var(--color-info);
+}
+
+.toast-warning {
+    border-left: 4px solid var(--color-warning);
+}
+
+.toast-warning .toast-icon {
+    color: var(--color-warning);
+}
+
+/* Toast Content */
+.toast-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toast-message {
+    margin: 0;
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* Toast Action Button */
+.toast-action {
+    align-self: flex-start;
+    padding: 6px 12px;
+    background: none;
+    border: 1px solid var(--color-border-dark);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.toast-action:hover {
+    background-color: var(--color-surface);
+}
+
+/* Toast Close Button */
+.toast-close {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--color-text-light);
+    transition: all var(--transition-base);
+}
+
+.toast-close:hover {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+/* Toast Progress Bar */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--color-border);
+    overflow: hidden;
+}
+
+/* Note: .toast-progress-bar animation is in animations.css */
+
+.toast-success .toast-progress-bar {
+    color: var(--color-success);
+}
+
+.toast-error .toast-progress-bar {
+    color: var(--color-danger-hover);
+}
+
+.toast-info .toast-progress-bar {
+    color: var(--color-info);
+}
+
+.toast-warning .toast-progress-bar {
+    color: var(--color-warning);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .toast-container {
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+        max-width: none;
+    }
+
+    .toast {
+        padding: 14px;
+    }
+}
