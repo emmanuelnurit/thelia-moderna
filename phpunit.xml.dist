@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         stopOnFailure="false">
+    <php>
+        <ini name="error_reporting" value="-1"/>
+        <ini name="display_errors" value="1"/>
+        <env name="KERNEL_CLASS" value="Thelia\Core\Thelia"/>
+        <env name="APP_ENV" value="test"/>
+    </php>
+
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>Tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Functional">
+            <directory>Tests/Functional</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory>Tests</directory>
+        </exclude>
+    </coverage>
+</phpunit>
