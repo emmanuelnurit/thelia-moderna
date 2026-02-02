@@ -64,3 +64,15 @@ services:
 
     Moderna\UiComponents\Toast\AddToCartToast:
         tags: ['twig.component']
+
+    Moderna\UiComponents\Product\VariantSelector\VariantSelector:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Layout\SearchModal\SearchModal:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Account\AddressList\AddressList:
+        tags: ['twig.component']
+
+    Moderna\UiComponents\Account\CustomerUpdate\CustomerUpdate:
+        tags: ['twig.component']

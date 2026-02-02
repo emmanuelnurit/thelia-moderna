@@ -1,0 +1,546 @@
+{#
+    CustomerUpdate LiveComponent - Modern.A
+    Customer profile update form
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Customer profile display and editing
+    - Password change
+    - Form validation
+    - Success/error messages
+
+    Usage:
+    {{ component('Moderna:Account:CustomerUpdate') }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Account:CustomerUpdate' })
+})) }} class="customer-update">
+
+    {% if not this.isLoggedIn %}
+        <div class="customer-update__not-logged">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <h3>{{ 'Please log in'|trans }}</h3>
+            <p>{{ 'You need to be logged in to update your profile.'|trans }}</p>
+            <a href="{{ path('login') }}" class="customer-update__login-btn">{{ 'Log in'|trans }}</a>
+        </div>
+    {% else %}
+        {# Header #}
+        <div class="customer-update__header">
+            <h2 class="customer-update__title">{{ 'My Profile'|trans }}</h2>
+            <p class="customer-update__subtitle">{{ 'Update your personal information'|trans }}</p>
+        </div>
+
+        {# Success/Error Messages #}
+        {% if this.success %}
+            <div class="customer-update__alert customer-update__alert--success">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <path d="m9 11 3 3L22 4"/>
+                </svg>
+                <span>{{ this.success|trans }}</span>
+            </div>
+        {% endif %}
+
+        {% if this.error %}
+            <div class="customer-update__alert customer-update__alert--error">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>{{ this.error|trans }}</span>
+            </div>
+        {% endif %}
+
+        <form class="customer-update__form" data-action="submit->live#action" data-live-action-param="submit">
+            {# Personal Information Section #}
+            <div class="customer-update__section">
+                <h3 class="customer-update__section-title">{{ 'Personal Information'|trans }}</h3>
+
+                {# Title #}
+                <div class="customer-update__field">
+                    <label for="customer-title" class="customer-update__label">{{ 'Title'|trans }}</label>
+                    <select id="customer-title"
+                            class="customer-update__select"
+                            data-model="titleId">
+                        {% for title in this.titles %}
+                            <option value="{{ title.id }}" {{ this.titleId == title.id ? 'selected' : '' }}>
+                                {{ title.long }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {# First Name & Last Name #}
+                <div class="customer-update__row">
+                    <div class="customer-update__field">
+                        <label for="customer-firstname" class="customer-update__label">
+                            {{ 'First name'|trans }} <span class="customer-update__required">*</span>
+                        </label>
+                        <input type="text"
+                               id="customer-firstname"
+                               class="customer-update__input {{ this.fieldErrors.firstname ? 'customer-update__input--error' : '' }}"
+                               data-model="firstname"
+                               value="{{ this.firstname }}"
+                               required>
+                        {% if this.fieldErrors.firstname %}
+                            <span class="customer-update__error">{{ this.fieldErrors.firstname|trans }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="customer-update__field">
+                        <label for="customer-lastname" class="customer-update__label">
+                            {{ 'Last name'|trans }} <span class="customer-update__required">*</span>
+                        </label>
+                        <input type="text"
+                               id="customer-lastname"
+                               class="customer-update__input {{ this.fieldErrors.lastname ? 'customer-update__input--error' : '' }}"
+                               data-model="lastname"
+                               value="{{ this.lastname }}"
+                               required>
+                        {% if this.fieldErrors.lastname %}
+                            <span class="customer-update__error">{{ this.fieldErrors.lastname|trans }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Email #}
+                <div class="customer-update__field">
+                    <label for="customer-email" class="customer-update__label">
+                        {{ 'Email address'|trans }} <span class="customer-update__required">*</span>
+                    </label>
+                    <input type="email"
+                           id="customer-email"
+                           class="customer-update__input {{ this.fieldErrors.email ? 'customer-update__input--error' : '' }}"
+                           data-model="email"
+                           value="{{ this.email }}"
+                           required>
+                    {% if this.fieldErrors.email %}
+                        <span class="customer-update__error">{{ this.fieldErrors.email|trans }}</span>
+                    {% endif %}
+                </div>
+
+                {# Newsletter #}
+                <div class="customer-update__checkbox-field">
+                    <label class="customer-update__checkbox-label">
+                        <input type="checkbox"
+                               class="customer-update__checkbox"
+                               data-model="newsletter"
+                               {{ this.newsletter ? 'checked' : '' }}>
+                        <span class="customer-update__checkbox-text">
+                            {{ 'Subscribe to newsletter'|trans }}
+                        </span>
+                    </label>
+                    <p class="customer-update__checkbox-hint">
+                        {{ 'Receive news and exclusive offers'|trans }}
+                    </p>
+                </div>
+            </div>
+
+            {# Password Section #}
+            <div class="customer-update__section">
+                <div class="customer-update__section-header">
+                    <h3 class="customer-update__section-title">{{ 'Password'|trans }}</h3>
+                    <button type="button"
+                            class="customer-update__toggle-btn"
+                            data-action="live#action"
+                            data-live-action-param="toggleChangePassword">
+                        {% if this.changePassword %}
+                            {{ 'Cancel'|trans }}
+                        {% else %}
+                            {{ 'Change password'|trans }}
+                        {% endif %}
+                    </button>
+                </div>
+
+                {% if this.changePassword %}
+                    <div class="customer-update__password-fields">
+                        {# Current Password #}
+                        <div class="customer-update__field">
+                            <label for="customer-current-password" class="customer-update__label">
+                                {{ 'Current password'|trans }} <span class="customer-update__required">*</span>
+                            </label>
+                            <input type="password"
+                                   id="customer-current-password"
+                                   class="customer-update__input {{ this.fieldErrors.currentPassword ? 'customer-update__input--error' : '' }}"
+                                   data-model="currentPassword"
+                                   value="{{ this.currentPassword }}"
+                                   autocomplete="current-password">
+                            {% if this.fieldErrors.currentPassword %}
+                                <span class="customer-update__error">{{ this.fieldErrors.currentPassword|trans }}</span>
+                            {% endif %}
+                        </div>
+
+                        {# New Password #}
+                        <div class="customer-update__row">
+                            <div class="customer-update__field">
+                                <label for="customer-new-password" class="customer-update__label">
+                                    {{ 'New password'|trans }} <span class="customer-update__required">*</span>
+                                </label>
+                                <input type="password"
+                                       id="customer-new-password"
+                                       class="customer-update__input {{ this.fieldErrors.newPassword ? 'customer-update__input--error' : '' }}"
+                                       data-model="newPassword"
+                                       value="{{ this.newPassword }}"
+                                       autocomplete="new-password">
+                                {% if this.fieldErrors.newPassword %}
+                                    <span class="customer-update__error">{{ this.fieldErrors.newPassword|trans }}</span>
+                                {% endif %}
+                                <span class="customer-update__hint">{{ 'Minimum 8 characters'|trans }}</span>
+                            </div>
+
+                            <div class="customer-update__field">
+                                <label for="customer-confirm-password" class="customer-update__label">
+                                    {{ 'Confirm password'|trans }} <span class="customer-update__required">*</span>
+                                </label>
+                                <input type="password"
+                                       id="customer-confirm-password"
+                                       class="customer-update__input {{ this.fieldErrors.confirmPassword ? 'customer-update__input--error' : '' }}"
+                                       data-model="confirmPassword"
+                                       value="{{ this.confirmPassword }}"
+                                       autocomplete="new-password">
+                                {% if this.fieldErrors.confirmPassword %}
+                                    <span class="customer-update__error">{{ this.fieldErrors.confirmPassword|trans }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="customer-update__password-hint">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        {{ 'Your password is secure. Click "Change password" to update it.'|trans }}
+                    </p>
+                {% endif %}
+            </div>
+
+            {# Submit Button #}
+            <div class="customer-update__actions">
+                <button type="submit" class="customer-update__submit-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    {{ 'Save changes'|trans }}
+                </button>
+            </div>
+        </form>
+    {% endif %}
+</div>
+
+<style>
+/* Customer Update Styles */
+.customer-update {
+    padding: 24px;
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.customer-update__header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.customer-update__title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 4px;
+}
+
+.customer-update__subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Not Logged In State */
+.customer-update__not-logged {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.customer-update__not-logged svg {
+    color: #9ca3af;
+    margin-bottom: 16px;
+}
+
+.customer-update__not-logged h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 8px;
+}
+
+.customer-update__not-logged p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 24px;
+}
+
+.customer-update__login-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 24px;
+    background-color: var(--color-primary, #111827);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.customer-update__login-btn:hover {
+    background-color: var(--color-primary-dark, #1f2937);
+}
+
+/* Alerts */
+.customer-update__alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.customer-update__alert--success {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.customer-update__alert--error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.customer-update__alert svg {
+    flex-shrink: 0;
+}
+
+/* Form */
+.customer-update__form {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* Section */
+.customer-update__section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.customer-update__section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.customer-update__section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.customer-update__toggle-btn {
+    font-size: 14px;
+    color: var(--color-primary, #2563eb);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.customer-update__toggle-btn:hover {
+    color: var(--color-primary-dark, #1d4ed8);
+    text-decoration: underline;
+}
+
+/* Row */
+.customer-update__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Field */
+.customer-update__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.customer-update__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.customer-update__required {
+    color: #dc2626;
+}
+
+.customer-update__input,
+.customer-update__select {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: white;
+    color: #111827;
+    transition: all 0.2s;
+}
+
+.customer-update__input:focus,
+.customer-update__select:focus {
+    outline: none;
+    border-color: var(--color-primary, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.customer-update__input--error {
+    border-color: #dc2626;
+}
+
+.customer-update__input--error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.customer-update__error {
+    font-size: 12px;
+    color: #dc2626;
+}
+
+.customer-update__hint {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Checkbox */
+.customer-update__checkbox-field {
+    padding: 16px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+}
+
+.customer-update__checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.customer-update__checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+}
+
+.customer-update__checkbox:checked {
+    background-color: var(--color-primary, #2563eb);
+    border-color: var(--color-primary, #2563eb);
+}
+
+.customer-update__checkbox-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.customer-update__checkbox-hint {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 8px 0 0 28px;
+}
+
+/* Password Section */
+.customer-update__password-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+}
+
+.customer-update__password-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    padding: 16px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+}
+
+/* Actions */
+.customer-update__actions {
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.customer-update__submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 32px;
+    background-color: var(--color-primary, #111827);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.customer-update__submit-btn:hover {
+    background-color: var(--color-primary-dark, #1f2937);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .customer-update {
+        padding: 16px;
+    }
+
+    .customer-update__row {
+        grid-template-columns: 1fr;
+    }
+
+    .customer-update__section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .customer-update__submit-btn {
+        width: 100%;
+    }
+}
+</style>

@@ -8,9 +8,6 @@ import '../css/app.css';
 // Cart synchronization
 import './cart-sync.js';
 
-// Wishlist button component
-import { wishlistButton } from './wishlist-button.js';
-
 // Stimulus
 import { startStimulusApp } from '@symfony/stimulus-bridge';
 
@@ -44,15 +41,16 @@ Alpine.store('cart', {
   }
 });
 
+/**
+ * Wishlist Store - Local storage only (persisted via Alpine $persist)
+ * Server-side wishlist is handled by ModernaWishlist module when customer is logged in.
+ * This store provides instant client-side feedback for wishlist interactions.
+ */
 Alpine.store('wishlist', {
   items: Alpine.$persist([]).as('moderna_wishlist'),
-  isAuthenticated: false,
-  isSyncing: false,
 
   has(productId) {
-    // Convert to string for comparison to handle both number and string IDs
-    const searchId = String(productId);
-    return this.items.some(item => String(item.id) === searchId);
+    return this.items.some(item => item.id === productId);
   },
 
   toggle(product) {
@@ -69,306 +67,21 @@ Alpine.store('wishlist', {
     if (!this.has(product.id)) {
       this.items.push(product);
       window.dispatchEvent(new CustomEvent('wishlist:added', { detail: product }));
-
-      // Sync with server if authenticated
-      if (this.isAuthenticated) {
-        this.addToServer(product.id);
-      }
     }
   },
 
   remove(productId) {
-    // Convert to string for comparison to handle both number and string IDs
-    const removeId = String(productId);
-    this.items = this.items.filter(item => String(item.id) !== removeId);
-    window.dispatchEvent(new CustomEvent('wishlist:removed', { detail: { productId: removeId } }));
-
-    // Sync with server if authenticated
-    if (this.isAuthenticated) {
-      this.removeFromServer(productId);
-    }
+    this.items = this.items.filter(item => item.id !== productId);
+    window.dispatchEvent(new CustomEvent('wishlist:removed', { detail: { productId } }));
   },
 
   clear() {
     this.items = [];
     window.dispatchEvent(new CustomEvent('wishlist:cleared'));
-
-    // Clear on server if authenticated
-    if (this.isAuthenticated) {
-      this.clearOnServer();
-    }
   },
 
   get count() {
     return this.items.length;
-  },
-
-  // Server sync methods
-  async addToServer(productId) {
-    try {
-      await fetch('/moderna-api/wishlist/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ product_id: productId })
-      });
-    } catch (error) {
-      console.error('Failed to add to server wishlist:', error);
-    }
-  },
-
-  async removeFromServer(productId) {
-    try {
-      await fetch('/moderna-api/wishlist/remove', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ product_id: productId })
-      });
-    } catch (error) {
-      console.error('Failed to remove from server wishlist:', error);
-    }
-  },
-
-  async clearOnServer() {
-    try {
-      await fetch('/moderna-api/wishlist/clear', {
-        method: 'POST',
-        credentials: 'include'
-      });
-    } catch (error) {
-      console.error('Failed to clear server wishlist:', error);
-    }
-  },
-
-  // Sync local wishlist with server (merge)
-  async syncWithServer() {
-    if (this.isSyncing) return;
-    this.isSyncing = true;
-
-    try {
-      // Get current local items before sync
-      const localItems = [...this.items];
-      console.log('[Wishlist] Syncing with server, local items:', localItems);
-
-      const response = await fetch('/moderna-api/wishlist/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ items: localItems })
-      });
-
-      console.log('[Wishlist] Sync response status:', response.status);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('[Wishlist] Sync response data:', data);
-
-        if (data.success && data.items) {
-          console.log('[Wishlist] Server returned', data.items.length, 'items');
-
-          // Clear current items and add merged ones
-          // Use while loop to ensure all items are removed
-          while (this.items.length > 0) {
-            this.items.pop();
-          }
-
-          // Add all server items
-          for (const serverItem of data.items) {
-            this.items.push(serverItem);
-          }
-
-          // Also manually update localStorage as backup for Alpine $persist
-          try {
-            localStorage.setItem('_x_moderna_wishlist', JSON.stringify(this.items));
-            console.log('[Wishlist] Saved to localStorage:', this.items.length, 'items');
-          } catch (e) {
-            console.error('[Wishlist] Failed to save to localStorage:', e);
-          }
-
-          console.log('[Wishlist] Updated store items:', this.items.length, 'items');
-
-          // Dispatch event after a small delay to ensure DOM is updated
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('wishlist:synced', { detail: { items: [...this.items] } }));
-            console.log('[Wishlist] Dispatched wishlist:synced event');
-          }, 100);
-        }
-      } else {
-        const errorData = await response.json();
-        console.log('[Wishlist] Sync error:', errorData);
-      }
-    } catch (error) {
-      console.error('[Wishlist] Failed to sync with server:', error);
-    } finally {
-      this.isSyncing = false;
-    }
-  },
-
-  // Check authentication status
-  async checkAuth() {
-    try {
-      const response = await fetch('/moderna-api/auth/check', { credentials: 'include' });
-      const data = await response.json();
-      this.isAuthenticated = data.authenticated === true;
-      return this.isAuthenticated;
-    } catch (error) {
-      this.isAuthenticated = false;
-      return false;
-    }
-  }
-});
-
-// Recently Viewed store
-Alpine.store('recentlyViewed', {
-  items: Alpine.$persist([]).as('moderna_recently_viewed'),
-  maxItems: 12,
-  isAuthenticated: false,
-  isSyncing: false,
-
-  has(productId) {
-    // Convert to string for comparison to handle both number and string IDs
-    const searchId = String(productId);
-    return this.items.some(item => String(item.id) === searchId);
-  },
-
-  add(product) {
-    // Convert ID to string for consistent comparison
-    const productId = String(product.id);
-
-    // Check if product already exists
-    const existingIndex = this.items.findIndex(item => String(item.id) === productId);
-
-    if (existingIndex !== -1) {
-      // Product already exists - update viewedAt and move to front
-      const existingProduct = this.items[existingIndex];
-      existingProduct.viewedAt = Date.now();
-      this.items.splice(existingIndex, 1);
-      this.items.unshift(existingProduct);
-    } else {
-      // New product - add to front with viewedAt timestamp
-      const productWithTimestamp = {
-        ...product,
-        viewedAt: Date.now()
-      };
-      this.items.unshift(productWithTimestamp);
-
-      // Enforce max items limit - remove oldest items if exceeded
-      if (this.items.length > this.maxItems) {
-        this.items = this.items.slice(0, this.maxItems);
-      }
-
-      window.dispatchEvent(new CustomEvent('recentlyviewed:added', { detail: productWithTimestamp }));
-    }
-
-    // Track on server if authenticated
-    if (this.isAuthenticated) {
-      this.addToServer(product.id);
-    }
-  },
-
-  remove(productId) {
-    // Convert to string for comparison to handle both number and string IDs
-    const removeId = String(productId);
-    const initialLength = this.items.length;
-    this.items = this.items.filter(item => String(item.id) !== removeId);
-
-    // Only dispatch event if something was actually removed
-    if (this.items.length < initialLength) {
-      window.dispatchEvent(new CustomEvent('recentlyviewed:removed', { detail: { productId: removeId } }));
-    }
-  },
-
-  clear() {
-    this.items = [];
-    window.dispatchEvent(new CustomEvent('recentlyviewed:cleared'));
-  },
-
-  getAll() {
-    // Return items sorted by viewedAt (newest first)
-    return [...this.items].sort((a, b) => (b.viewedAt || 0) - (a.viewedAt || 0));
-  },
-
-  get count() {
-    return this.items.length;
-  },
-
-  // Server sync methods
-  async addToServer(productId) {
-    try {
-      await fetch('/api/recently-viewed/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ product_id: productId })
-      });
-    } catch (error) {
-      console.error('Failed to track product view on server:', error);
-    }
-  },
-
-  // Sync local recently viewed with server (merge)
-  async syncWithServer() {
-    if (this.isSyncing) return;
-    this.isSyncing = true;
-
-    try {
-      // Get current local items before sync
-      const localItems = [...this.items];
-
-      const response = await fetch('/api/recently-viewed/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ items: localItems })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        if (data.success && data.items) {
-          // Clear current items and add merged ones
-          // Use while loop to ensure all items are removed
-          while (this.items.length > 0) {
-            this.items.pop();
-          }
-
-          // Add all server items
-          for (const serverItem of data.items) {
-            this.items.push(serverItem);
-          }
-
-          // Also manually update localStorage as backup for Alpine $persist
-          try {
-            localStorage.setItem('_x_moderna_recently_viewed', JSON.stringify(this.items));
-          } catch (e) {
-            console.error('[RecentlyViewed] Failed to save to localStorage:', e);
-          }
-
-          // Dispatch event after a small delay to ensure DOM is updated
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('recentlyviewed:synced', { detail: { items: [...this.items] } }));
-          }, 100);
-        }
-      }
-    } catch (error) {
-      console.error('[RecentlyViewed] Failed to sync with server:', error);
-    } finally {
-      this.isSyncing = false;
-    }
-  },
-
-  // Check authentication status
-  async checkAuth() {
-    try {
-      const response = await fetch('/moderna-api/auth/check', { credentials: 'include' });
-      const data = await response.json();
-      this.isAuthenticated = data.authenticated === true;
-      return this.isAuthenticated;
-    } catch (error) {
-      this.isAuthenticated = false;
-      return false;
-    }
   }
 });
 
@@ -410,10 +123,7 @@ Alpine.store('search', {
 // Expose Alpine to window before starting
 window.Alpine = Alpine;
 
-// Expose wishlistButton to window for use in components
-window.wishlistButton = wishlistButton;
-
-// Expose helpers to window for LiveComponents
+// Expose helpers to window for LiveComponents and external scripts
 window.Moderna = {
   wishlist: {
     has: (productId) => Alpine.store('wishlist').has(productId),
@@ -422,18 +132,7 @@ window.Moderna = {
     remove: (productId) => Alpine.store('wishlist').remove(productId),
     clear: () => Alpine.store('wishlist').clear(),
     items: () => Alpine.store('wishlist').items,
-    sync: () => Alpine.store('wishlist').syncWithServer(),
-    isAuthenticated: () => Alpine.store('wishlist').isAuthenticated,
-  },
-  recentlyViewed: {
-    has: (productId) => Alpine.store('recentlyViewed').has(productId),
-    add: (product) => Alpine.store('recentlyViewed').add(product),
-    remove: (productId) => Alpine.store('recentlyViewed').remove(productId),
-    clear: () => Alpine.store('recentlyViewed').clear(),
-    items: () => Alpine.store('recentlyViewed').items,
-    count: () => Alpine.store('recentlyViewed').count,
-    sync: () => Alpine.store('recentlyViewed').syncWithServer(),
-    isAuthenticated: () => Alpine.store('recentlyViewed').isAuthenticated,
+    count: () => Alpine.store('wishlist').count,
   },
   cart: {
     updateCount: (count) => Alpine.store('cart').updateCount(count),
@@ -441,47 +140,14 @@ window.Moderna = {
 };
 
 // Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   document.body.classList.remove('no-js');
 
-  // Handle escape key
+  // Handle escape key for closing modals and menus
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       Alpine.store('mobileMenu').close();
       Alpine.store('search').close();
-    }
-  });
-
-  // Check authentication and sync wishlist if authenticated
-  const wishlistStore = Alpine.store('wishlist');
-  const isAuth = await wishlistStore.checkAuth();
-  if (isAuth) {
-    wishlistStore.syncWithServer();
-  }
-
-  // Check authentication and sync recently viewed if authenticated
-  const recentlyViewedStore = Alpine.store('recentlyViewed');
-  const isAuthRecentlyViewed = await recentlyViewedStore.checkAuth();
-  if (isAuthRecentlyViewed) {
-    recentlyViewedStore.syncWithServer();
-  }
-
-  // Listen for auth changes (login/logout)
-  window.addEventListener('auth-changed', async (event) => {
-    const { isLogout } = event.detail || {};
-
-    if (isLogout) {
-      // User logged out - keep local wishlist, mark as not authenticated
-      wishlistStore.isAuthenticated = false;
-      // User logged out - keep local recently viewed, mark as not authenticated
-      recentlyViewedStore.isAuthenticated = false;
-    } else {
-      // User logged in - sync wishlist with server (merge)
-      wishlistStore.isAuthenticated = true;
-      await wishlistStore.syncWithServer();
-      // User logged in - sync recently viewed with server (merge)
-      recentlyViewedStore.isAuthenticated = true;
-      await recentlyViewedStore.syncWithServer();
     }
   });
 });

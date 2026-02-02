@@ -1,0 +1,663 @@
+{#
+    SearchModal LiveComponent - Modern.A
+    Search modal with instant results
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Modal open/close state
+    - Live search as user types
+    - Product results display
+    - Recent searches
+
+    Usage:
+    {{ component('Moderna:Layout:SearchModal') }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Layout:SearchModal' })
+})) }}
+     class="search-modal {{ this.isOpen ? 'search-modal--open' : '' }}"
+     {% if this.isOpen %}aria-modal="true" role="dialog"{% endif %}>
+
+    {# Backdrop #}
+    {% if this.isOpen %}
+        <div class="search-modal__backdrop"
+             data-action="click->live#action"
+             data-live-action-param="close"></div>
+    {% endif %}
+
+    {# Modal Content #}
+    <div class="search-modal__container">
+        <div class="search-modal__content">
+            {# Search Header #}
+            <div class="search-modal__header">
+                <div class="search-modal__search-box">
+                    <svg class="search-modal__search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.3-4.3"/>
+                    </svg>
+
+                    <input type="search"
+                           class="search-modal__input"
+                           placeholder="{{ 'Search products...'|trans }}"
+                           data-model="query"
+                           data-action="input->live#action:debounce(300)"
+                           data-live-action-param="search"
+                           value="{{ this.query }}"
+                           autocomplete="off"
+                           autofocus>
+
+                    {% if this.query %}
+                        <button type="button"
+                                class="search-modal__clear"
+                                data-action="live#action"
+                                data-live-action-param="clear"
+                                aria-label="{{ 'Clear search'|trans }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="m15 9-6 6"/>
+                                <path d="m9 9 6 6"/>
+                            </svg>
+                        </button>
+                    {% endif %}
+
+                    {% if this.isLoading %}
+                        <div class="search-modal__loader">
+                            <svg class="search-modal__spinner" width="20" height="20" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="32" stroke-dashoffset="32">
+                                    <animate attributeName="stroke-dashoffset" values="32;0" dur="0.8s" repeatCount="indefinite"/>
+                                </circle>
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="button"
+                        class="search-modal__close"
+                        data-action="live#action"
+                        data-live-action-param="close"
+                        aria-label="{{ 'Close'|trans }}">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6 6 18"/>
+                        <path d="m6 6 12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {# Search Results #}
+            <div class="search-modal__body">
+                {% if this.query|length >= 2 %}
+                    {% if this.results|length > 0 %}
+                        {# Results List #}
+                        <div class="search-modal__results">
+                            <div class="search-modal__results-header">
+                                <span class="search-modal__results-count">
+                                    {{ this.totalCount }}
+                                    {{ this.totalCount == 1 ? 'result'|trans : 'results'|trans }}
+                                </span>
+                            </div>
+
+                            <ul class="search-modal__list">
+                                {% for product in this.results %}
+                                    <li class="search-modal__item">
+                                        <a href="{{ product.url }}" class="search-modal__link">
+                                            <div class="search-modal__item-image">
+                                                {% if product.imageUrl %}
+                                                    <img src="{{ product.imageUrl }}"
+                                                         alt="{{ product.title }}"
+                                                         loading="lazy">
+                                                {% else %}
+                                                    <div class="search-modal__item-placeholder">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                            <path d="m21 15-5-5L5 21"/>
+                                                        </svg>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <div class="search-modal__item-content">
+                                                <h4 class="search-modal__item-title">{{ product.title }}</h4>
+                                                {% if product.ref %}
+                                                    <span class="search-modal__item-ref">{{ 'Ref'|trans }}: {{ product.ref }}</span>
+                                                {% endif %}
+                                            </div>
+
+                                            <div class="search-modal__item-price">
+                                                {% if product.isPromo and product.promoPrice %}
+                                                    <span class="search-modal__item-price-original">{{ product.price|format_currency('EUR') }}</span>
+                                                    <span class="search-modal__item-price-promo">{{ product.promoPrice|format_currency('EUR') }}</span>
+                                                {% else %}
+                                                    <span class="search-modal__item-price-regular">{{ product.price|format_currency('EUR') }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+
+                            {# View All Link #}
+                            {% if this.totalCount > this.results|length %}
+                                <div class="search-modal__view-all">
+                                    <a href="{{ path('search') }}?q={{ this.query|url_encode }}" class="search-modal__view-all-link">
+                                        {{ 'View all %count% results'|trans({'%count%': this.totalCount}) }}
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M5 12h14"/>
+                                            <path d="m12 5 7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    {% else %}
+                        {# No Results #}
+                        <div class="search-modal__empty">
+                            <svg class="search-modal__empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.3-4.3"/>
+                                <path d="M8 8h6"/>
+                            </svg>
+                            <h4 class="search-modal__empty-title">{{ 'No results found'|trans }}</h4>
+                            <p class="search-modal__empty-text">
+                                {{ 'No products match "%query%". Try different keywords.'|trans({'%query%': this.query}) }}
+                            </p>
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    {# Initial State - Show Recent/Popular Searches #}
+                    <div class="search-modal__suggestions">
+                        {% if this.recentSearches|length > 0 %}
+                            <div class="search-modal__section">
+                                <div class="search-modal__section-header">
+                                    <h4 class="search-modal__section-title">{{ 'Recent searches'|trans }}</h4>
+                                    <button type="button"
+                                            class="search-modal__section-clear"
+                                            data-action="live#action"
+                                            data-live-action-param="clearRecentSearches">
+                                        {{ 'Clear'|trans }}
+                                    </button>
+                                </div>
+                                <ul class="search-modal__tag-list">
+                                    {% for search in this.recentSearches %}
+                                        <li>
+                                            <button type="button"
+                                                    class="search-modal__tag"
+                                                    data-action="live#action"
+                                                    data-live-action-param="setQuery"
+                                                    data-live-searchQuery-param="{{ search }}">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="10"/>
+                                                    <polyline points="12 6 12 12 16 14"/>
+                                                </svg>
+                                                {{ search }}
+                                            </button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if this.popularSearches|length > 0 %}
+                            <div class="search-modal__section">
+                                <h4 class="search-modal__section-title">{{ 'Popular searches'|trans }}</h4>
+                                <ul class="search-modal__tag-list">
+                                    {% for search in this.popularSearches %}
+                                        <li>
+                                            <button type="button"
+                                                    class="search-modal__tag search-modal__tag--popular"
+                                                    data-action="live#action"
+                                                    data-live-action-param="setQuery"
+                                                    data-live-searchQuery-param="{{ search }}">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                                </svg>
+                                                {{ search }}
+                                            </button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if this.recentSearches|length == 0 and this.popularSearches|length == 0 %}
+                            <div class="search-modal__hint">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="m21 21-4.3-4.3"/>
+                                </svg>
+                                <p>{{ 'Start typing to search products'|trans }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Keyboard Shortcuts Hint #}
+            <div class="search-modal__footer">
+                <div class="search-modal__shortcuts">
+                    <span class="search-modal__shortcut">
+                        <kbd>Esc</kbd>
+                        {{ 'to close'|trans }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Search Modal Styles */
+.search-modal {
+    display: none;
+}
+
+.search-modal--open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+}
+
+.search-modal__backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.search-modal__container {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 640px;
+    max-height: 80vh;
+    margin-top: 10vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.search-modal__content {
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    max-height: 70vh;
+    overflow: hidden;
+}
+
+/* Header */
+.search-modal__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.search-modal__search-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+.search-modal__search-icon {
+    flex-shrink: 0;
+    color: #9ca3af;
+}
+
+.search-modal__input {
+    flex: 1;
+    height: 44px;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    color: #111827;
+    background: transparent;
+}
+
+.search-modal__input::placeholder {
+    color: #9ca3af;
+}
+
+.search-modal__clear,
+.search-modal__close {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.search-modal__clear:hover,
+.search-modal__close:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+.search-modal__loader {
+    flex-shrink: 0;
+    color: #6b7280;
+}
+
+.search-modal__spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Body */
+.search-modal__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+}
+
+/* Results */
+.search-modal__results-header {
+    padding: 0 20px 12px;
+}
+
+.search-modal__results-count {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.search-modal__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.search-modal__item {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.search-modal__item:last-child {
+    border-bottom: none;
+}
+
+.search-modal__link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.search-modal__link:hover {
+    background-color: #f9fafb;
+}
+
+.search-modal__item-image {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f3f4f6;
+}
+
+.search-modal__item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.search-modal__item-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d1d5db;
+}
+
+.search-modal__item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-modal__item-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    margin: 0 0 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-modal__item-ref {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.search-modal__item-price {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.search-modal__item-price-regular {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.search-modal__item-price-original {
+    display: block;
+    font-size: 12px;
+    color: #9ca3af;
+    text-decoration: line-through;
+}
+
+.search-modal__item-price-promo {
+    font-size: 14px;
+    font-weight: 600;
+    color: #dc2626;
+}
+
+/* View All */
+.search-modal__view-all {
+    padding: 16px 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.search-modal__view-all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-primary, #2563eb);
+    text-decoration: none;
+}
+
+.search-modal__view-all-link:hover {
+    text-decoration: underline;
+}
+
+/* Empty State */
+.search-modal__empty {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.search-modal__empty-icon {
+    color: #d1d5db;
+    margin-bottom: 16px;
+}
+
+.search-modal__empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 8px;
+}
+
+.search-modal__empty-text {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Suggestions */
+.search-modal__suggestions {
+    padding: 0 20px;
+}
+
+.search-modal__section {
+    margin-bottom: 24px;
+}
+
+.search-modal__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.search-modal__section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.search-modal__section-clear {
+    font-size: 13px;
+    color: #6b7280;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.search-modal__section-clear:hover {
+    color: #111827;
+}
+
+.search-modal__tag-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search-modal__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.search-modal__tag:hover {
+    background-color: #e5e7eb;
+}
+
+.search-modal__tag--popular {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.search-modal__tag--popular:hover {
+    background-color: #fcd34d;
+}
+
+/* Hint */
+.search-modal__hint {
+    padding: 40px 20px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.search-modal__hint svg {
+    margin-bottom: 12px;
+}
+
+.search-modal__hint p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Footer */
+.search-modal__footer {
+    padding: 12px 20px;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.search-modal__shortcuts {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.search-modal__shortcut {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.search-modal__shortcut kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 20px;
+    padding: 0 6px;
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 11px;
+    color: #374151;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .search-modal__container {
+        margin-top: 0;
+        max-height: 100vh;
+    }
+
+    .search-modal__content {
+        border-radius: 0;
+        max-height: 100vh;
+    }
+
+    .search-modal__footer {
+        display: none;
+    }
+}
+</style>

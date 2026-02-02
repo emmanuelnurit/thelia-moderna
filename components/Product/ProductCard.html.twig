@@ -6,6 +6,10 @@
 {% set price = defaultPse.productPrices|first %}
 {% set productImages = resources('/api/front/product_images', {'product.id': product.id, position: 'ASC', itemsPerPage: 1}) %}
 
+{# Calculate taxed prices using TaxEngine via TaxedPriceExtension #}
+{% set taxedPrice = get_taxed_price(defaultPse.id, price.price) %}
+{% set taxedPromoPrice = defaultPse.promo and price.promoPrice > 0 ? get_taxed_promo_price(defaultPse.id, price.promoPrice) : null %}
+
 <article class="product-card">
     <div class="product-card-image">
         <a href="{{ product.publicUrl }}" class="product-card-imageLink">
@@ -23,8 +27,8 @@
         </a>
 
         {# Badges #}
-        {% if defaultPse.promo and price.promoPrice > 0 %}
-            {% set discount = ((price.price - price.promoPrice) / price.price * 100)|round %}
+        {% if defaultPse.promo and taxedPromoPrice %}
+            {% set discount = ((taxedPrice - taxedPromoPrice) / taxedPrice * 100)|round %}
             <div class="product-card-badges">
                 <span class="product-card-badge product-card-badge--promo">-{{ discount }}%</span>
             </div>
@@ -39,9 +43,9 @@
                 title: '{{ product.i18ns.title|e('js') }}',
                 publicUrl: '{{ product.publicUrl|e('js') }}',
                 imageId: {{ productImages|first.id|default(0) }},
-                price: '{{ price.price|format_currency('EUR') }}',
-                promoPrice: '{{ defaultPse.promo and price.promoPrice > 0 ? price.promoPrice|format_currency('EUR') : '' }}',
-                isPromo: {{ defaultPse.promo and price.promoPrice > 0 ? 'true' : 'false' }}
+                price: '{{ taxedPrice|format_currency('EUR') }}',
+                promoPrice: '{{ taxedPromoPrice ? taxedPromoPrice|format_currency('EUR') : '' }}',
+                isPromo: {{ taxedPromoPrice ? 'true' : 'false' }}
             })"
             @click.prevent="toggle()"
             :class="{ 'is-active': isInWishlist }"
@@ -58,11 +62,11 @@
             <a href="{{ product.publicUrl }}">{{ product.i18ns.title }}</a>
         </h3>
         <div class="product-card-price">
-            {% if defaultPse.promo and price.promoPrice > 0 %}
-                <span class="product-card-pricePromo">{{ price.promoPrice|format_currency('EUR') }}</span>
-                <span class="product-card-priceOriginal">{{ price.price|format_currency('EUR') }}</span>
+            {% if defaultPse.promo and taxedPromoPrice %}
+                <span class="product-card-pricePromo">{{ taxedPromoPrice|format_currency('EUR') }}</span>
+                <span class="product-card-priceOriginal">{{ taxedPrice|format_currency('EUR') }}</span>
             {% else %}
-                <span class="product-card-priceRegular">{{ price.price|format_currency('EUR') }}</span>
+                <span class="product-card-priceRegular">{{ taxedPrice|format_currency('EUR') }}</span>
             {% endif %}
         </div>
     </div>

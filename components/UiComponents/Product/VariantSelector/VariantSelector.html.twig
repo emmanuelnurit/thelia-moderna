@@ -1,0 +1,374 @@
+{#
+    VariantSelector LiveComponent - Modern.A
+    Product variant selection with color swatches and size buttons
+
+    This component is a Symfony UX LiveComponent that handles:
+    - Display of variant options (color, size, etc.)
+    - Color swatches and size buttons
+    - Price and stock updates based on selection
+    - Availability checking for combinations
+
+    Usage:
+    {{ component('Moderna:Product:VariantSelector', { productId: product.id }) }}
+#}
+
+<div {{ attributes.defaults(stimulus_controller('live', {
+    url: path('ux_live_component', { _live_component: 'Moderna:Product:VariantSelector' })
+})) }} class="variant-selector">
+
+    {% if this.attributeGroups|length > 0 %}
+        {# Attribute Groups #}
+        {% for group in this.attributeGroups %}
+            <div class="variant-selector__group">
+                <div class="variant-selector__label">
+                    <span class="variant-selector__label-name">{{ group.name }}</span>
+                    {% for value in group.values %}
+                        {% if value.selected %}
+                            <span class="variant-selector__label-value">{{ value.title }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="variant-selector__options">
+                    {% for value in group.values %}
+                        {# Check if this is a color attribute #}
+                        {% if value.colorCode %}
+                            {# Color Swatch #}
+                            <button type="button"
+                                    class="variant-selector__swatch {{ value.selected ? 'variant-selector__swatch--selected' : '' }} {{ not value.available ? 'variant-selector__swatch--unavailable' : '' }}"
+                                    style="--swatch-color: {{ value.colorCode }}"
+                                    data-action="live#action"
+                                    data-live-action-param="selectAttribute"
+                                    data-live-group-param="{{ group.code }}"
+                                    data-live-valueId-param="{{ value.id }}"
+                                    {% if not value.available %}disabled{% endif %}
+                                    title="{{ value.title }}{{ not value.available ? ' - ' ~ 'Unavailable'|trans : '' }}"
+                                    aria-label="{{ value.title }}">
+                                <span class="variant-selector__swatch-inner"></span>
+                                {% if value.selected %}
+                                    <svg class="variant-selector__swatch-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <path d="M20 6 9 17l-5-5"/>
+                                    </svg>
+                                {% endif %}
+                                {% if not value.available %}
+                                    <span class="variant-selector__swatch-strike"></span>
+                                {% endif %}
+                            </button>
+                        {% else %}
+                            {# Size/Text Button #}
+                            <button type="button"
+                                    class="variant-selector__button {{ value.selected ? 'variant-selector__button--selected' : '' }} {{ not value.available ? 'variant-selector__button--unavailable' : '' }}"
+                                    data-action="live#action"
+                                    data-live-action-param="selectAttribute"
+                                    data-live-group-param="{{ group.code }}"
+                                    data-live-valueId-param="{{ value.id }}"
+                                    {% if not value.available %}disabled{% endif %}
+                                    title="{{ not value.available ? 'Unavailable'|trans : '' }}">
+                                <span class="variant-selector__button-text">{{ value.title }}</span>
+                                {% if not value.available %}
+                                    <span class="variant-selector__button-strike"></span>
+                                {% endif %}
+                            </button>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+
+        {# Price Display #}
+        <div class="variant-selector__price">
+            {% if this.isPromo and this.promoPrice %}
+                <span class="variant-selector__price-original">{{ this.price|format_currency('EUR') }}</span>
+                <span class="variant-selector__price-promo">{{ this.promoPrice|format_currency('EUR') }}</span>
+                {% set discount = ((this.price - this.promoPrice) / this.price * 100)|round %}
+                <span class="variant-selector__price-badge">-{{ discount }}%</span>
+            {% else %}
+                <span class="variant-selector__price-regular">{{ this.price|format_currency('EUR') }}</span>
+            {% endif %}
+        </div>
+
+        {# Stock Status #}
+        <div class="variant-selector__stock">
+            {% if this.stock <= 0 %}
+                <div class="variant-selector__stock-status variant-selector__stock-status--error">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    <span>{{ 'Out of stock'|trans }}</span>
+                </div>
+            {% elseif this.stock <= 5 %}
+                <div class="variant-selector__stock-status variant-selector__stock-status--warning">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                        <path d="M12 9v4"/>
+                        <path d="M12 17h.01"/>
+                    </svg>
+                    <span>{{ 'Only %count% left in stock'|trans({'%count%': this.stock}) }}</span>
+                </div>
+            {% else %}
+                <div class="variant-selector__stock-status variant-selector__stock-status--success">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <path d="m9 11 3 3L22 4"/>
+                    </svg>
+                    <span>{{ 'In stock'|trans }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Reference #}
+        {% if this.reference %}
+            <div class="variant-selector__ref">
+                <span class="variant-selector__ref-label">{{ 'Ref'|trans }}:</span>
+                <span class="variant-selector__ref-value">{{ this.reference }}</span>
+            </div>
+        {% endif %}
+
+        {# Hidden input for selected PSE ID (for add to cart forms) #}
+        <input type="hidden" name="pse_id" value="{{ this.selectedPseId }}">
+
+    {% else %}
+        {# No variants - simple product #}
+        <div class="variant-selector__price">
+            {% if this.isPromo and this.promoPrice %}
+                <span class="variant-selector__price-original">{{ this.price|format_currency('EUR') }}</span>
+                <span class="variant-selector__price-promo">{{ this.promoPrice|format_currency('EUR') }}</span>
+            {% else %}
+                <span class="variant-selector__price-regular">{{ this.price|format_currency('EUR') }}</span>
+            {% endif %}
+        </div>
+
+        {% if this.selectedPseId %}
+            <input type="hidden" name="pse_id" value="{{ this.selectedPseId }}">
+        {% endif %}
+    {% endif %}
+</div>
+
+<style>
+/* Variant Selector Styles */
+.variant-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.variant-selector__group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.variant-selector__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.variant-selector__label-name {
+    font-weight: 600;
+    color: #111827;
+}
+
+.variant-selector__label-value {
+    color: #6b7280;
+}
+
+.variant-selector__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Color Swatches */
+.variant-selector__swatch {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    padding: 3px;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.variant-selector__swatch-inner {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: var(--swatch-color);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.variant-selector__swatch:hover:not(:disabled) {
+    border-color: #d1d5db;
+}
+
+.variant-selector__swatch--selected {
+    border-color: #111827;
+}
+
+.variant-selector__swatch--selected:hover {
+    border-color: #111827;
+}
+
+.variant-selector__swatch-check {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.variant-selector__swatch--unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.variant-selector__swatch-strike {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #dc2626;
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* Size/Text Buttons */
+.variant-selector__button {
+    position: relative;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: white;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+}
+
+.variant-selector__button:hover:not(:disabled) {
+    border-color: #9ca3af;
+    background-color: #f9fafb;
+}
+
+.variant-selector__button--selected {
+    border-color: #111827;
+    background-color: #111827;
+    color: white;
+}
+
+.variant-selector__button--selected:hover:not(:disabled) {
+    border-color: #111827;
+    background-color: #1f2937;
+}
+
+.variant-selector__button--unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.variant-selector__button-strike {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: #dc2626;
+    transform: translateY(-50%);
+}
+
+/* Price Display */
+.variant-selector__price {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.variant-selector__price-regular {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.variant-selector__price-original {
+    font-size: 18px;
+    color: #9ca3af;
+    text-decoration: line-through;
+}
+
+.variant-selector__price-promo {
+    font-size: 28px;
+    font-weight: 700;
+    color: #dc2626;
+}
+
+.variant-selector__price-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    background-color: #dc2626;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+}
+
+/* Stock Status */
+.variant-selector__stock-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.variant-selector__stock-status--success {
+    color: #16a34a;
+}
+
+.variant-selector__stock-status--warning {
+    color: #d97706;
+}
+
+.variant-selector__stock-status--error {
+    color: #dc2626;
+}
+
+/* Reference */
+.variant-selector__ref {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.variant-selector__ref-label {
+    color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .variant-selector__price-regular,
+    .variant-selector__price-promo {
+        font-size: 24px;
+    }
+
+    .variant-selector__price-original {
+        font-size: 16px;
+    }
+}
+</style>
