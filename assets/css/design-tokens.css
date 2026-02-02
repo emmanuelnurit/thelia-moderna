@@ -99,4 +99,17 @@
   --header-height: 64px;
   --drawer-width: 400px;
   --max-content-width: 1280px;
+
+  /* Container */
+  --container-max-width: 1400px;
+  --container-narrow: 960px;
+  --container-wide: 1600px;
+  --container-padding: 1.5rem;  /* 24px */
+}
+
+/* Responsive container padding */
+@media (max-width: 640px) {
+  :root {
+    --container-padding: 1rem;  /* 16px on mobile */
+  }
 }
